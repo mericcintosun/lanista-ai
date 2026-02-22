@@ -21,6 +21,18 @@ export interface Bot {
   current_hp?: number;
 }
 
+export interface StatDistribution {
+  points_hp: number;
+  points_attack: number;
+  points_defense: number;
+}
+
+export interface FinalStats {
+  hp: number;
+  attack: number;
+  defense: number;
+}
+
 export interface Match {
   id: string;
   player_1_id: string;
@@ -29,6 +41,8 @@ export interface Match {
   status: 'pending' | 'active' | 'finished';
   tx_hash?: string;
   created_at?: string;
+  p1_final_stats?: FinalStats;
+  p2_final_stats?: FinalStats;
   
   // Nested Bots for Frontend convenience
   player_1?: Bot;

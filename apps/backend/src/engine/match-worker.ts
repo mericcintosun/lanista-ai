@@ -20,15 +20,20 @@ export const matchWorker = new Worker('match-queue', async (job) => {
 
   console.log(`[Worker] Starting Match ${matchId} between ${p1.name} and ${p2.name}`);
 
+  // Kimin başlayacağını rastgele seç
+  let isP1Turn = Math.random() > 0.5;
+
   // Combat Loop
   while (p1_hp > 0 && p2_hp > 0) {
-    // Determine attacker
-    const isP1Attacking = Math.random() > 0.5;
+    // Determine attacker based on turns
+    const isP1Attacking = isP1Turn;
     const attacker = isP1Attacking ? p1 : p2;
     const defender = isP1Attacking ? p2 : p1;
 
-    // Damage calculator
-    const damage = Math.max(0, attacker.attack + Math.floor(Math.random() * 20) - defender.defense);
+    // YENİ SABİT MATEMATİK: Random kaldırıldı!
+    // Atak puanından, rakip defansının yarısını çıkarıyoruz.
+    // Minimum 1 hasar garantisi veriyoruz ki savaş kilitlenmesiz bitmesin.
+    const damage = Math.max(1, Math.floor(attacker.attack - (defender.defense / 2)));
     
     // Apply damage
     if (isP1Attacking) {
@@ -63,6 +68,9 @@ export const matchWorker = new Worker('match-queue', async (job) => {
 
     // "Seyir Zevki" gecikmesi
     await new Promise(res => setTimeout(res, 2000));
+
+    // Sırayı karşı tarafa geçir
+    isP1Turn = !isP1Turn;
 
     // End condition
     if (p1_hp <= 0 || p2_hp <= 0) break;

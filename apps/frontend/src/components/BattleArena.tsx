@@ -18,7 +18,17 @@ export function BattleArena() {
 
   const startCombat = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/combat/start', { method: 'POST' });
+      const res = await fetch('http://localhost:3001/api/combat/start', { 
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          // Geçici mock ajan stat dağılımları. İleride UI'dan veya AI'dan alınacak.
+          p1_dist: { points_hp: 25, points_attack: 15, points_defense: 10 },
+          p2_dist: { points_hp: 10, points_attack: 35, points_defense: 5 }
+        })
+      });
       const data = await res.json();
       setMatch(data.match);
       setMatchId(data.match.id);

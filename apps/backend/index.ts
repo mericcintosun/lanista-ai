@@ -11,6 +11,7 @@ import { connection } from './src/engine/match-worker.js';
 import './src/engine/match-worker.js'; // Ensure worker started
 import type { Bot, Match } from '@lanista/types';
 import { supabase } from './src/lib/supabase.js';
+import { calculateFinalStats } from './src/engine/referee.js';
 
 const app = express();
 app.use(cors());
@@ -46,27 +47,39 @@ let activeMatch: Match | null = null;
 app.post('/api/combat/start', async (req, res) => {
   const matchId = uuidv4();
   
-  // Real implementation would extract these from DB
-  const p1 = { ...mockP1, id: uuidv4() };
-  const p2 = { ...mockP2, id: uuidv4() };
+  // Backend artık ajandan gelen kararı zorunlu kılıyor
+  const p1Dist = req.body?.p1_dist;
+  const p2Dist = req.body?.p2_dist;
 
-  // Create match object
-  const match: Match = {
-    id: matchId,
-    player_1_id: p1.id,
-    player_2_id: p2.id,
-    player_1: p1,
-    player_2: p2,
-    status: 'active',
-    created_at: new Date().toISOString()
-  };
+  if (!p1Dist || !p2Dist) {
+    return res.status(400).json({ error: "Missing stat distributions for one or both agents. Expected 'p1_dist' and 'p2_dist' in JSON body." });
+  }
 
   try {
+    const p1Stats = calculateFinalStats(p1Dist);
+    const p2Stats = calculateFinalStats(p2Dist);
+
+    // Apply calculated stats to bots
+    const p1 = { ...mockP1, id: uuidv4(), hp: p1Stats.hp, current_hp: p1Stats.hp, attack: p1Stats.attack, defense: p1Stats.defense };
+    const p2 = { ...mockP2, id: uuidv4(), hp: p2Stats.hp, current_hp: p2Stats.hp, attack: p2Stats.attack, defense: p2Stats.defense };
+
+    // Create match object
+    const match: Match = {
+      id: matchId,
+      player_1_id: p1.id,
+      player_2_id: p2.id,
+      player_1: p1,
+      player_2: p2,
+      status: 'active',
+      created_at: new Date().toISOString()
+    };
+
     // Optionally create in DB
     if (process.env.SUPABASE_URL) {
       // First ensure bots exist or create them with correct DB schema columns
-      const dbP1 = { id: p1.id, name: p1.name, hp: p1.hp, attack: p1.attack, defense: p1.defense };
-      const dbP2 = { id: p2.id, name: p2.name, hp: p2.hp, attack: p2.attack, defense: p2.defense };
+      // Including the original base stats as default logic since they distribute stats over them
+      const dbP1 = { id: p1.id, name: p1.name, hp: p1Stats.hp, attack: p1Stats.attack, defense: p1Stats.defense };
+      const dbP2 = { id: p2.id, name: p2.name, hp: p2Stats.hp, attack: p2Stats.attack, defense: p2Stats.defense };
       
       const { error: bErr } = await supabase.from('bots').upsert([dbP1, dbP2]);
       if (bErr) console.error('Bot Upsert Error:', bErr);
@@ -75,26 +88,29 @@ app.post('/api/combat/start', async (req, res) => {
         id: match.id,
         player_1_id: match.player_1_id,
         player_2_id: match.player_2_id,
-        status: match.status
+        status: match.status,
+        p1_final_stats: p1Stats,
+        p2_final_stats: p2Stats
       });
       if (mErr) console.error('Match Insert Error:', mErr);
     }
-  } catch (err) {
-    console.error('Initial DB insert failed:', err);
+
+    activeMatch = match;
+
+    // Add the match job to BullMQ queue
+    await matchQueue.add('start-match', { 
+      matchId, 
+      p1, 
+      p2 
+    });
+
+    console.log(`Added Match ${matchId} to Queue`);
+
+    res.json({ message: 'Ajanlar kuşandı, savaş başlıyor!', match });
+  } catch (err: any) {
+    console.error('Combat constraint error:', err);
+    res.status(400).json({ error: err.message });
   }
-
-  activeMatch = match;
-
-  // Add the match job to BullMQ queue
-  await matchQueue.add('start-match', { 
-    matchId, 
-    p1, 
-    p2 
-  });
-
-  console.log(`Added Match ${matchId} to Queue`);
-
-  res.json({ message: 'Combat queued', match });
 });
 
 app.get('/api/combat/status', async (req, res) => {
