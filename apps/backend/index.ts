@@ -12,6 +12,10 @@ import './src/engine/match-worker.js'; // Ensure worker started
 import type { Bot, Match } from '@lanista/types';
 import { supabase } from './src/lib/supabase.js';
 import { calculateFinalStats } from './src/engine/referee.js';
+import Redis from 'ioredis';
+import jwt from 'jsonwebtoken';
+
+const redis = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
 
 const app = express();
 app.use(cors());
@@ -266,6 +270,131 @@ app.get('/api/combat/status', async (req, res) => {
   
   // If no DB just return memory
   res.json({ match: activeMatch, logs: [] });
+});
+
+// --- HUB / DASHBOARD ANALYTICS ENDPOINTS ---
+
+app.get('/api/v1/hub/queue', async (req, res) => {
+  try {
+    // We check redis directly if anyone is waiting
+    const waitingAgentId = await redis.get('matchmaking:waiting_agent');
+    if (waitingAgentId) {
+      const { data: bot } = await supabase.from('bots').select('id, name, avatar_url').eq('id', waitingAgentId).single();
+      return res.json({ queue: bot ? [bot] : [] });
+    }
+    return res.json({ queue: [] });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch queue" });
+  }
+});
+
+app.get('/api/v1/hub/live', async (req, res) => {
+  try {
+    const { data: matches, error } = await supabase
+      .from('matches')
+      .select('*, player_1:bots!matches_player_1_id_fkey(id, name, avatar_url), player_2:bots!matches_player_2_id_fkey(id, name, avatar_url)')
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    if (error) throw error;
+    res.json({ matches: matches || [] });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/v1/hub/recent', async (req, res) => {
+  try {
+    const { data: matches, error } = await supabase
+      .from('matches')
+      .select('*, player_1:bots!matches_player_1_id_fkey(id, name, avatar_url), player_2:bots!matches_player_2_id_fkey(id, name, avatar_url)')
+      .eq('status', 'finished')
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if (error) throw error;
+    res.json({ matches: matches || [] });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- HALL OF FAME ENDPOINTS ---
+
+app.get('/api/v1/leaderboard', async (req, res) => {
+  // Using a simplified counting approach due to lack of complex SQL RPC for now
+  try {
+    // 1. Fetch bots
+    const { data: bots, error: botErr } = await supabase.from('bots').select('id, name, avatar_url, description');
+    if (botErr) throw botErr;
+
+    // 2. Fetch all finished matches to aggregate wins manually (in-memory for simple demo)
+    const { data: matches, error: matchErr } = await supabase.from('matches').select('winner_id, player_1_id, player_2_id').eq('status', 'finished');
+    if (matchErr) throw matchErr;
+
+    if (!bots || !matches) return res.json({ leaderboard: [] });
+
+    const statsMap: Record<string, { id: string, name: string, avatar_url: string, wins: number, totalMatches: number }> = {};
+    
+    bots.forEach(b => {
+      statsMap[b.id] = { id: b.id, name: b.name, avatar_url: b.avatar_url, wins: 0, totalMatches: 0 };
+    });
+
+    matches.forEach(m => {
+      if (statsMap[m.player_1_id]) statsMap[m.player_1_id].totalMatches++;
+      if (statsMap[m.player_2_id]) statsMap[m.player_2_id].totalMatches++;
+      if (m.winner_id && statsMap[m.winner_id]) {
+        statsMap[m.winner_id].wins++;
+      }
+    });
+
+    const leaderboard = Object.values(statsMap)
+      .sort((a, b) => b.wins - a.wins)
+      .slice(0, 50); // Top 50
+
+    res.json({ leaderboard });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/v1/agent/:id', async (req, res) => {
+  try {
+    const { data: bot, error: botErr } = await supabase.from('bots').select('*').eq('id', req.params.id).single();
+    if (botErr || !bot) return res.status(404).json({ error: "Agent not found" });
+
+    const { data: matches, error: matchErr } = await supabase
+      .from('matches')
+      .select('*, player_1:bots!matches_player_1_id_fkey(name, avatar_url), player_2:bots!matches_player_2_id_fkey(name, avatar_url)')
+      .or(`player_1_id.eq.${bot.id},player_2_id.eq.${bot.id}`)
+      .order('created_at', { ascending: false });
+
+    if (matchErr) throw matchErr;
+
+    res.json({ agent: bot, history: matches || [] });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- ORACLE ENDPOINTS ---
+
+app.post('/api/v1/oracle/verify', async (req, res) => {
+  const { token } = req.body;
+  
+  if (!token) return res.status(400).json({ error: "Token is required." });
+
+  try {
+    // In production, matching SECRET should be used. Using a dummy secret for structural setup.
+    // Ensure you add JWT_SECRET to your environment variables later for true security.
+    const secret = process.env.JWT_SECRET || 'lanista-super-secret-key';
+    const decoded = jwt.verify(token, secret);
+    
+    res.json({ valid: true, proof: decoded });
+  } catch (error: any) {
+    res.status(401).json({ valid: false, error: "Invalid cryptographic signature. The token is corrupted or forged." });
+  }
 });
 
 const PORT = process.env.PORT || 3001;

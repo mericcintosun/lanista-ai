@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GladiatorCard } from './GladiatorCard';
 import { useCombatRealtime } from '../hooks/useCombatRealtime';
-import { Sword, Loader2, Sparkles } from 'lucide-react';
+import { Sparkles, Activity } from 'lucide-react';
+import { useParams, Link } from 'react-router-dom';
 
 export function BattleArena() {
-  const [matchId, setMatchId] = useState<string | null>(null);
-  const { match, logs, setMatch, setLogs } = useCombatRealtime(matchId);
+  const { matchId: routeMatchId } = useParams<{ matchId: string }>();
+  const { match, logs } = useCombatRealtime(routeMatchId || null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll logs
@@ -16,52 +17,30 @@ export function BattleArena() {
     }
   }, [logs]);
 
-  const startCombat = async () => {
-    try {
-      const res = await fetch('http://localhost:3001/api/combat/start', { 
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          // Geçici mock ajan stat dağılımları. İleride UI'dan veya AI'dan alınacak.
-          p1_dist: { points_hp: 25, points_attack: 15, points_defense: 10 },
-          p2_dist: { points_hp: 10, points_attack: 35, points_defense: 5 }
-        })
-      });
-      const data = await res.json();
-      setMatch(data.match);
-      setMatchId(data.match.id);
-      setLogs([]);
-    } catch (err) {
-      console.error(err);
-      alert('Backend is not running!');
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-8 relative overflow-hidden font-sans">
-      <div className="absolute inset-0 z-0 bg-neutral-950">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/20 blur-[120px] rounded-full mix-blend-screen" />
-      </div>
-
+    <div className="min-h-[80vh] flex flex-col items-center justify-center relative overflow-hidden font-sans">
       <div className="z-10 w-full max-w-5xl flex flex-col items-center">
-        <h1 className="text-6xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white to-neutral-500 mb-12 glitch-effect select-none" data-text="LANISTA">
-          LANISTA
-        </h1>
-
-        {!match ? (
-          <motion.button 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={startCombat}
-            className="px-8 py-4 bg-primary text-white font-bold tracking-widest uppercase text-sm rounded-full shadow-[0_0_40px_-10px_rgba(239,68,68,0.5)] flex items-center gap-3 transition-colors hover:bg-red-600"
-          >
-            <Sword className="w-5 h-5" />
-            Enter the Arena
-          </motion.button>
+        {!routeMatchId ? (
+          <div className="text-center space-y-6">
+            <h1 className="text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white to-neutral-500 mb-4 select-none">
+              THE ARENA
+            </h1>
+            <p className="text-neutral-400 font-mono text-sm">
+              You are currently not spectating a match.
+            </p>
+            <Link to="/" className="inline-block mt-4 px-8 py-4 bg-primary text-white font-bold tracking-widest uppercase text-sm rounded-full shadow-[0_0_40px_-10px_rgba(239,68,68,0.5)] transition-colors hover:bg-red-600">
+              Return to Hub
+            </Link>
+          </div>
+        ) : !match ? (
+          <div className="flex flex-col items-center justify-center gap-4 min-h-[50vh]">
+             <div className="w-12 h-12 relative">
+                <div className="absolute inset-0 rounded-full border-t-2 border-primary animate-spin" />
+             </div>
+             <p className="font-mono text-sm text-neutral-500 animate-pulse">Establishing connection to arena...</p>
+          </div>
         ) : (
-          <div className="w-full flex flex-col items-center gap-12">
+          <div className="w-full flex flex-col items-center gap-12 mt-8">
             {/* Arena View */}
             <div className="flex w-full items-center justify-between mt-8 relative">
               <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 text-neutral-800 text-9xl font-black italic select-none">VS</div>
@@ -73,12 +52,15 @@ export function BattleArena() {
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.5 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border-2 border-primary text-primary px-8 py-4 font-black text-3xl rotating uppercase skew-x-[-10deg] shadow-[0_0_20px_rgba(239,68,68,0.3)] bg-black/80 backdrop-blur-md"
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border-2 border-primary text-primary px-8 py-4 font-black text-3xl rotating uppercase skew-x-[-10deg] shadow-[0_0_20px_rgba(239,68,68,0.3)] bg-black/80 backdrop-blur-md whitespace-nowrap"
                   >
                     BATTLE OVER
                   </motion.div>
                 ) : (
-                  <Loader2 className="w-12 h-12 text-primary animate-spin opacity-50" />
+                  <div className="flex flex-col items-center gap-2">
+                    <Activity className="w-12 h-12 text-primary animate-pulse opacity-80" />
+                    <span className="text-[10px] uppercase tracking-widest text-primary font-bold">Live</span>
+                  </div>
                 )}
               </div>
 
@@ -100,10 +82,14 @@ export function BattleArena() {
                       initial={{ opacity: 0, x: -20, height: 0 }}
                       animate={{ opacity: 1, x: 0, height: 'auto' }}
                       className={`text-sm font-mono py-2 border-b border-neutral-800/50 flex justify-between items-start leading-relaxed ${
-                         log.action_type === 'CRITICAL' ? 'text-primary font-bold' : 'text-neutral-300'
+                         log.action_type === 'CRITICAL' ? 'text-primary font-bold' : 
+                         log.action_type === 'DEFEND' ? 'text-blue-400' : 'text-neutral-300'
                       }`}
                     >
-                      <span>{log.narrative}</span>
+                      <span className="flex-1">
+                        {log.action_type === 'DEFEND' ? '🛡️ ' : '⚔️ '}
+                        {log.narrative}
+                      </span>
                       {log.value > 0 && (
                         <span className="text-primary font-black ml-4 shrink-0 bg-primary/10 px-2 rounded">-{log.value}</span>
                       )}
@@ -119,14 +105,15 @@ export function BattleArena() {
             </div>
             
             {match.status === 'finished' && (
-              <motion.button 
+              <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                onClick={startCombat}
-                className="mt-6 px-8 py-3 bg-neutral-900 border border-neutral-800 text-white font-bold tracking-widest uppercase text-xs rounded hover:bg-neutral-800 transition-colors"
+                className="mt-6"
               >
-                Start New Match
-              </motion.button>
+                <Link to="/" className="px-8 py-3 bg-neutral-900 border border-neutral-800 text-white font-bold tracking-widest uppercase text-xs rounded hover:bg-neutral-800 transition-colors">
+                  Return to Hub
+                </Link>
+              </motion.div>
             )}
           </div>
         )}

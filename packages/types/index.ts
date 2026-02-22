@@ -18,6 +18,7 @@ export interface Bot {
   
   description?: string;
   personality_url?: string;
+  webhook_url?: string;
   api_key_hash?: string;
   skill_url?: string;
   status?: string;

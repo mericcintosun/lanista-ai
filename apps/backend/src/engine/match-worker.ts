@@ -21,41 +21,105 @@ export const matchWorker = new Worker('match-queue', async (job) => {
   console.log(`[Worker] Starting Match ${matchId} between ${p1.name} and ${p2.name}`);
 
   // Kimin başlayacağını rastgele seç
+  let currentTurn = 1;
   let isP1Turn = Math.random() > 0.5;
+  let p1_is_defending = false;
+  let p2_is_defending = false;
 
   // Combat Loop
   while (p1_hp > 0 && p2_hp > 0) {
-    // Determine attacker based on turns
-    const isP1Attacking = isP1Turn;
-    const attacker = isP1Attacking ? p1 : p2;
-    const defender = isP1Attacking ? p2 : p1;
+    const activeAgent = isP1Turn ? p1 : p2;
+    const targetAgent = isP1Turn ? p2 : p1;
 
-    // YENİ SABİT MATEMATİK: Random kaldırıldı!
-    // Atak puanından, rakip defansının yarısını çıkarıyoruz.
-    // Minimum 1 hasar garantisi veriyoruz ki savaş kilitlenmesiz bitmesin.
-    const damage = Math.max(1, Math.floor(attacker.attack - (defender.defense / 2)));
-    
-    // Apply damage
-    if (isP1Attacking) {
-      p2_hp -= damage;
+    // 1. STATE (OYUN DURUMU) HAZIRLIĞI
+    const gameState = {
+      match_id: matchId,
+      turn: currentTurn,
+      your_state: { 
+        hp: isP1Turn ? p1_hp : p2_hp, 
+        base_atk: activeAgent.attack, 
+        base_def: activeAgent.defense,
+        is_defending: isP1Turn ? p1_is_defending : p2_is_defending
+      },
+      opponent_state: { 
+        hp: isP1Turn ? p2_hp : p1_hp,
+        is_defending: isP1Turn ? p2_is_defending : p1_is_defending
+      },
+      prompt: "Sıra sende. Aksiyonunu seç: 'ATTACK' (Saldır) veya 'DEFEND' (Savunma yapıp bir sonraki tur alınan hasarı yarıya indir)."
+    };
+
+    let chosenAction = 'ATTACK'; // Default aksiyon
+    const timeoutMs = 8000;
+
+    // 2. AJANA SORUYORUZ (LLM Düşünme Payı)
+    if (activeAgent.webhook_url) {
+      try {
+        console.log(`[Turn ${currentTurn}] ${activeAgent.name} düşünülüyor...`);
+        // We'll use fetch since it's built-in, avoiding extra imports if not needed, but since axios is installed we can use that too. 
+        // Using global fetch for simplicity without adding new imports to this file yet.
+        const res = await fetch(activeAgent.webhook_url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(gameState),
+          signal: AbortSignal.timeout(timeoutMs) // Throw error if it takes longer than 8s
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.action) {
+            chosenAction = data.action.toUpperCase(); // 'ATTACK' veya 'DEFEND'
+          }
+        }
+      } catch (error) {
+        console.log(`[Timeout/Error] ${activeAgent.name} webhook cevap veremedi, varsayılan olarak saldırıyor!`, error instanceof Error ? error.message : '');
+      }
     } else {
-      p1_hp -= damage;
+      // "Dummy" ajanlar için ufak bir bekleme (Seyir Zevki) ve rastgele mantık
+      console.log(`[Turn ${currentTurn}] ${activeAgent.name} AI değil, varsayılan hareket.`);
+      await new Promise(res => setTimeout(res, 1000));
+      // %80 ihtimalle saldırır, %20 savunur
+      if (Math.random() > 0.8) chosenAction = 'DEFEND';
     }
 
-    const narrative = damage > 0 
-      ? `${attacker.name} attacked ${defender.name} and dealt ${damage} damage!` 
-      : `${attacker.name} tried to attack, but ${defender.name} blocked it!`;
+    // 3. AKSİYONUN İŞLENMESİ (RESOLUTION)
+    let damage = 0;
+    let narrative = "";
 
-    const target_current_hp = isP1Attacking ? Math.max(0, p2_hp) : Math.max(0, p1_hp);
-    const action_type = target_current_hp <= 0 ? 'CRITICAL' : 'ATTACK';
+    if (chosenAction === 'DEFEND') {
+      if (isP1Turn) p1_is_defending = true;
+      else p2_is_defending = true;
+      narrative = `${activeAgent.name} savunma pozisyonuna geçti!`;
+    } 
+    else {
+      // Default behavior is ATTACK
+      chosenAction = 'ATTACK';
+      
+      // Saldırı yaparsa savunmayı bırakır
+      if (isP1Turn) p1_is_defending = false;
+      else p2_is_defending = false;
+
+      // Hedef savunmadaysa defansını 2 ile çarp
+      const targetDefense = (isP1Turn ? p2_is_defending : p1_is_defending) ? (targetAgent.defense * 2) : targetAgent.defense;
+      
+      damage = Math.max(1, Math.floor(activeAgent.attack - (targetDefense / 2)));
+      
+      if (isP1Turn) p2_hp -= damage;
+      else p1_hp -= damage;
+
+      narrative = `${activeAgent.name} saldırdı ve ${damage} hasar verdi!`;
+    }
+
+    const target_current_hp = isP1Turn ? Math.max(0, p2_hp) : Math.max(0, p1_hp);
+    const action_type = target_current_hp <= 0 ? 'CRITICAL' : chosenAction;
 
     console.log(`[Combat] ${narrative} (Defender HP: ${target_current_hp})`);
 
+    // 4. SUPABASE LOGLAMA
     try {
       if (process.env.SUPABASE_URL) {
         await supabase.from('combat_logs').insert({
           match_id: matchId,
-          actor_id: attacker.id,
+          actor_id: activeAgent.id,
           action_type: action_type,
           value: damage,
           narrative,
@@ -66,11 +130,9 @@ export const matchWorker = new Worker('match-queue', async (job) => {
       console.error('[Worker] Superbase log error', err);
     }
 
-    // "Seyir Zevki" gecikmesi
-    await new Promise(res => setTimeout(res, 2000));
-
     // Sırayı karşı tarafa geçir
     isP1Turn = !isP1Turn;
+    currentTurn++;
 
     // End condition
     if (p1_hp <= 0 || p2_hp <= 0) break;
