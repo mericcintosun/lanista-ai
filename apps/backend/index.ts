@@ -20,6 +20,154 @@ app.use(express.json());
 // Initialize Queue
 const matchQueue = new Queue('match-queue', { connection });
 
+import { generateApiKey } from './src/services/auth.js';
+
+app.post('/api/v1/agents/register', async (req, res) => {
+  const { name, description, personality_url } = req.body;
+  
+  if (!name || typeof name !== 'string') {
+    return res.status(400).json({ error: "Missing required 'name' for the agent." });
+  }
+
+  try {
+    const { apiKey, hash } = generateApiKey();
+
+    if (!process.env.SUPABASE_URL) {
+      return res.status(503).json({ error: "Database not connected. Registration offline." });
+    }
+
+    const { data, error } = await supabase.from('bots').insert({
+      id: uuidv4(),
+      name,
+      description,
+      personality_url,
+      api_key_hash: hash,
+      status: 'active',
+      hp: 100,
+      attack: 10,
+      defense: 10
+    }).select().single();
+
+    if (error) {
+      console.error("Agent registration error:", error);
+      return res.status(400).json({ error: error.message });
+    }
+
+    res.json({
+      message: "Welcome to Lanista Arena, Agent.",
+      api_key: apiKey, 
+      bot_id: data.id
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+import { agentAuth } from './src/middleware/auth.js';
+
+app.post('/api/v1/agents/prepare-combat', agentAuth, async (req: any, res) => {
+  const { points_hp, points_attack, points_defense } = req.body;
+  const agent = req.agent; // Middleware'den gelen bot bilgisi
+
+  try {
+    // Hakem kontrolü
+    const finalStats = calculateFinalStats({
+      points_hp: points_hp || 0,
+      points_attack: points_attack || 0,
+      points_defense: points_defense || 0
+    });
+
+    // Hazırlanan statları ajanın veritabanı satırına "anlık stat" olarak kaydedelim
+    const { error } = await supabase
+      .from('bots')
+      .update({ 
+        current_battle_stats: finalStats,
+        status: 'ready'
+      })
+      .eq('id', agent.id);
+
+    if (error) throw error;
+
+    res.json({ 
+      success: true, 
+      message: "Combat preparation successful. Stats locked.",
+      stats: finalStats 
+    });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+import { findMatch } from './src/engine/matchmaker.js';
+
+app.post('/api/v1/agents/join-queue', agentAuth, async (req: any, res) => {
+  const agent = req.agent;
+  
+  if (agent.status !== 'ready') {
+    return res.status(400).json({ error: "Agent is not ready. Call /prepare-combat first." });
+  }
+
+  try {
+    // 1. Eşleşme ara (Redis üzerinden asenkron)
+    const opponentId = await findMatch(agent.id);
+
+    if (!opponentId) {
+      return res.json({ status: "waiting", message: "Matchmaking havuzuna eklendin. Rakip bekleniyor..." });
+    }
+
+    // 2. Eşleşme bulundu! Supabase'de maç kaydı oluştur
+    const matchId = uuidv4();
+    const { data: p1, error: p1Err } = await supabase.from('bots').select('*').eq('id', opponentId).single();
+    const { data: p2, error: p2Err } = await supabase.from('bots').select('*').eq('id', agent.id).single();
+
+    if (p1Err || p2Err || !p1 || !p2) {
+      return res.status(500).json({ error: "Failed to fetch paired agents from database." });
+    }
+    
+    const match: Match = {
+      id: matchId,
+      player_1_id: p1.id,
+      player_2_id: p2.id,
+      status: 'active',
+      p1_final_stats: p1.current_battle_stats,
+      p2_final_stats: p2.current_battle_stats
+    };
+    
+    await supabase.from('matches').insert({
+      id: match.id,
+      player_1_id: match.player_1_id,
+      player_2_id: match.player_2_id,
+      status: match.status,
+      p1_final_stats: match.p1_final_stats,
+      p2_final_stats: match.p2_final_stats
+    });
+
+    // Reset agent statuses to active from ready
+    await supabase.from('bots').update({ status: 'active' }).in('id', [p1.id, p2.id]);
+
+    activeMatch = match;
+
+    // 3. Maçı BullMQ kuyruğuna fırlat
+    await matchQueue.add('start-match', { 
+      matchId, 
+      p1: { ...p1, ...p1.current_battle_stats }, 
+      p2: { ...p2, ...p2.current_battle_stats } 
+    }, {
+      removeOnComplete: true, // Tamamlanan maçları Redis'ten temizle (Ölçeklenebilirlik için kritik)
+      attempts: 3
+    });
+
+    res.json({ 
+      status: "matched", 
+      matchId, 
+      opponent: p1.name,
+      message: "Arena kapıları açıldı!" 
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: "Matchmaking hatası." });
+  }
+});
+
 // Mock / Default Bots
 const mockP1: Bot = {
   id: uuidv4(),

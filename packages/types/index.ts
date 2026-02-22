@@ -16,6 +16,13 @@ export interface Bot {
   encrypted_private_key?: string;
   created_at?: string;
   
+  description?: string;
+  personality_url?: string;
+  api_key_hash?: string;
+  skill_url?: string;
+  status?: string;
+  current_battle_stats?: FinalStats;
+  
   // Frontend/Runtime Specifics (not always in DB)
   avatar_url?: string;
   current_hp?: number;
