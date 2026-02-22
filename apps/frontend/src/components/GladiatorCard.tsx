@@ -1,0 +1,64 @@
+import type { Gladiator } from '@lanista/types';
+import { motion } from 'framer-motion';
+
+interface Props {
+  gladiator: Gladiator;
+  isRight?: boolean;
+}
+
+export function GladiatorCard({ gladiator, isRight = false }: Props) {
+  const hpPercentage = Math.max(0, Math.min(100, (gladiator.current_hp / gladiator.max_hp) * 100));
+  const isDanger = hpPercentage < 25;
+
+  return (
+    <div className={`flex flex-col gap-4 w-72 ${isRight ? 'items-end' : 'items-start'}`}>
+      <div className="relative group perspective-1000">
+        <motion.div
+           initial={{ rotateY: isRight ? -10 : 10, opacity: 0 }}
+           animate={{ rotateY: 0, opacity: 1 }}
+           transition={{ duration: 0.8, ease: "easeOut" }}
+           className="bg-surface border border-neutral-800 p-4 rounded-xl shadow-2xl overflow-hidden relative"
+        >
+          <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          
+          <img 
+            src={gladiator.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${gladiator.name}`} 
+            alt={gladiator.name}
+            className={`w-48 h-48 object-cover rounded-lg mb-4 bg-neutral-900 ${isDanger ? 'animate-pulse' : ''}`}
+          />
+          
+          <h2 className="text-2xl font-black uppercase tracking-tighter text-white/90 mb-1" data-text={gladiator.name}>
+            {gladiator.name}
+          </h2>
+          
+          <div className="flex gap-4 text-xs font-mono text-neutral-400">
+            <span className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-red-500 rounded-full" /> ATK: {gladiator.atk}
+            </span>
+            <span className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-blue-500 rounded-full" /> DEF: {gladiator.def}
+            </span>
+          </div>
+        </motion.div>
+      </div>
+
+      <div className={`w-full flex flex-col gap-1 ${isRight ? 'items-end' : 'items-start'}`}>
+        <div className="flex justify-between w-full text-xs font-bold font-mono uppercase tracking-widest text-neutral-500">
+          <span>HP</span>
+          <span className={isDanger ? 'text-primary' : 'text-white'}>
+            {Math.floor(gladiator.current_hp)} / {gladiator.max_hp}
+          </span>
+        </div>
+        
+        <div className="w-full h-3 bg-neutral-900 rounded-full overflow-hidden border border-neutral-800">
+          <motion.div 
+            className={`h-full ${isDanger ? 'bg-primary' : 'bg-white'}`}
+            initial={{ width: '100%' }}
+            animate={{ width: `${hpPercentage}%` }}
+            transition={{ type: "spring", bounce: 0, duration: 0.8 }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
