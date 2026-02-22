@@ -1,39 +1,47 @@
 export enum ActionType {
   ATTACK = 'ATTACK',
-  HIT = 'HIT',
+  CRITICAL = 'CRITICAL',
   DEFEND = 'DEFEND',
   HEAL = 'HEAL',
-  DIE = 'DIE',
 }
 
-export interface Gladiator {
+export interface Bot {
   id: string;
   name: string;
+  owner_id?: string;
+  hp: number;
+  attack: number;
+  defense: number;
+  wallet_address?: string;
+  encrypted_private_key?: string;
+  created_at?: string;
+  
+  // Frontend/Runtime Specifics (not always in DB)
   avatar_url?: string;
-  max_hp: number;
-  current_hp: number;
-  atk: number;
-  def: number;
-  is_alive: boolean;
+  current_hp?: number;
 }
 
 export interface Match {
   id: string;
-  gladiator1: Gladiator;
-  gladiator2: Gladiator;
-  status: 'PENDING' | 'IN_PROGRESS' | 'FINISHED';
+  player_1_id: string;
+  player_2_id: string;
   winner_id?: string | null;
+  status: 'pending' | 'active' | 'finished';
+  tx_hash?: string;
   created_at?: string;
+  
+  // Nested Bots for Frontend convenience
+  player_1?: Bot;
+  player_2?: Bot;
 }
 
 export interface CombatLog {
-  id: string;
+  id?: number | string;
   match_id: string;
-  attacker_id: string;
-  defender_id: string;
-  action_type: ActionType;
-  damage?: number;
-  heal_amount?: number;
-  description: string;
-  timestamp: string;
+  actor_id: string;
+  action_type: ActionType | string;
+  value: number; // damage
+  narrative: string;
+  target_current_hp: number;
+  created_at?: string;
 }

@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { GladiatorCard } from './GladiatorCard';
 import { useCombatRealtime } from '../hooks/useCombatRealtime';
 import { Sword, Loader2, Sparkles } from 'lucide-react';
-import type { Match, CombatLog } from '@lanista/types';
 
 export function BattleArena() {
   const [matchId, setMatchId] = useState<string | null>(null);
@@ -32,13 +31,11 @@ export function BattleArena() {
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center p-8 relative overflow-hidden font-sans">
-      {/* Background dark brutalist styling */}
       <div className="absolute inset-0 z-0 bg-neutral-950">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/20 blur-[120px] rounded-full mix-blend-screen" />
       </div>
 
       <div className="z-10 w-full max-w-5xl flex flex-col items-center">
-        {/* Header */}
         <h1 className="text-6xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white to-neutral-500 mb-12 glitch-effect select-none" data-text="LANISTA">
           LANISTA
         </h1>
@@ -59,10 +56,10 @@ export function BattleArena() {
             <div className="flex w-full items-center justify-between mt-8 relative">
               <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 text-neutral-800 text-9xl font-black italic select-none">VS</div>
               
-              <GladiatorCard gladiator={match.gladiator1} />
+              {match.player_1 && <GladiatorCard bot={match.player_1} />}
               
               <div className="relative">
-                {match.status === 'FINISHED' ? (
+                {match.status === 'finished' ? (
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.5 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -75,7 +72,7 @@ export function BattleArena() {
                 )}
               </div>
 
-              <GladiatorCard gladiator={match.gladiator2} isRight />
+              {match.player_2 && <GladiatorCard bot={match.player_2} isRight />}
             </div>
 
             {/* Combat Log Stream Container */}
@@ -87,18 +84,18 @@ export function BattleArena() {
               
               <div ref={scrollRef} className="h-64 overflow-y-auto pr-4 flex flex-col gap-2 scrollbar-thin scrollbar-thumb-neutral-800 scrollbar-track-transparent">
                 <AnimatePresence initial={false}>
-                  {logs.map((log) => (
+                  {logs.map((log, idx) => (
                     <motion.div
-                      key={log.id}
+                      key={log.id || idx}
                       initial={{ opacity: 0, x: -20, height: 0 }}
                       animate={{ opacity: 1, x: 0, height: 'auto' }}
                       className={`text-sm font-mono py-2 border-b border-neutral-800/50 flex justify-between items-start leading-relaxed ${
-                         log.action_type === 'DIE' ? 'text-primary font-bold' : 'text-neutral-300'
+                         log.action_type === 'CRITICAL' ? 'text-primary font-bold' : 'text-neutral-300'
                       }`}
                     >
-                      <span>{log.description}</span>
-                      {log.damage > 0 && (
-                        <span className="text-primary font-black ml-4 shrink-0 bg-primary/10 px-2 rounded">-{log.damage}</span>
+                      <span>{log.narrative}</span>
+                      {log.value > 0 && (
+                        <span className="text-primary font-black ml-4 shrink-0 bg-primary/10 px-2 rounded">-{log.value}</span>
                       )}
                     </motion.div>
                   ))}
@@ -111,7 +108,7 @@ export function BattleArena() {
               </div>
             </div>
             
-            {match.status === 'FINISHED' && (
+            {match.status === 'finished' && (
               <motion.button 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}

@@ -1,9 +1,19 @@
 {
   "name": "lanista-monorepo",
+  "scripts": {
+    "dev:backend": "cd apps/backend && bun run dev",
+    "dev:frontend": "cd apps/frontend && bun run dev",
+    "dev": "bun run dev:backend & bun run dev:frontend"
+  },
   "version": "1.0.0",
   "private": true,
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "@supabase/supabase-js": "^2.97.0",
+    "bullmq": "^5.70.0",
+    "ioredis": "^5.9.3"
+  }
 }

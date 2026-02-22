@@ -1,13 +1,14 @@
-import type { Gladiator } from '@lanista/types';
+import type { Bot } from '@lanista/types';
 import { motion } from 'framer-motion';
 
 interface Props {
-  gladiator: Gladiator;
+  bot: Bot;
   isRight?: boolean;
 }
 
-export function GladiatorCard({ gladiator, isRight = false }: Props) {
-  const hpPercentage = Math.max(0, Math.min(100, (gladiator.current_hp / gladiator.max_hp) * 100));
+export function GladiatorCard({ bot, isRight = false }: Props) {
+  const current_hp = bot.current_hp ?? bot.hp;
+  const hpPercentage = Math.max(0, Math.min(100, (current_hp / bot.hp) * 100));
   const isDanger = hpPercentage < 25;
 
   return (
@@ -22,21 +23,21 @@ export function GladiatorCard({ gladiator, isRight = false }: Props) {
           <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           
           <img 
-            src={gladiator.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${gladiator.name}`} 
-            alt={gladiator.name}
+            src={bot.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${bot.name}`} 
+            alt={bot.name}
             className={`w-48 h-48 object-cover rounded-lg mb-4 bg-neutral-900 ${isDanger ? 'animate-pulse' : ''}`}
           />
           
-          <h2 className="text-2xl font-black uppercase tracking-tighter text-white/90 mb-1" data-text={gladiator.name}>
-            {gladiator.name}
+          <h2 className="text-2xl font-black uppercase tracking-tighter text-white/90 mb-1" data-text={bot.name}>
+            {bot.name}
           </h2>
           
           <div className="flex gap-4 text-xs font-mono text-neutral-400">
             <span className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-red-500 rounded-full" /> ATK: {gladiator.atk}
+              <div className="w-2 h-2 bg-red-500 rounded-full" /> ATK: {bot.attack}
             </span>
             <span className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-blue-500 rounded-full" /> DEF: {gladiator.def}
+              <div className="w-2 h-2 bg-blue-500 rounded-full" /> DEF: {bot.defense}
             </span>
           </div>
         </motion.div>
@@ -46,7 +47,7 @@ export function GladiatorCard({ gladiator, isRight = false }: Props) {
         <div className="flex justify-between w-full text-xs font-bold font-mono uppercase tracking-widest text-neutral-500">
           <span>HP</span>
           <span className={isDanger ? 'text-primary' : 'text-white'}>
-            {Math.floor(gladiator.current_hp)} / {gladiator.max_hp}
+            {Math.floor(current_hp)} / {bot.hp}
           </span>
         </div>
         

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import type { Match, CombatLog } from '@lanista/types';
 
-// These should be in .env.local, using defaults for now
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder-url.supabase.co';
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key';
 
@@ -15,15 +14,15 @@ export function useCombatRealtime(matchId: string | null) {
   useEffect(() => {
     if (!matchId) return;
 
-    // Initial fetch
     const fetchMatch = async () => {
-      // In a real app we'd fetch from DB. 
-      // For this POC, we'll try to fetch from backend API.
       try {
-        const res = await fetch(`http://localhost:3001/api/combat/status`);
+        const res = await fetch(`http://localhost:3001/api/combat/status?matchId=${matchId}`);
         if (res.ok) {
           const data = await res.json();
           setMatch(data.match);
+          if (data.logs) {
+            setLogs(data.logs);
+          }
         }
       } catch (err) {
         console.error('Failed to fetch match status', err);
@@ -32,7 +31,6 @@ export function useCombatRealtime(matchId: string | null) {
 
     fetchMatch();
 
-    // Setup realtime subscription
     const channel = supabase
       .channel(`combat-${matchId}`)
       .on(
@@ -47,20 +45,22 @@ export function useCombatRealtime(matchId: string | null) {
           const newLog = payload.new as CombatLog;
           setLogs((prev) => [...prev, newLog]);
           
-          // Update local match state based on log
           setMatch((prev) => {
             if (!prev) return prev;
             const next = { ...prev };
             
-            const dmg = newLog.damage || 0;
-            if (newLog.defender_id === next.gladiator1.id) {
-              next.gladiator1.current_hp = Math.max(0, next.gladiator1.current_hp - dmg);
-            } else if (newLog.defender_id === next.gladiator2.id) {
-              next.gladiator2.current_hp = Math.max(0, next.gladiator2.current_hp - dmg);
-            }
-            
-            if (newLog.action_type === 'DIE') {
-              next.status = 'FINISHED';
+            if (next.player_1 && next.player_2) {
+              const targetIsP1 = newLog.actor_id === next.player_2.id;
+              
+              if (targetIsP1) {
+                next.player_1.current_hp = newLog.target_current_hp;
+              } else {
+                next.player_2.current_hp = newLog.target_current_hp;
+              }
+
+              if (newLog.target_current_hp <= 0) {
+                next.status = 'finished';
+              }
             }
             
             return next;
