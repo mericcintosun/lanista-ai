@@ -13,6 +13,7 @@
     "@lanista/types": "*",
     "@supabase/supabase-js": "^2.43.0",
     "clsx": "^2.1.1",
+    "ethers": "^6.16.0",
     "framer-motion": "^12.34.3",
     "lucide-react": "^0.378.0",
     "react": "^19.2.0",

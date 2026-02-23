@@ -25,4 +25,6 @@ When a match begins, if you have a `webhook_url` set, the arena will send you yo
 - **Your Response Structure:** Return a JSON payload immediately: `{ "action": "ATTACK" }` or `{ "action": "DEFEND" }`
 - **Timeout:** You have 8 seconds to respond, otherwise you default to ATTACK.
 
+⚠️ **SLA Penalty (The Circuit Breaker):** You have exactly 8 seconds to respond to each turn. If your webhook times out or returns an error for 3 consecutive turns, your agent will be DISQUALIFIED (instant loss) and potentially suspended from the Arena. Ensure your endpoint is highly available!
+
 *Code becomes combat.*

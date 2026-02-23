@@ -1,5 +1,6 @@
 import { Worker } from 'bullmq';
 import { supabase } from '../lib/supabase.js';
+import { signCombatProof } from '../services/webhook.js';
 
 import Redis from 'ioredis';
 
@@ -19,6 +20,10 @@ export const matchWorker = new Worker('match-queue', async (job) => {
   let p2_hp = p2.hp;
 
   console.log(`[Worker] Starting Match ${matchId} between ${p1.name} and ${p2.name}`);
+
+  const MAX_TIMEOUT_STRIKES = 3;
+  let p1_timeout_count = 0;
+  let p2_timeout_count = 0;
 
   // Kimin başlayacağını rastgele seç
   let currentTurn = 1;
@@ -50,13 +55,12 @@ export const matchWorker = new Worker('match-queue', async (job) => {
 
     let chosenAction = 'ATTACK'; // Default aksiyon
     const timeoutMs = 8000;
+    let turnTimeout = false;
 
     // 2. AJANA SORUYORUZ (LLM Düşünme Payı)
     if (activeAgent.webhook_url) {
       try {
         console.log(`[Turn ${currentTurn}] ${activeAgent.name} düşünülüyor...`);
-        // We'll use fetch since it's built-in, avoiding extra imports if not needed, but since axios is installed we can use that too. 
-        // Using global fetch for simplicity without adding new imports to this file yet.
         const res = await fetch(activeAgent.webhook_url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -68,17 +72,63 @@ export const matchWorker = new Worker('match-queue', async (job) => {
           const data = await res.json();
           if (data && data.action) {
             chosenAction = data.action.toUpperCase(); // 'ATTACK' veya 'DEFEND'
+            if (isP1Turn) p1_timeout_count = 0; else p2_timeout_count = 0;
           }
+        } else {
+          turnTimeout = true;
         }
       } catch (error) {
-        console.log(`[Timeout/Error] ${activeAgent.name} webhook cevap veremedi, varsayılan olarak saldırıyor!`, error instanceof Error ? error.message : '');
+        console.log(`[Timeout/Error] ${activeAgent.name} webhook cevap veremedi!`);
+        turnTimeout = true;
       }
     } else {
-      // "Dummy" ajanlar için ufak bir bekleme (Seyir Zevki) ve rastgele mantık
-      console.log(`[Turn ${currentTurn}] ${activeAgent.name} AI değil, varsayılan hareket.`);
-      await new Promise(res => setTimeout(res, 1000));
-      // %80 ihtimalle saldırır, %20 savunur
-      if (Math.random() > 0.8) chosenAction = 'DEFEND';
+      console.log(`[Error] ${activeAgent.name} has no valid webhook URL!`);
+      turnTimeout = true;
+    }
+
+    // --- 🛡️ CIRCUIT BREAKER (ŞALTER) KONTROLÜ ---
+    let disqualified = false;
+    
+    if (turnTimeout) {
+      if (isP1Turn) p1_timeout_count++; else p2_timeout_count++;
+      
+      const currentStrikes = isP1Turn ? p1_timeout_count : p2_timeout_count;
+      
+      if (currentStrikes >= MAX_TIMEOUT_STRIKES) {
+        // AJAN DİSKALİFİYE EDİLİYOR! HP'sini sıfırla ve döngüyü kır.
+        if (isP1Turn) p1_hp = 0; else p2_hp = 0;
+        
+        const narrative = `🚨 DİSKALİFİYE! ${activeAgent.name}, ${MAX_TIMEOUT_STRIKES} tur boyunca bağlantı kuramadı. Şalter atıyor ve maç sonlandırılıyor!`;
+        disqualified = true;
+        
+        if (process.env.SUPABASE_URL) {
+          await supabase.from('combat_logs').insert({
+            match_id: matchId,
+            actor_id: activeAgent.id,
+            action_type: 'DISQUALIFIED',
+            value: 0,
+            narrative: narrative,
+            target_current_hp: 0
+          });
+        }
+        console.log(narrative);
+        break; // Döngüden çık, maç bitti!
+      } else {
+        // Diskalifiye olmadıysa cezası: Varsayılan olarak saldırı yapar.
+        chosenAction = 'ATTACK';
+        const warnNarrative = `⚠️ Gecikme İhlali (${currentStrikes}/${MAX_TIMEOUT_STRIKES})! ${activeAgent.name} körlemesine saldırıyor.`;
+        if (process.env.SUPABASE_URL) {
+          await supabase.from('combat_logs').insert({
+            match_id: matchId,
+            actor_id: activeAgent.id,
+            action_type: 'TIMEOUT_PENALTY',
+            value: 0,
+            narrative: warnNarrative,
+            target_current_hp: isP1Turn ? p2_hp : p1_hp
+          });
+        }
+        console.log(warnNarrative);
+      }
     }
 
     // 3. AKSİYONUN İŞLENMESİ (RESOLUTION)
@@ -139,12 +189,16 @@ export const matchWorker = new Worker('match-queue', async (job) => {
   }
 
   const winnerId = p1_hp > 0 ? p1.id : p2.id;
+  const loserId = p1_hp > 0 ? p2.id : p1.id;
   
   try {
+    const proof = await signCombatProof(matchId, winnerId, loserId);
+
     if (process.env.SUPABASE_URL) {
       await supabase.from('matches').update({
         status: 'finished',
-        winner_id: winnerId
+        winner_id: winnerId,
+        tx_hash: JSON.stringify(proof) // Save signature as proof
       }).eq('id', matchId);
       console.log(`[Worker] Match ${matchId} finished. Winner recorded: ${winnerId}`);
     } else {

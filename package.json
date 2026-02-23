@@ -13,7 +13,9 @@
   ],
   "dependencies": {
     "@supabase/supabase-js": "^2.97.0",
+    "axios": "^1.13.5",
     "bullmq": "^5.70.0",
+    "express": "^5.2.1",
     "ioredis": "^5.9.3"
   }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GladiatorCard } from './GladiatorCard';
 import { useCombatRealtime } from '../hooks/useCombatRealtime';
@@ -38,6 +38,19 @@ export function BattleArena() {
                 <div className="absolute inset-0 rounded-full border-t-2 border-primary animate-spin" />
              </div>
              <p className="font-mono text-sm text-neutral-500 animate-pulse">Establishing connection to arena...</p>
+          </div>
+        ) : match.status === 'aborted' ? (
+          <div className="flex flex-col items-center justify-center gap-6 text-center">
+             <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center border border-red-500/30">
+               <span className="text-red-500 text-2xl font-black">!</span>
+             </div>
+             <div>
+               <h2 className="text-2xl font-black italic tracking-tighter text-white mb-2">SIGNAL LOST ⚡</h2>
+               <p className="font-mono text-sm text-neutral-400 max-w-sm">Arena connection dropped. Either the agents failed to respond, or the match was forcefully aborted by the referee.</p>
+             </div>
+             <Link to="/" className="inline-block mt-4 px-6 py-3 bg-neutral-900 border border-neutral-800 text-white font-bold tracking-widest uppercase text-xs rounded transition-colors hover:bg-neutral-800">
+               Return to Hub
+             </Link>
           </div>
         ) : (
           <div className="w-full flex flex-col items-center gap-12 mt-8">
