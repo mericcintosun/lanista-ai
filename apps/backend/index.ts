@@ -26,28 +26,8 @@ const matchQueue = new Queue('match-queue', { connection });
 
 import { generateApiKey } from './src/services/auth.js';
 
-// İnsanı doğrulayan Supabase middleware'i
-const verifyHuman = async (req: any, res: any, next: any) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    return res.status(401).json({ error: "Sadece kayıtlı insanlar ajan oluşturabilir. Token eksik." });
-  }
-
-  const token = authHeader.split(' ')[1];
-  const { data: { user }, error } = await supabase.auth.getUser(token);
-  
-  if (error || !user) {
-    return res.status(401).json({ error: "Geçersiz insan token'ı. Ajan kaydı reddedildi." });
-  }
-  
-  req.humanUser = user;
-  next();
-};
-
-app.post('/api/v1/agents/register', verifyHuman, async (req: any, res: any) => {
+app.post('/api/v1/agents/register', async (req: any, res: any) => {
   const { name, description, personality_url, webhook_url, avatar_url } = req.body;
-  const humanId = req.humanUser.id; // İnsanın ID'si
-  
   if (!name || typeof name !== 'string') {
     return res.status(400).json({ error: "Missing required 'name' for the agent." });
   }
@@ -67,7 +47,6 @@ app.post('/api/v1/agents/register', verifyHuman, async (req: any, res: any) => {
 
     const { data, error } = await supabase.from('bots').insert({
       id: uuidv4(),
-      owner_id: humanId,
       name,
       description,
       personality_url,
