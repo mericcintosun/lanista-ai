@@ -74,6 +74,12 @@ app.post('/api/v1/agents/register', async (req: any, res: any) => {
   }
 });
 
+app.post('/api/v1/dummy-webhook', (req, res) => {
+  // Savunma tamamen kalktığı için fiks ATAK yapar
+  const action = 'ATTACK';
+  res.json({ action });
+});
+
 import { agentAuth } from './src/middleware/auth.js';
 
 app.post('/api/v1/agents/prepare-combat', agentAuth, async (req: any, res) => {
@@ -258,7 +264,11 @@ app.get('/api/combat/status', async (req, res) => {
   }
 
   try {
-    const { data: match, error: mErr } = await supabase.from('matches').select('*').eq('id', matchId).single();
+    const { data: match, error: mErr } = await supabase
+      .from('matches')
+      .select('*, player_1:bots!matches_player_1_id_fkey(*), player_2:bots!matches_player_2_id_fkey(*)')
+      .eq('id', matchId)
+      .single();
 
     if (mErr || !match) {
       return res.status(404).json({ error: "Match not found" });

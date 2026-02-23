@@ -1,14 +1,35 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GladiatorCard } from './GladiatorCard';
 import { useCombatRealtime } from '../hooks/useCombatRealtime';
-import { Sparkles, Activity } from 'lucide-react';
+import { Sparkles, Activity, Swords } from 'lucide-react';
 import { useParams, Link } from 'react-router-dom';
+import type { Match } from '@lanista/types';
+import { supabase } from '../lib/supabase';
 
 export function BattleArena() {
   const { matchId: routeMatchId } = useParams<{ matchId: string }>();
   const { match, logs } = useCombatRealtime(routeMatchId || null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [liveMatches, setLiveMatches] = useState<Match[]>([]);
+
+  useEffect(() => {
+    if (!routeMatchId) {
+      const fetchLiveMatches = async () => {
+        const { data } = await supabase
+          .from('matches')
+          .select('*, player_1:bots!matches_player_1_id_fkey(id, name, avatar_url), player_2:bots!matches_player_2_id_fkey(id, name, avatar_url)')
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
+          .limit(10);
+        if (data) setLiveMatches(data);
+      };
+      
+      fetchLiveMatches();
+      const sub = supabase.channel('arena:matches').on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, fetchLiveMatches).subscribe();
+      return () => { supabase.removeChannel(sub); };
+    }
+  }, [routeMatchId]);
 
   // Auto-scroll logs
   useEffect(() => {
@@ -21,16 +42,60 @@ export function BattleArena() {
     <div className="min-h-[80vh] flex flex-col items-center justify-center relative overflow-hidden font-sans">
       <div className="z-10 w-full max-w-5xl flex flex-col items-center">
         {!routeMatchId ? (
-          <div className="text-center space-y-6">
-            <h1 className="text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white to-neutral-500 mb-4 select-none">
-              THE ARENA
+          <div className="w-full space-y-6">
+            <h1 className="text-4xl font-black text-center italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white to-neutral-500 mb-8 select-none">
+              LIVE ARENA
             </h1>
-            <p className="text-neutral-400 font-mono text-sm">
-              You are currently not spectating a match.
-            </p>
-            <Link to="/" className="inline-block mt-4 px-8 py-4 bg-primary text-white font-bold tracking-widest uppercase text-sm rounded-full shadow-[0_0_40px_-10px_rgba(239,68,68,0.5)] transition-colors hover:bg-red-600">
-              Return to Hub
-            </Link>
+            <div className="space-y-4">
+              {liveMatches.length > 0 ? (
+                liveMatches.map((liveMatch) => (
+                  <Link key={liveMatch.id} to={`/arena/${liveMatch.id}`} className="block group">
+                    <motion.div 
+                      whileHover={{ scale: 1.01 }}
+                      className="flex items-center justify-between p-6 rounded-xl bg-black/40 border border-neutral-800 group-hover:border-primary/50 transition-colors relative overflow-hidden"
+                    >
+                      <div className="absolute left-0 top-0 w-1 h-full bg-primary" />
+                      
+                      <div className="flex items-center gap-8 w-full justify-center">
+                        <div className="flex items-center gap-4 text-right">
+                          <h4 className="font-bold text-white text-lg">{liveMatch.player_1?.name}</h4>
+                          <img 
+                            src={liveMatch.player_1?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${liveMatch.player_1?.name || 'p1'}`} 
+                            alt="" 
+                            className="w-12 h-12 rounded-full bg-neutral-900 ring-2 ring-neutral-800" 
+                          />
+                        </div>
+                        
+                        <div className="text-primary font-black italic text-2xl px-6 opacity-30">VS</div>
+
+                        <div className="flex items-center gap-4">
+                          <img 
+                            src={liveMatch.player_2?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${liveMatch.player_2?.name || 'p2'}`} 
+                            alt="" 
+                            className="w-12 h-12 rounded-full bg-neutral-900 ring-2 ring-neutral-800" 
+                          />
+                          <h4 className="font-bold text-white text-lg">{liveMatch.player_2?.name}</h4>
+                        </div>
+                      </div>
+
+                      <div className="absolute right-6 flex items-center gap-2 text-xs font-mono text-primary animate-pulse">
+                        <Swords className="w-4 h-4" /> Spectate
+                      </div>
+                    </motion.div>
+                  </Link>
+                ))
+              ) : (
+                <div className="text-center py-12 text-neutral-600 font-mono text-sm border border-dashed border-neutral-800 rounded-xl">
+                  No active battles currently in the arena. Waiting for agents...
+                </div>
+              )}
+            </div>
+            
+            <div className="text-center">
+              <Link to="/" className="inline-block mt-4 px-8 py-4 bg-primary text-white font-bold tracking-widest uppercase text-sm rounded-full shadow-[0_0_40px_-10px_rgba(239,68,68,0.5)] transition-colors hover:bg-red-600">
+                Return to Hub
+              </Link>
+            </div>
           </div>
         ) : !match ? (
           <div className="flex flex-col items-center justify-center gap-4 min-h-[50vh]">
@@ -65,9 +130,13 @@ export function BattleArena() {
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.5 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border-2 border-primary text-primary px-8 py-4 font-black text-3xl rotating uppercase skew-x-[-10deg] shadow-[0_0_20px_rgba(239,68,68,0.3)] bg-black/80 backdrop-blur-md whitespace-nowrap"
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border-2 border-primary text-primary px-8 py-4 font-black text-3xl rotating uppercase skew-x-[-10deg] shadow-[0_0_20px_rgba(239,68,68,0.3)] bg-black/80 backdrop-blur-md whitespace-nowrap text-center flex flex-col gap-2"
                   >
-                    BATTLE OVER
+                    <span>BATTLE OVER</span>
+                    <span className="text-sm font-bold tracking-widest text-white mt-1">
+                       {match.winner_id === match.player_1_id ? match.player_1?.name : 
+                        match.winner_id === match.player_2_id ? match.player_2?.name : 'UNKNOWN'} WINS!
+                    </span>
                   </motion.div>
                 ) : (
                   <div className="flex flex-col items-center gap-2">

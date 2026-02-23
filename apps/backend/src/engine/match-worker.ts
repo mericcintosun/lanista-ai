@@ -28,8 +28,6 @@ export const matchWorker = new Worker('match-queue', async (job) => {
   // Kimin başlayacağını rastgele seç
   let currentTurn = 1;
   let isP1Turn = Math.random() > 0.5;
-  let p1_is_defending = false;
-  let p2_is_defending = false;
 
   // Combat Loop
   while (p1_hp > 0 && p2_hp > 0) {
@@ -43,14 +41,12 @@ export const matchWorker = new Worker('match-queue', async (job) => {
       your_state: { 
         hp: isP1Turn ? p1_hp : p2_hp, 
         base_atk: activeAgent.attack, 
-        base_def: activeAgent.defense,
-        is_defending: isP1Turn ? p1_is_defending : p2_is_defending
+        base_def: activeAgent.defense
       },
       opponent_state: { 
-        hp: isP1Turn ? p2_hp : p1_hp,
-        is_defending: isP1Turn ? p2_is_defending : p1_is_defending
+        hp: isP1Turn ? p2_hp : p1_hp
       },
-      prompt: "Sıra sende. Aksiyonunu seç: 'ATTACK' (Saldır) veya 'DEFEND' (Savunma yapıp bir sonraki tur alınan hasarı yarıya indir)."
+      prompt: "Sıra sende. Aksiyonunu seç: 'ATTACK' (Saldır)."
     };
 
     let chosenAction = 'ATTACK'; // Default aksiyon
@@ -95,24 +91,20 @@ export const matchWorker = new Worker('match-queue', async (job) => {
       const currentStrikes = isP1Turn ? p1_timeout_count : p2_timeout_count;
       
       if (currentStrikes >= MAX_TIMEOUT_STRIKES) {
-        // AJAN DİSKALİFİYE EDİLİYOR! HP'sini sıfırla ve döngüyü kır.
-        if (isP1Turn) p1_hp = 0; else p2_hp = 0;
-        
-        const narrative = `🚨 DİSKALİFİYE! ${activeAgent.name}, ${MAX_TIMEOUT_STRIKES} tur boyunca bağlantı kuramadı. Şalter atıyor ve maç sonlandırılıyor!`;
-        disqualified = true;
-        
+        // Diskalifiye etmeyelim, bot sadece Default (Attack) atarak devam etsin
+        chosenAction = 'ATTACK';
+        const warnNarrative = `⚠️ Sistem İhlali (${currentStrikes})! ${activeAgent.name} bağlantısı koptu. Otomatik savaş modunda zayıf saldırıyor.`;
         if (process.env.SUPABASE_URL) {
           await supabase.from('combat_logs').insert({
             match_id: matchId,
             actor_id: activeAgent.id,
-            action_type: 'DISQUALIFIED',
+            action_type: 'TIMEOUT_PENALTY',
             value: 0,
-            narrative: narrative,
-            target_current_hp: 0
+            narrative: warnNarrative,
+            target_current_hp: isP1Turn ? p2_hp : p1_hp
           });
         }
-        console.log(narrative);
-        break; // Döngüden çık, maç bitti!
+        console.log(warnNarrative);
       } else {
         // Diskalifiye olmadıysa cezası: Varsayılan olarak saldırı yapar.
         chosenAction = 'ATTACK';
@@ -135,29 +127,25 @@ export const matchWorker = new Worker('match-queue', async (job) => {
     let damage = 0;
     let narrative = "";
 
-    if (chosenAction === 'DEFEND') {
-      if (isP1Turn) p1_is_defending = true;
-      else p2_is_defending = true;
-      narrative = `${activeAgent.name} savunma pozisyonuna geçti!`;
-    } 
-    else {
-      // Default behavior is ATTACK
-      chosenAction = 'ATTACK';
-      
-      // Saldırı yaparsa savunmayı bırakır
-      if (isP1Turn) p1_is_defending = false;
-      else p2_is_defending = false;
+    // Her durumda ATTACK sayıyoruz
+    chosenAction = 'ATTACK';
+    
+    // Normal defans hesabı
+    const targetDefense = targetAgent.defense;
 
-      // Hedef savunmadaysa defansını 2 ile çarp
-      const targetDefense = (isP1Turn ? p2_is_defending : p1_is_defending) ? (targetAgent.defense * 2) : targetAgent.defense;
-      
-      damage = Math.max(1, Math.floor(activeAgent.attack - (targetDefense / 2)));
-      
-      if (isP1Turn) p2_hp -= damage;
-      else p1_hp -= damage;
-
-      narrative = `${activeAgent.name} saldırdı ve ${damage} hasar verdi!`;
+    // Eğer ceza (timeout) yemişse hasarını "zayıf" yap (yarıya düşür)
+    let penaltyMultiplier = 1;
+    const currentStrikes = isP1Turn ? p1_timeout_count : p2_timeout_count;
+    if (currentStrikes >= MAX_TIMEOUT_STRIKES) {
+      penaltyMultiplier = 0.5; // Zayıf saldırı
     }
+    
+    damage = Math.max(1, Math.floor((activeAgent.attack * penaltyMultiplier) - (targetDefense / 2)));
+    
+    if (isP1Turn) p2_hp -= damage;
+    else p1_hp -= damage;
+
+    narrative = `${activeAgent.name} saldırdı ve ${damage} hasar verdi!`;
 
     const target_current_hp = isP1Turn ? Math.max(0, p2_hp) : Math.max(0, p1_hp);
     const action_type = target_current_hp <= 0 ? 'CRITICAL' : chosenAction;
@@ -183,6 +171,9 @@ export const matchWorker = new Worker('match-queue', async (job) => {
     // Sırayı karşı tarafa geçir
     isP1Turn = !isP1Turn;
     currentTurn++;
+
+    // Add a synthetic delay so matches don't end in 1 millisecond and can be seen "LIVE"
+    await new Promise(r => setTimeout(r, 1000));
 
     // End condition
     if (p1_hp <= 0 || p2_hp <= 0) break;

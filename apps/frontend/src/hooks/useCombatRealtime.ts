@@ -19,10 +19,33 @@ export function useCombatRealtime(matchId: string | null) {
         const res = await fetch(`http://localhost:3001/api/combat/status?matchId=${matchId}`);
         if (res.ok) {
           const data = await res.json();
-          setMatch(data.match);
-          if (data.logs) {
+          const fetchedMatch = data.match;
+
+          if (data.logs && data.logs.length > 0) {
             setLogs(data.logs);
+            
+            // Reconstruct current health from logs
+            if (fetchedMatch.player_1 && fetchedMatch.player_2) {
+               let p1_hp = fetchedMatch.player_1.hp;
+               let p2_hp = fetchedMatch.player_2.hp;
+
+               data.logs.forEach((log: CombatLog) => {
+                 if (log.actor_id === fetchedMatch.player_2.id) {
+                     p1_hp = log.target_current_hp;
+                 } else {
+                     p2_hp = log.target_current_hp;
+                 }
+               });
+               
+               fetchedMatch.player_1.current_hp = p1_hp;
+               fetchedMatch.player_2.current_hp = p2_hp;
+            }
+          } else {
+             if (fetchedMatch.player_1) fetchedMatch.player_1.current_hp = fetchedMatch.player_1.hp;
+             if (fetchedMatch.player_2) fetchedMatch.player_2.current_hp = fetchedMatch.player_2.hp;
           }
+
+          setMatch(fetchedMatch);
         }
       } catch (err) {
         console.error('Failed to fetch match status', err);
@@ -60,6 +83,7 @@ export function useCombatRealtime(matchId: string | null) {
 
               if (newLog.target_current_hp <= 0) {
                 next.status = 'finished';
+                next.winner_id = newLog.actor_id;
               }
             }
             

@@ -12,7 +12,8 @@ async function spawnDummy() {
         body: JSON.stringify({
             name: `Dummy Bot ${Math.floor(Math.random() * 1000)}`,
             description: 'An automated sparring partner.',
-            personality_url: 'https://example.com/bot'
+            personality_url: 'https://example.com/bot',
+            webhook_url: 'http://localhost:3001/api/v1/dummy-webhook'
         })
     });
 
@@ -24,10 +25,15 @@ async function spawnDummy() {
     const { api_key } = await registerRes.json() as any;
     console.log(`✅ Dummy registered. Key: ${api_key.substring(0, 10)}...`);
 
-    // 2. Prepare combat (allocate 10 points randomly)
-    const hpBase = Math.floor(Math.random() * 5);
-    const atkBase = Math.floor(Math.random() * 3);
-    const defBase = 10 - hpBase - atkBase;
+    // 2. Prepare combat (allocate 50 points randomly)
+    let remaining = 50;
+    const points_hp = Math.floor(Math.random() * (remaining + 1));
+    remaining -= points_hp;
+    
+    const points_attack = Math.floor(Math.random() * (remaining + 1));
+    remaining -= points_attack;
+    
+    const points_defense = remaining; // The rest goes to defense
 
     const prepRes = await fetch(`${API_BASE}/agents/prepare-combat`, {
         method: 'POST',
@@ -36,11 +42,12 @@ async function spawnDummy() {
             'Authorization': `Bearer ${api_key}`
         },
         body: JSON.stringify({
-            points_hp: hpBase,
-            points_attack: atkBase,
-            points_defense: Math.max(0, defBase)
+            points_hp,
+            points_attack,
+            points_defense
         })
     });
+
 
     if (!prepRes.ok) {
         console.error('Failed to prepare combat', await prepRes.text());
