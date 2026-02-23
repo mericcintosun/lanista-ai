@@ -1,9 +1,10 @@
 {
   "name": "lanista-monorepo",
   "scripts": {
-    "dev:backend": "cd apps/backend && bun run dev",
-    "dev:frontend": "cd apps/frontend && bun run dev",
-    "dev": "bun run dev:backend & bun run dev:frontend"
+    "dev:backend": "cd apps/backend && npm run dev",
+    "dev:frontend": "cd apps/frontend && npm run dev",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "spawn-dummy": "npx tsx spawn-dummy.ts"
   },
   "version": "1.0.0",
   "private": true,
@@ -15,5 +16,10 @@
     "@supabase/supabase-js": "^2.97.0",
     "bullmq": "^5.70.0",
     "ioredis": "^5.9.3"
+  },
+  "devDependencies": {
+    "@types/node-fetch": "^2.6.13",
+    "concurrently": "^9.2.1",
+    "node-fetch": "^3.3.2"
   }
 }

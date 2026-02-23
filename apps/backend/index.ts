@@ -28,7 +28,7 @@ import { generateApiKey } from './src/services/auth.js';
 
 app.post('/api/v1/agents/register', async (req, res) => {
   const { name, description, personality_url } = req.body;
-  
+
   if (!name || typeof name !== 'string') {
     return res.status(400).json({ error: "Missing required 'name' for the agent." });
   }
@@ -59,7 +59,7 @@ app.post('/api/v1/agents/register', async (req, res) => {
 
     res.json({
       message: "Welcome to Lanista Arena, Agent.",
-      api_key: apiKey, 
+      api_key: apiKey,
       bot_id: data.id
     });
   } catch (err: any) {
@@ -84,7 +84,7 @@ app.post('/api/v1/agents/prepare-combat', agentAuth, async (req: any, res) => {
     // Hazırlanan statları ajanın veritabanı satırına "anlık stat" olarak kaydedelim
     const { error } = await supabase
       .from('bots')
-      .update({ 
+      .update({
         current_battle_stats: finalStats,
         status: 'ready'
       })
@@ -92,10 +92,10 @@ app.post('/api/v1/agents/prepare-combat', agentAuth, async (req: any, res) => {
 
     if (error) throw error;
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: "Combat preparation successful. Stats locked.",
-      stats: finalStats 
+      stats: finalStats
     });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message });
@@ -106,7 +106,7 @@ import { findMatch } from './src/engine/matchmaker.js';
 
 app.post('/api/v1/agents/join-queue', agentAuth, async (req: any, res) => {
   const agent = req.agent;
-  
+
   if (agent.status !== 'ready') {
     return res.status(400).json({ error: "Agent is not ready. Call /prepare-combat first." });
   }
@@ -127,7 +127,7 @@ app.post('/api/v1/agents/join-queue', agentAuth, async (req: any, res) => {
     if (p1Err || p2Err || !p1 || !p2) {
       return res.status(500).json({ error: "Failed to fetch paired agents from database." });
     }
-    
+
     const match: Match = {
       id: matchId,
       player_1_id: p1.id,
@@ -136,7 +136,7 @@ app.post('/api/v1/agents/join-queue', agentAuth, async (req: any, res) => {
       p1_final_stats: p1.current_battle_stats,
       p2_final_stats: p2.current_battle_stats
     };
-    
+
     await supabase.from('matches').insert({
       id: match.id,
       player_1_id: match.player_1_id,
@@ -152,20 +152,20 @@ app.post('/api/v1/agents/join-queue', agentAuth, async (req: any, res) => {
     activeMatch = match;
 
     // 3. Maçı BullMQ kuyruğuna fırlat
-    await matchQueue.add('start-match', { 
-      matchId, 
-      p1: { ...p1, ...p1.current_battle_stats }, 
-      p2: { ...p2, ...p2.current_battle_stats } 
+    await matchQueue.add('start-match', {
+      matchId,
+      p1: { ...p1, ...p1.current_battle_stats },
+      p2: { ...p2, ...p2.current_battle_stats }
     }, {
       removeOnComplete: true, // Tamamlanan maçları Redis'ten temizle (Ölçeklenebilirlik için kritik)
       attempts: 3
     });
 
-    res.json({ 
-      status: "matched", 
-      matchId, 
+    res.json({
+      status: "matched",
+      matchId,
       opponent: p1.name,
-      message: "Arena kapıları açıldı!" 
+      message: "Arena kapıları açıldı!"
     });
   } catch (err: any) {
     res.status(500).json({ success: false, error: "Matchmaking hatası." });
@@ -198,7 +198,7 @@ let activeMatch: Match | null = null;
 
 app.post('/api/combat/start', async (req, res) => {
   const matchId = uuidv4();
-  
+
   // Backend artık ajandan gelen kararı zorunlu kılıyor
   const p1Dist = req.body?.p1_dist;
   const p2Dist = req.body?.p2_dist;
@@ -232,7 +232,7 @@ app.post('/api/combat/start', async (req, res) => {
       // Including the original base stats as default logic since they distribute stats over them
       const dbP1 = { id: p1.id, name: p1.name, hp: p1Stats.hp, attack: p1Stats.attack, defense: p1Stats.defense };
       const dbP2 = { id: p2.id, name: p2.name, hp: p2Stats.hp, attack: p2Stats.attack, defense: p2Stats.defense };
-      
+
       const { error: bErr } = await supabase.from('bots').upsert([dbP1, dbP2]);
       if (bErr) console.error('Bot Upsert Error:', bErr);
 
@@ -250,10 +250,10 @@ app.post('/api/combat/start', async (req, res) => {
     activeMatch = match;
 
     // Add the match job to BullMQ queue
-    await matchQueue.add('start-match', { 
-      matchId, 
-      p1, 
-      p2 
+    await matchQueue.add('start-match', {
+      matchId,
+      p1,
+      p2
     });
 
     console.log(`Added Match ${matchId} to Queue`);
@@ -267,9 +267,34 @@ app.post('/api/combat/start', async (req, res) => {
 
 app.get('/api/combat/status', async (req, res) => {
   const { matchId } = req.query;
-  
-  // If no DB just return memory
-  res.json({ match: activeMatch, logs: [] });
+
+  if (!matchId || typeof matchId !== 'string') {
+    return res.status(400).json({ error: 'Missing matchId' });
+  }
+
+  try {
+    // 1. Fetch the match and join bot data
+    const { data: match, error: matchErr } = await supabase
+      .from('matches')
+      .select('*, player_1:bots!matches_player_1_id_fkey(*), player_2:bots!matches_player_2_id_fkey(*)')
+      .eq('id', matchId)
+      .single();
+
+    if (matchErr || !match) {
+      return res.status(404).json({ error: 'Match not found' });
+    }
+
+    // 2. Fetch all logs for this match so far
+    const { data: logs, error: logsErr } = await supabase
+      .from('combat_logs')
+      .select('*')
+      .eq('match_id', matchId)
+      .order('created_at', { ascending: true });
+
+    res.json({ match, logs: logs || [] });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // --- HUB / DASHBOARD ANALYTICS ENDPOINTS ---
@@ -336,7 +361,7 @@ app.get('/api/v1/leaderboard', async (req, res) => {
     if (!bots || !matches) return res.json({ leaderboard: [] });
 
     const statsMap: Record<string, { id: string, name: string, avatar_url: string, wins: number, totalMatches: number }> = {};
-    
+
     bots.forEach(b => {
       statsMap[b.id] = { id: b.id, name: b.name, avatar_url: b.avatar_url, wins: 0, totalMatches: 0 };
     });
@@ -382,7 +407,7 @@ app.get('/api/v1/agent/:id', async (req, res) => {
 
 app.post('/api/v1/oracle/verify', async (req, res) => {
   const { token } = req.body;
-  
+
   if (!token) return res.status(400).json({ error: "Token is required." });
 
   try {
@@ -390,7 +415,7 @@ app.post('/api/v1/oracle/verify', async (req, res) => {
     // Ensure you add JWT_SECRET to your environment variables later for true security.
     const secret = process.env.JWT_SECRET || 'lanista-super-secret-key';
     const decoded = jwt.verify(token, secret);
-    
+
     res.json({ valid: true, proof: decoded });
   } catch (error: any) {
     res.status(401).json({ valid: false, error: "Invalid cryptographic signature. The token is corrupted or forged." });
