@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, ShieldAlert, KeyRound, TerminalSquare } from 'lucide-react';
+import { ethers } from 'ethers';
 
 export default function Oracle() {
   const [token, setToken] = useState('');
-  const [result, setResult] = useState<{ valid: boolean, proof?: any, error?: string } | null>(null);
+  const [result, setResult] = useState<{ valid: boolean, proof?: Record<string, string>, error?: string } | null>(null);
   const [loading, setLoading] = useState(false);
 
   const verifyToken = async () => {
@@ -13,15 +14,31 @@ export default function Oracle() {
     setResult(null);
 
     try {
-      const res = await fetch('http://localhost:3001/api/v1/oracle/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token })
-      });
-      const data = await res.json();
-      setResult(data);
-    } catch (err) {
-      setResult({ valid: false, error: "Network error connecting to the Oracle." });
+      // Beklenen format: match-worker.ts'den veritabanına JSON string olarak kaydedilmiş hali
+      const payload = JSON.parse(token);
+
+      const messageHash = ethers.solidityPackedKeccak256(
+         ['string', 'string', 'string'],
+         [payload.match_id, payload.winner_id, payload.loser_id]
+      );
+
+      // İmzayı kontrol et
+      const recoveredAddress = ethers.verifyMessage(ethers.getBytes(messageHash), payload.signature);
+
+      if (recoveredAddress === payload.arena_signer) {
+         setResult({ 
+           valid: true, 
+           proof: { 
+             matchId: payload.match_id, 
+             winnerId: payload.winner_id,
+             signer: recoveredAddress
+           } 
+         });
+      } else {
+         throw new Error("Geçersiz İmza. Sertifika tahrif edilmiş!");
+      }
+    } catch (err: unknown) {
+      setResult({ valid: false, error: err instanceof Error ? err.message : "Sertifika okunamadı veya bozuk formatta!" });
     } finally {
       setLoading(false);
     }
@@ -82,15 +99,15 @@ export default function Oracle() {
                     <div className="space-y-3 font-mono text-sm">
                        <div className="flex justify-between border-b border-green-500/10 pb-2">
                          <span className="text-green-500/60 uppercase">Match ID</span>
-                         <span className="text-green-400">{result.proof.matchId}</span>
+                         <span className="text-green-400">{result.proof.matchId.substring(0,8)}</span>
                        </div>
                        <div className="flex justify-between border-b border-green-500/10 pb-2">
-                         <span className="text-green-500/60 uppercase">Winner</span>
-                         <span className="text-green-400 font-bold">{result.proof.winnerId}</span>
+                         <span className="text-green-500/60 uppercase">Winner ID</span>
+                         <span className="text-green-400 font-bold">{result.proof.winnerId.substring(0,8)}</span>
                        </div>
                        <div className="flex justify-between pb-2">
-                         <span className="text-green-500/60 uppercase">Timestamp</span>
-                         <span className="text-green-400">{new Date(result.proof.timestamp).toLocaleString()}</span>
+                         <span className="text-green-500/60 uppercase">Signed By</span>
+                         <span className="text-green-400 font-mono text-xs">{result.proof.signer}</span>
                        </div>
                     </div>
                   </div>

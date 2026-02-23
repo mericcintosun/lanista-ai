@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { BattleArena } from './components/BattleArena';
 import Hub from './pages/Hub';
@@ -7,9 +7,24 @@ import HallOfFame from './pages/HallOfFame';
 import Oracle from './pages/Oracle';
 import './index.css';
 
+function GlobalMatchDirector() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const matchId = searchParams.get('matchId');
+    if (matchId) {
+      navigate(`/arena/${matchId}`);
+    }
+  }, [searchParams, navigate]);
+
+  return null;
+}
+
 function App() {
   return (
     <BrowserRouter>
+      <GlobalMatchDirector />
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Hub />} />

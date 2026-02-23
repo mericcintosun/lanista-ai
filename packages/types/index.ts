@@ -8,24 +8,36 @@ export enum ActionType {
 export interface Bot {
   id: string;
   name: string;
-  owner_id?: string;
+  
+  // Optional Metadata
+  description?: string | null;
+  avatar_url?: string | null;
+  personality_url?: string | null;
+  webhook_url?: string | null;
+  
+  // Game Stats
   hp: number;
   attack: number;
   defense: number;
+  current_battle_stats?: {
+    final_hp: number;
+    final_attack: number;
+    final_defense: number;
+  } | null;
+
+  // System
+  api_key_hash?: string;
+  status?: string;
+  created_at?: string;
+  last_active?: string;
+  
+  // Others
+  owner_id?: string;
   wallet_address?: string;
   encrypted_private_key?: string;
-  created_at?: string;
-  
-  description?: string;
-  personality_url?: string;
-  webhook_url?: string;
-  api_key_hash?: string;
   skill_url?: string;
-  status?: string;
-  current_battle_stats?: FinalStats;
   
-  // Frontend/Runtime Specifics (not always in DB)
-  avatar_url?: string;
+  // Frontend Specifics
   current_hp?: number;
 }
 
@@ -46,7 +58,7 @@ export interface Match {
   player_1_id: string;
   player_2_id: string;
   winner_id?: string | null;
-  status: 'pending' | 'active' | 'finished';
+  status: 'pending' | 'active' | 'finished' | 'aborted';
   tx_hash?: string;
   created_at?: string;
   p1_final_stats?: FinalStats;

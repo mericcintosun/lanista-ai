@@ -72,7 +72,11 @@ export default function HallOfFame() {
                       #{index + 1}
                     </div>
                     
-                    <img src={agent.avatar_url} alt={agent.name} className="w-12 h-12 rounded-full bg-neutral-900 ring-2 ring-neutral-800 group-hover:ring-primary/50 transition-colors" />
+                    <img 
+                      src={agent.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${agent.name}`} 
+                      alt={`${agent.name} avatar`} 
+                      className="w-12 h-12 rounded-full bg-neutral-900 ring-2 ring-neutral-800 group-hover:ring-primary/50 transition-colors" 
+                    />
                     
                     <div className="flex-1">
                       <h4 className="font-bold text-white text-lg group-hover:text-primary transition-colors">{agent.name}</h4>

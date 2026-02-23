@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Users, Swords, History, Zap, Shield, Sparkles } from 'lucide-react';
+import { Users, Swords, History, Sparkles } from 'lucide-react';
 import type { Match, Bot } from '@lanista/types';
+import { supabase } from '../lib/supabase';
 
 export default function Hub() {
   const [queue, setQueue] = useState<Bot[]>([]);
@@ -10,17 +11,30 @@ export default function Hub() {
   const [recentMatches, setRecentMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchHubData = async () => {
+  const fetchMatches = async () => {
     try {
-      const [queueRes, liveRes, recentRes] = await Promise.all([
-        fetch('http://localhost:3001/api/v1/hub/queue').then(r => r.json()),
-        fetch('http://localhost:3001/api/v1/hub/live').then(r => r.json()),
-        fetch('http://localhost:3001/api/v1/hub/recent').then(r => r.json())
-      ]);
+      // 1. Fetch active
+      const { data: active } = await supabase
+        .from('matches')
+        .select('*, player_1:bots!matches_player_1_id_fkey(id, name, avatar_url), player_2:bots!matches_player_2_id_fkey(id, name, avatar_url)')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(5);
+      
+      // 2. Fetch history
+      const { data: recent } = await supabase
+        .from('matches')
+        .select('*, player_1:bots!matches_player_1_id_fkey(id, name, avatar_url), player_2:bots!matches_player_2_id_fkey(id, name, avatar_url)')
+        .eq('status', 'finished')
+        .order('created_at', { ascending: false })
+        .limit(10);
 
+      // 3. Fetch queue from backend since it tracks redis pool
+      const queueRes = await fetch('http://localhost:3001/api/v1/hub/queue').then(r => r.json()).catch(() => ({ queue: [] }));
+
+      if (active) setLiveMatches(active);
+      if (recent) setRecentMatches(recent);
       if (queueRes.queue) setQueue(queueRes.queue);
-      if (liveRes.matches) setLiveMatches(liveRes.matches);
-      if (recentRes.matches) setRecentMatches(recentRes.matches);
     } catch (err) {
       console.error("Failed to fetch hub data", err);
     } finally {
@@ -29,9 +43,19 @@ export default function Hub() {
   };
 
   useEffect(() => {
-    fetchHubData();
-    const interval = setInterval(fetchHubData, 5000); // Refresh every 5s
-    return () => clearInterval(interval);
+    fetchMatches();
+    
+    // Realtime Aboneliği: Yeni maç başladığında veya bittiğinde listeyi güncelle
+    const matchSubscription = supabase
+      .channel('public:matches')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, () => {
+        fetchMatches(); // Değişiklik olunca verileri tazeleyelim
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(matchSubscription);
+    };
   }, []);
 
   if (loading) {
@@ -60,7 +84,7 @@ export default function Hub() {
           <Link to="/skill.md" target="_blank" className="px-6 py-3 bg-white text-black font-bold tracking-widest text-xs uppercase rounded hover:bg-neutral-200 transition-colors">
             Integrate Your Agent
           </Link>
-          <button onClick={fetchHubData} className="px-6 py-3 border border-neutral-800 text-neutral-300 font-bold tracking-widest text-xs uppercase rounded hover:bg-neutral-900 transition-colors">
+          <button onClick={fetchMatches} className="px-6 py-3 border border-neutral-800 text-neutral-300 font-bold tracking-widest text-xs uppercase rounded hover:bg-neutral-900 transition-colors">
             Refresh Data
           </button>
         </div>
@@ -80,7 +104,11 @@ export default function Hub() {
               {queue.length > 0 ? (
                 queue.map((agent) => (
                   <div key={agent.id} className="flex items-center gap-4 p-4 rounded-xl bg-black/40 border border-neutral-800">
-                    <img src={agent.avatar_url} alt={agent.name} className="w-10 h-10 rounded-full bg-neutral-900" />
+                    <img 
+                      src={agent.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${agent.name}`} 
+                      alt={agent.name} 
+                      className="w-10 h-10 rounded-full bg-neutral-900" 
+                    />
                     <div>
                       <h4 className="font-bold text-sm text-white">{agent.name}</h4>
                       <p className="text-xs text-neutral-500 font-mono">Status: WAITING</p>
@@ -117,14 +145,22 @@ export default function Hub() {
                         {/* P1 */}
                         <div className="flex items-center gap-4 text-right">
                           <h4 className="font-bold text-white text-lg">{match.player_1?.name}</h4>
-                          <img src={match.player_1?.avatar_url} alt="" className="w-12 h-12 rounded-full bg-neutral-900 ring-2 ring-neutral-800" />
+                          <img 
+                            src={match.player_1?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${match.player_1?.name || 'p1'}`} 
+                            alt="" 
+                            className="w-12 h-12 rounded-full bg-neutral-900 ring-2 ring-neutral-800" 
+                          />
                         </div>
                         
                         <div className="text-primary font-black italic text-2xl px-6 opacity-30">VS</div>
 
                         {/* P2 */}
                         <div className="flex items-center gap-4">
-                          <img src={match.player_2?.avatar_url} alt="" className="w-12 h-12 rounded-full bg-neutral-900 ring-2 ring-neutral-800" />
+                          <img 
+                            src={match.player_2?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${match.player_2?.name || 'p2'}`} 
+                            alt="" 
+                            className="w-12 h-12 rounded-full bg-neutral-900 ring-2 ring-neutral-800" 
+                          />
                           <h4 className="font-bold text-white text-lg">{match.player_2?.name}</h4>
                         </div>
                       </div>
