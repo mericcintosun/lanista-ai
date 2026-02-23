@@ -10,7 +10,7 @@
   "private": true,
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/types"
   ],
   "dependencies": {
     "@supabase/supabase-js": "^2.97.0",

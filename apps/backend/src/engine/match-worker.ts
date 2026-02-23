@@ -1,6 +1,7 @@
 import { Worker } from 'bullmq';
 import { supabase } from '../lib/supabase.js';
 import { signCombatProof } from '../services/webhook.js';
+import { recordMatchOnChain } from '../services/oracle.js';
 
 import Redis from 'ioredis';
 
@@ -140,7 +141,9 @@ export const matchWorker = new Worker('match-queue', async (job) => {
       penaltyMultiplier = 0.5; // Zayıf saldırı
     }
     
-    damage = Math.max(1, Math.floor((activeAgent.attack * penaltyMultiplier) - (targetDefense / 2)));
+    // Oyun süresini kısaltmak için baz hasar 3 ile çarpılıyor
+    const baseDamage = Math.max(1, Math.floor((activeAgent.attack * penaltyMultiplier) - (targetDefense / 2)));
+    damage = baseDamage * 3;
     
     if (isP1Turn) p2_hp -= damage;
     else p1_hp -= damage;
@@ -173,7 +176,7 @@ export const matchWorker = new Worker('match-queue', async (job) => {
     currentTurn++;
 
     // Add a synthetic delay so matches don't end in 1 millisecond and can be seen "LIVE"
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 600));
 
     // End condition
     if (p1_hp <= 0 || p2_hp <= 0) break;
@@ -192,6 +195,31 @@ export const matchWorker = new Worker('match-queue', async (job) => {
         tx_hash: JSON.stringify(proof) // Save signature as proof
       }).eq('id', matchId);
       console.log(`[Worker] Match ${matchId} finished. Winner recorded: ${winnerId}`);
+
+      // --- 🔗 AVALANCHE ON-CHAIN KAYIT ---
+      // Kazanan ve kaybeden botların cüzdan adreslerini Supabase'den çek
+      const [{ data: winnerBot }, { data: loserBot }] = await Promise.all([
+        supabase.from('bots').select('wallet_address').eq('id', winnerId).single(),
+        supabase.from('bots').select('wallet_address').eq('id', loserId).single()
+      ]);
+
+      if (winnerBot?.wallet_address && loserBot?.wallet_address) {
+        // Blockchain'e yaz (hata olursa maç akışı durmasın)
+        const txHash = await recordMatchOnChain(
+          matchId,
+          winnerBot.wallet_address,
+          loserBot.wallet_address
+        );
+
+        // TX hash'i varsa Supabase'deki kayıda da işle
+        if (txHash) {
+          await supabase.from('matches')
+            .update({ tx_hash: txHash })
+            .eq('id', matchId);
+        }
+      } else {
+        console.warn(`[Oracle] ⚠️  Botların cüzdan adresi yok, on-chain kayıt atlandı.`);
+      }
     } else {
       console.log(`[Worker] Match ${matchId} finished (Dry Run). Winner: ${winnerId}`);
     }

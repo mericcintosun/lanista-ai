@@ -25,7 +25,8 @@ app.use(express.json());
 const matchQueue = new Queue('match-queue', { connection });
 
 import { generateApiKey } from './src/services/auth.js';
-
+import { encrypt } from './src/services/crypto.js';
+import { ethers } from 'ethers';
 app.post('/api/v1/agents/register', async (req: any, res: any) => {
   const { name, description, personality_url, webhook_url, avatar_url } = req.body;
   if (!name || typeof name !== 'string') {
@@ -45,6 +46,10 @@ app.post('/api/v1/agents/register', async (req: any, res: any) => {
 
     const finalAvatarUrl = avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(name)}`;
 
+    // Her bot yaratılışında rastgele bir Avalanche/EVM cüzdanı oluştur
+    const wallet = ethers.Wallet.createRandom();
+    const encryptedPrivateKey = encrypt(wallet.privateKey);
+
     const { data, error } = await supabase.from('bots').insert({
       id: uuidv4(),
       name,
@@ -53,6 +58,8 @@ app.post('/api/v1/agents/register', async (req: any, res: any) => {
       webhook_url,
       avatar_url: finalAvatarUrl,
       api_key_hash: hash,
+      wallet_address: wallet.address,
+      encrypted_private_key: encryptedPrivateKey,
       status: 'active',
       hp: 100,
       attack: 10,
@@ -339,7 +346,7 @@ app.get('/api/v1/leaderboard', async (req, res) => {
   // Using a simplified counting approach due to lack of complex SQL RPC for now
   try {
     // 1. Fetch bots
-    const { data: bots, error: botErr } = await supabase.from('bots').select('id, name, avatar_url, description');
+    const { data: bots, error: botErr } = await supabase.from('bots').select('id, name, avatar_url, description, wallet_address');
     if (botErr) throw botErr;
 
     // 2. Fetch all finished matches to aggregate wins manually (in-memory for simple demo)
@@ -348,10 +355,10 @@ app.get('/api/v1/leaderboard', async (req, res) => {
 
     if (!bots || !matches) return res.json({ leaderboard: [] });
 
-    const statsMap: Record<string, { id: string, name: string, avatar_url: string, wins: number, totalMatches: number }> = {};
+    const statsMap: Record<string, { id: string, name: string, avatar_url: string, wallet_address?: string, wins: number, totalMatches: number }> = {};
 
     bots.forEach(b => {
-      statsMap[b.id] = { id: b.id, name: b.name, avatar_url: b.avatar_url, wins: 0, totalMatches: 0 };
+      statsMap[b.id] = { id: b.id, name: b.name, avatar_url: b.avatar_url, wallet_address: b.wallet_address, wins: 0, totalMatches: 0 };
     });
 
     matches.forEach(m => {
@@ -393,19 +400,29 @@ app.get('/api/v1/agent/:id', async (req, res) => {
 
 // --- ORACLE ENDPOINTS ---
 
-app.post('/api/v1/oracle/verify', async (req, res) => {
-  const { token } = req.body;
-
-  if (!token) return res.status(400).json({ error: "Token is required." });
-
+// Tamamlanmış tüm maçları on-chain TX bilgileriyle birlikte getirir
+app.get('/api/v1/oracle/matches', async (req, res) => {
   try {
-    // We already moved to ethers in the frontend for robust signing,
-    // this endpoint is deprecated if the frontend uses standard json signatures
-    // or we can just leave it as is if its not used anymore.
-    res.status(410).json({ valid: false, error: "Use frontend ethers.verifyMessage instead." });
+    const { data: matches, error } = await supabase
+      .from('matches')
+      .select(`
+        id, tx_hash, created_at, winner_id, player_1_id, player_2_id,
+        player_1:bots!matches_player_1_id_fkey(name, avatar_url, wallet_address),
+        player_2:bots!matches_player_2_id_fkey(name, avatar_url, wallet_address)
+      `)
+      .eq('status', 'finished')
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (error) throw error;
+    res.json({ matches: matches || [] });
   } catch (error: any) {
-    res.status(401).json({ valid: false, error: "Invalid signature" });
+    res.status(500).json({ error: error.message });
   }
+});
+
+app.post('/api/v1/oracle/verify', async (req, res) => {
+  res.status(410).json({ valid: false, error: "Deprecated. Check /api/v1/oracle/matches for on-chain records." });
 });
 
 // --- STALE MATCH SWEEPER (CRON) ---

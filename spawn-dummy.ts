@@ -74,4 +74,13 @@ async function spawnDummy() {
     }
 }
 
-spawnDummy().catch(console.error);
+async function main() {
+    for (let i = 0; i < 5; i++) {
+        console.log(`\n--- Spawning Bot ${i + 1} of 5 ---`);
+        await spawnDummy();
+        // İsteğe bağlı, logların daha rahat okunması için kısa bir bekleme
+        await new Promise(r => setTimeout(r, 500)); 
+    }
+}
+
+main().catch(console.error);

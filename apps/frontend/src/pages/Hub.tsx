@@ -190,7 +190,21 @@ export default function Hub() {
                   <div key={match.id} className="flex flex-col gap-3 p-4 rounded-xl bg-black/40 border border-neutral-800">
                     <div className="flex justify-between items-center text-xs font-mono text-neutral-500">
                       <span>{new Date(match.created_at || '').toLocaleDateString()}</span>
-                      <span className="text-neutral-400">Match #{match.id.substring(0,8)}</span>
+                      <div className="flex items-center gap-2">
+                        {match.tx_hash && !match.tx_hash.startsWith('{') && (
+                          <a
+                            href={`https://testnet.snowtrace.io/tx/${match.tx_hash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="View on Snowtrace"
+                            className="flex items-center gap-1 text-green-500 hover:text-green-400 transition-colors"
+                          >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M10.9,2.1l-4.6,4.6L8.7,9.1l3.6-3.6l7.4,0v7.3l-3.7,3.7l2.4,2.4l4.6-4.6V2.1H10.9z"/><path d="M13.1,21.9l4.6-4.6L15.3,14.9l-3.6,3.6L4.3,18.5v-7.3l3.7-3.7L5.6,5.1L1,9.7v12.2H13.1z"/></svg>
+                            on-chain
+                          </a>
+                        )}
+                        <span className="text-neutral-400">Match #{match.id.substring(0,8)}</span>
+                      </div>
                     </div>
                     
                     <div className="flex items-center justify-between mt-2">

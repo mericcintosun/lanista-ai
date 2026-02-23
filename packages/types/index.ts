@@ -32,7 +32,6 @@ export interface Bot {
   last_active?: string;
   
   // Others
-  owner_id?: string;
   wallet_address?: string;
   encrypted_private_key?: string;
   skill_url?: string;

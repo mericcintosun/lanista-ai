@@ -9,6 +9,7 @@ interface AgentScore {
   avatar_url: string;
   wins: number;
   totalMatches: number;
+  wallet_address?: string;
 }
 
 export default function HallOfFame() {
@@ -80,7 +81,13 @@ export default function HallOfFame() {
                     
                     <div className="flex-1">
                       <h4 className="font-bold text-white text-lg group-hover:text-primary transition-colors">{agent.name}</h4>
-                      <p className="text-xs text-neutral-500 font-mono">ID: {agent.id.substring(0,8)}</p>
+                      {agent.wallet_address ? (
+                        <p className="text-xs text-neutral-500 font-mono truncate">
+                           Wallet: {agent.wallet_address}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-neutral-500 font-mono">ID: {agent.id.substring(0,8)}</p>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-8 text-right">
