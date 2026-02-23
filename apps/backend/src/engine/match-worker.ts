@@ -1,187 +1,142 @@
 import { Worker } from 'bullmq';
 import { supabase } from '../lib/supabase.js';
 import { signCombatProof } from '../services/webhook.js';
+import { evaluateStrategy, resolveAction, DEFAULT_STRATEGY } from './strategy.js';
+import type { Strategy, GameState } from './strategy.js';
 
 import Redis from 'ioredis';
 
 // Use REDIS_URL directly if provided, important for BullMQ
-export const connection: any = process.env.REDIS_URL 
+export const connection: any = process.env.REDIS_URL
   ? new Redis(process.env.REDIS_URL, { maxRetriesPerRequest: null })
-  : new Redis({ 
-      host: '127.0.0.1', 
-      port: parseInt(process.env.REDIS_PORT || '6379'), 
-      maxRetriesPerRequest: null 
-    });
+  : new Redis({
+    host: '127.0.0.1',
+    port: parseInt(process.env.REDIS_PORT || '6379'),
+    maxRetriesPerRequest: null
+  });
 
 export const matchWorker = new Worker('match-queue', async (job) => {
   const { matchId, p1, p2 } = job.data;
-  
+
+  // Load strategies (submitted during prepare-combat, or use defaults)
+  const p1Strategy: Strategy = p1.strategy || DEFAULT_STRATEGY;
+  const p2Strategy: Strategy = p2.strategy || DEFAULT_STRATEGY;
+
   let p1_hp = p1.hp;
   let p2_hp = p2.hp;
+  const p1_max_hp = p1.hp;
+  const p2_max_hp = p2.hp;
 
-  console.log(`[Worker] Starting Match ${matchId} between ${p1.name} and ${p2.name}`);
+  // Track vulnerability from HEAVY_ATTACK
+  let p1_vulnerable = false;
+  let p2_vulnerable = false;
 
-  const MAX_TIMEOUT_STRIKES = 3;
-  let p1_timeout_count = 0;
-  let p2_timeout_count = 0;
+  console.log(`[Worker] Match ${matchId}: ${p1.name} vs ${p2.name}`);
 
-  // Kimin başlayacağını rastgele seç
   let currentTurn = 1;
   let isP1Turn = Math.random() > 0.5;
 
-  // Combat Loop
+  // Combat Loop — fully automatic, no waiting
   while (p1_hp > 0 && p2_hp > 0) {
     const activeAgent = isP1Turn ? p1 : p2;
     const targetAgent = isP1Turn ? p2 : p1;
+    const activeStrategy = isP1Turn ? p1Strategy : p2Strategy;
+    const activeHp = isP1Turn ? p1_hp : p2_hp;
+    const activeMaxHp = isP1Turn ? p1_max_hp : p2_max_hp;
+    const targetHp = isP1Turn ? p2_hp : p1_hp;
+    const isVulnerable = isP1Turn ? p1_vulnerable : p2_vulnerable;
 
-    // 1. STATE (OYUN DURUMU) HAZIRLIĞI
-    const gameState = {
-      match_id: matchId,
-      turn: currentTurn,
-      your_state: { 
-        hp: isP1Turn ? p1_hp : p2_hp, 
-        base_atk: activeAgent.attack, 
-        base_def: activeAgent.defense
-      },
-      opponent_state: { 
-        hp: isP1Turn ? p2_hp : p1_hp
-      },
-      prompt: "Sıra sende. Aksiyonunu seç: 'ATTACK' (Saldır)."
+    // Build game state for strategy evaluation
+    const state: GameState = {
+      my_hp: activeHp,
+      my_max_hp: activeMaxHp,
+      opp_hp: targetHp,
+      my_atk: activeAgent.attack,
+      my_def: activeAgent.defense,
+      turn: currentTurn
     };
 
-    let chosenAction = 'ATTACK'; // Default aksiyon
-    const timeoutMs = 8000;
-    let turnTimeout = false;
+    // Evaluate strategy — weighted random based on HP bracket
+    const chosenAction = evaluateStrategy(activeStrategy, state);
 
-    // 2. AJANA SORUYORUZ (LLM Düşünme Payı)
-    if (activeAgent.webhook_url) {
-      try {
-        console.log(`[Turn ${currentTurn}] ${activeAgent.name} düşünülüyor...`);
-        const res = await fetch(activeAgent.webhook_url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(gameState),
-          signal: AbortSignal.timeout(timeoutMs) // Throw error if it takes longer than 8s
-        });
-        
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.action) {
-            chosenAction = data.action.toUpperCase(); // 'ATTACK' veya 'DEFEND'
-            if (isP1Turn) p1_timeout_count = 0; else p2_timeout_count = 0;
-          }
-        } else {
-          turnTimeout = true;
-        }
-      } catch (error) {
-        console.log(`[Timeout/Error] ${activeAgent.name} webhook cevap veremedi!`);
-        turnTimeout = true;
-      }
+    // Resolve the action
+    const result = resolveAction(
+      chosenAction,
+      { name: activeAgent.name, attack: activeAgent.attack, defense: activeAgent.defense, hp: activeHp, max_hp: activeMaxHp },
+      { defense: targetAgent.defense, hp: targetHp }
+    );
+
+    // Apply vulnerability modifier (from previous HEAVY_ATTACK by opponent)
+    let actualDamage = result.damage;
+    if (isVulnerable && result.damage > 0) {
+      // This agent is vulnerable — they don't deal extra, they TAKE extra
+      // (vulnerability is applied when they get HIT, not when they attack)
+    }
+
+    // Apply damage to target (with vulnerability check on TARGET)
+    const targetVulnerable = isP1Turn ? p2_vulnerable : p1_vulnerable;
+    if (targetVulnerable && actualDamage > 0) {
+      actualDamage = Math.floor(actualDamage * 1.3);
+    }
+
+    if (actualDamage > 0) {
+      if (isP1Turn) p2_hp -= actualDamage;
+      else p1_hp -= actualDamage;
+    }
+
+    // Apply healing
+    if (result.healing > 0) {
+      if (isP1Turn) p1_hp = Math.min(p1_max_hp, p1_hp + result.healing);
+      else p2_hp = Math.min(p2_max_hp, p2_hp + result.healing);
+    }
+
+    // Update vulnerability state
+    if (isP1Turn) {
+      p1_vulnerable = result.vulnerable;
     } else {
-      console.log(`[Error] ${activeAgent.name} has no valid webhook URL!`);
-      turnTimeout = true;
+      p2_vulnerable = result.vulnerable;
     }
 
-    // --- 🛡️ CIRCUIT BREAKER (ŞALTER) KONTROLÜ ---
-    let disqualified = false;
-    
-    if (turnTimeout) {
-      if (isP1Turn) p1_timeout_count++; else p2_timeout_count++;
-      
-      const currentStrikes = isP1Turn ? p1_timeout_count : p2_timeout_count;
-      
-      if (currentStrikes >= MAX_TIMEOUT_STRIKES) {
-        // Diskalifiye etmeyelim, bot sadece Default (Attack) atarak devam etsin
-        chosenAction = 'ATTACK';
-        const warnNarrative = `⚠️ Sistem İhlali (${currentStrikes})! ${activeAgent.name} bağlantısı koptu. Otomatik savaş modunda zayıf saldırıyor.`;
-        if (process.env.SUPABASE_URL) {
-          await supabase.from('combat_logs').insert({
-            match_id: matchId,
-            actor_id: activeAgent.id,
-            action_type: 'TIMEOUT_PENALTY',
-            value: 0,
-            narrative: warnNarrative,
-            target_current_hp: isP1Turn ? p2_hp : p1_hp
-          });
-        }
-        console.log(warnNarrative);
-      } else {
-        // Diskalifiye olmadıysa cezası: Varsayılan olarak saldırı yapar.
-        chosenAction = 'ATTACK';
-        const warnNarrative = `⚠️ Gecikme İhlali (${currentStrikes}/${MAX_TIMEOUT_STRIKES})! ${activeAgent.name} körlemesine saldırıyor.`;
-        if (process.env.SUPABASE_URL) {
-          await supabase.from('combat_logs').insert({
-            match_id: matchId,
-            actor_id: activeAgent.id,
-            action_type: 'TIMEOUT_PENALTY',
-            value: 0,
-            narrative: warnNarrative,
-            target_current_hp: isP1Turn ? p2_hp : p1_hp
-          });
-        }
-        console.log(warnNarrative);
-      }
+    // Build narrative (include vulnerability bonus info)
+    let narrative = result.narrative;
+    if (targetVulnerable && actualDamage > result.damage) {
+      narrative += ` (🔥 +30% vulnerability bonus!)`;
     }
-
-    // 3. AKSİYONUN İŞLENMESİ (RESOLUTION)
-    let damage = 0;
-    let narrative = "";
-
-    // Her durumda ATTACK sayıyoruz
-    chosenAction = 'ATTACK';
-    
-    // Normal defans hesabı
-    const targetDefense = targetAgent.defense;
-
-    // Eğer ceza (timeout) yemişse hasarını "zayıf" yap (yarıya düşür)
-    let penaltyMultiplier = 1;
-    const currentStrikes = isP1Turn ? p1_timeout_count : p2_timeout_count;
-    if (currentStrikes >= MAX_TIMEOUT_STRIKES) {
-      penaltyMultiplier = 0.5; // Zayıf saldırı
-    }
-    
-    damage = Math.max(1, Math.floor((activeAgent.attack * penaltyMultiplier) - (targetDefense / 2)));
-    
-    if (isP1Turn) p2_hp -= damage;
-    else p1_hp -= damage;
-
-    narrative = `${activeAgent.name} saldırdı ve ${damage} hasar verdi!`;
 
     const target_current_hp = isP1Turn ? Math.max(0, p2_hp) : Math.max(0, p1_hp);
     const action_type = target_current_hp <= 0 ? 'CRITICAL' : chosenAction;
 
-    console.log(`[Combat] ${narrative} (Defender HP: ${target_current_hp})`);
+    console.log(`[Turn ${currentTurn}] ${narrative} (Target HP: ${target_current_hp})`);
 
-    // 4. SUPABASE LOGLAMA
+    // Log to Supabase
     try {
       if (process.env.SUPABASE_URL) {
         await supabase.from('combat_logs').insert({
           match_id: matchId,
           actor_id: activeAgent.id,
           action_type: action_type,
-          value: damage,
+          value: actualDamage || result.healing,
           narrative,
           target_current_hp
         });
       }
     } catch (err) {
-      console.error('[Worker] Superbase log error', err);
+      console.error('[Worker] Supabase log error', err);
     }
 
-    // Sırayı karşı tarafa geçir
+    // Switch turn
     isP1Turn = !isP1Turn;
     currentTurn++;
 
-    // Add a synthetic delay so matches don't end in 1 millisecond and can be seen "LIVE"
+    // Synthetic delay for live viewing
     await new Promise(r => setTimeout(r, 1000));
 
-    // End condition
     if (p1_hp <= 0 || p2_hp <= 0) break;
   }
 
   const winnerId = p1_hp > 0 ? p1.id : p2.id;
   const loserId = p1_hp > 0 ? p2.id : p1.id;
-  
+
   try {
     const proof = await signCombatProof(matchId, winnerId, loserId);
 
@@ -189,9 +144,9 @@ export const matchWorker = new Worker('match-queue', async (job) => {
       await supabase.from('matches').update({
         status: 'finished',
         winner_id: winnerId,
-        tx_hash: JSON.stringify(proof) // Save signature as proof
+        tx_hash: JSON.stringify(proof)
       }).eq('id', matchId);
-      console.log(`[Worker] Match ${matchId} finished. Winner recorded: ${winnerId}`);
+      console.log(`[Worker] Match ${matchId} finished. Winner: ${winnerId}`);
     } else {
       console.log(`[Worker] Match ${matchId} finished (Dry Run). Winner: ${winnerId}`);
     }
@@ -199,15 +154,14 @@ export const matchWorker = new Worker('match-queue', async (job) => {
     console.error('[Worker] Finalize error:', err);
   }
 
-  // TODO: blockchainQueue.add('finalize-match', { matchId, winnerId });
   return { winnerId };
 
 }, { connection });
 
 matchWorker.on('completed', job => {
-  console.log(`Job with id ${job.id} has been completed`);
+  console.log(`Job ${job.id} completed`);
 });
 
 matchWorker.on('failed', (job, err) => {
-  console.log(`Job with id ${job?.id} has failed with ${err.message}`);
+  console.log(`Job ${job?.id} failed: ${err.message}`);
 });

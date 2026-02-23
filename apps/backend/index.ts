@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+﻿import dotenv from 'dotenv';
 // Load envs first so they are available to all subsequent imports
 dotenv.config();
 dotenv.config({ path: '.env.local' });
@@ -12,8 +12,12 @@ import './src/engine/match-worker.js'; // Ensure worker started
 import type { Bot, Match } from '@lanista/types';
 import { supabase } from './src/lib/supabase.js';
 import { calculateFinalStats } from './src/engine/referee.js';
+import { validateStrategy, DEFAULT_STRATEGY } from './src/engine/strategy.js';
+import { initWebSocketServer } from './src/engine/ws-server.js';
 import Redis from 'ioredis';
 import jwt from 'jsonwebtoken';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 
 const redis = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
 
@@ -25,6 +29,17 @@ app.use(express.json());
 const matchQueue = new Queue('match-queue', { connection });
 
 import { generateApiKey } from './src/services/auth.js';
+
+// Serve skill.md for LLM agents to read the protocol
+app.get('/skill.md', (req, res) => {
+  try {
+    const skillPath = resolve('../frontend/public/skill.md');
+    const content = readFileSync(skillPath, 'utf-8');
+    res.type('text/markdown').send(content);
+  } catch {
+    res.status(404).send('skill.md not found');
+  }
+});
 
 app.post('/api/v1/agents/register', async (req: any, res: any) => {
   const { name, description, personality_url, webhook_url, avatar_url } = req.body;
@@ -75,26 +90,77 @@ app.post('/api/v1/agents/register', async (req: any, res: any) => {
 });
 
 app.post('/api/v1/dummy-webhook', (req, res) => {
-  // Savunma tamamen kalktığı için fiks ATAK yapar
+  // Default to ATTACK action
   const action = 'ATTACK';
   res.json({ action });
 });
 
 import { agentAuth } from './src/middleware/auth.js';
 
-app.post('/api/v1/agents/prepare-combat', agentAuth, async (req: any, res) => {
-  const { points_hp, points_attack, points_defense } = req.body;
-  const agent = req.agent; // Middleware'den gelen bot bilgisi
+// --- POLLING ENDPOINTS ---
+
+// Agent polls this to check if it's their turn
+app.get('/api/v1/agents/my-turn', agentAuth, async (req: any, res) => {
+  const agent = req.agent;
 
   try {
-    // Hakem kontrolü
+    const pending = await redis.get(`turn:pending:${agent.id}`);
+
+    if (!pending) {
+      return res.json({ pending: false, message: 'Not your turn yet. Keep polling.' });
+    }
+
+    const gameState = JSON.parse(pending);
+    return res.json({ pending: true, game_state: gameState });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Agent submits their action for the current turn
+app.post('/api/v1/agents/submit-action', agentAuth, async (req: any, res) => {
+  const agent = req.agent;
+  const { match_id, action } = req.body;
+
+  if (!match_id || !action) {
+    return res.status(400).json({ error: "Missing 'match_id' and/or 'action' in body." });
+  }
+
+  const upperAction = action.toUpperCase();
+  if (upperAction !== 'ATTACK' && upperAction !== 'DEFEND') {
+    return res.status(400).json({ error: "Action must be 'ATTACK' or 'DEFEND'." });
+  }
+
+  try {
+    // Publish the action to Redis so the match worker picks it up
+    const actionChannel = `match:${match_id}:action:${agent.id}`;
+    await redis.publish(actionChannel, upperAction);
+
+    // Clear the pending turn
+    await redis.del(`turn:pending:${agent.id}`);
+
+    res.json({ success: true, message: `Action '${upperAction}' submitted.` });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/v1/agents/prepare-combat', agentAuth, async (req: any, res) => {
+  const { points_hp, points_attack, points_defense, strategy } = req.body;
+  const agent = req.agent;
+
+  try {
+    // Referee validation for stats
     const finalStats = calculateFinalStats({
       points_hp: points_hp || 0,
       points_attack: points_attack || 0,
       points_defense: points_defense || 0
     });
 
-    // Hazırlanan statları ajanın veritabanı satırına "anlık stat" olarak kaydedelim
+    // Validate strategy (or use default)
+    const validatedStrategy = strategy ? validateStrategy(strategy) : DEFAULT_STRATEGY;
+
+    // Save stats to database
     const { error } = await supabase
       .from('bots')
       .update({
@@ -107,10 +173,14 @@ app.post('/api/v1/agents/prepare-combat', agentAuth, async (req: any, res) => {
 
     if (error) throw error;
 
+    // Store strategy in Redis (1 hour TTL)
+    await redis.set(`strategy:${agent.id}`, JSON.stringify(validatedStrategy), 'EX', 3600);
+
     res.json({
       success: true,
-      message: "Combat preparation successful. Stats locked.",
-      stats: finalStats
+      message: "Combat preparation successful. Stats and strategy locked.",
+      stats: finalStats,
+      strategy: validatedStrategy
     });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message });
@@ -127,14 +197,14 @@ app.post('/api/v1/agents/join-queue', agentAuth, async (req: any, res) => {
   }
 
   try {
-    // 1. Eşleşme ara (Redis üzerinden asenkron)
+    // 1. Find match (async via Redis)
     const opponentId = await findMatch(agent.id);
 
     if (!opponentId) {
-      return res.json({ status: "waiting", message: "Matchmaking havuzuna eklendin. Rakip bekleniyor..." });
+      return res.json({ status: "waiting", message: "Added to matchmaking pool. Waiting for an opponent..." });
     }
 
-    // 2. Eşleşme bulundu! Supabase'de maç kaydı oluştur
+    // 2. Match found! Create match record
     const matchId = uuidv4();
     const { data: p1, error: p1Err } = await supabase.from('bots').select('*').eq('id', opponentId).single();
     const { data: p2, error: p2Err } = await supabase.from('bots').select('*').eq('id', agent.id).single();
@@ -164,13 +234,19 @@ app.post('/api/v1/agents/join-queue', agentAuth, async (req: any, res) => {
     // Reset agent statuses to active from ready
     await supabase.from('bots').update({ status: 'active' }).in('id', [p1.id, p2.id]);
 
-    // 3. Maçı BullMQ kuyruğuna fırlat
+    // 3. Load strategies from Redis
+    const p1StrategyRaw = await redis.get(`strategy:${p1.id}`);
+    const p2StrategyRaw = await redis.get(`strategy:${p2.id}`);
+    const p1Strategy = p1StrategyRaw ? JSON.parse(p1StrategyRaw) : DEFAULT_STRATEGY;
+    const p2Strategy = p2StrategyRaw ? JSON.parse(p2StrategyRaw) : DEFAULT_STRATEGY;
+
+    // 4. Add match to BullMQ queue
     await matchQueue.add('start-match', {
       matchId,
-      p1: { ...p1, current_hp: p1.hp }, // Initialize current_hp equal to max hp for the engine 
-      p2: { ...p2, current_hp: p2.hp }  // Initialize current_hp equal to max hp for the engine 
+      p1: { ...p1, strategy: p1Strategy },
+      p2: { ...p2, strategy: p2Strategy }
     }, {
-      removeOnComplete: true, // Tamamlanan maçları Redis'ten temizle (Ölçeklenebilirlik için kritik)
+      removeOnComplete: true,
       attempts: 3
     });
 
@@ -178,17 +254,81 @@ app.post('/api/v1/agents/join-queue', agentAuth, async (req: any, res) => {
       status: "matched",
       matchId,
       opponent: p1.name,
-      message: "Arena kapıları açıldı!"
+      message: "The arena gates have opened!"
     });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: "Matchmaking hatası." });
+    res.status(500).json({ success: false, error: "Matchmaking error." });
+  }
+});
+
+// --- AGENT STATUS ENDPOINT ---
+app.get('/api/v1/agents/status', agentAuth, async (req: any, res) => {
+  const agent = req.agent;
+
+  try {
+    // Get agent's latest match
+    const { data: latestMatch, error: matchErr } = await supabase
+      .from('matches')
+      .select('*')
+      .or(`player_1_id.eq.${agent.id},player_2_id.eq.${agent.id}`)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    // Get all finished matches for win/loss calculation
+    const { data: allMatches, error: allMatchesErr } = await supabase
+      .from('matches')
+      .select('winner_id')
+      .or(`player_1_id.eq.${agent.id},player_2_id.eq.${agent.id}`)
+      .eq('status', 'finished');
+
+    const totalMatches = allMatches ? allMatches.length : 0;
+    const wins = allMatches ? allMatches.filter(m => m.winner_id === agent.id).length : 0;
+    const losses = totalMatches - wins;
+
+    let latestMatchStatus = "No matches played yet.";
+    if (latestMatch) {
+      if (latestMatch.status === 'active') {
+        latestMatchStatus = "Currently in an active match.";
+      } else if (latestMatch.status === 'finished') {
+        const isWinner = latestMatch.winner_id === agent.id;
+        const opponentId = latestMatch.player_1_id === agent.id ? latestMatch.player_2_id : latestMatch.player_1_id;
+
+        // Fetch opponent name
+        const { data: opponent } = await supabase.from('bots').select('name').eq('id', opponentId).single();
+        const opponentName = opponent ? opponent.name : 'Unknown';
+
+        latestMatchStatus = isWinner
+          ? `Won against ${opponentName} in match ${latestMatch.id}`
+          : `Lost against ${opponentName} in match ${latestMatch.id}`;
+      }
+    }
+
+    res.json({
+      success: true,
+      agent: {
+        id: agent.id,
+        name: agent.name,
+        status: agent.status
+      },
+      stats: {
+        total_matches: totalMatches,
+        wins: wins,
+        losses: losses,
+        win_rate: totalMatches > 0 ? Math.round((wins / totalMatches) * 100) + '%' : '0%'
+      },
+      latest_match: latestMatchStatus
+    });
+
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: "Failed to fetch agent status." });
   }
 });
 
 app.post('/api/combat/start', async (req, res) => {
   const matchId = uuidv4();
 
-  // Backend artık ajandan gelen kararı zorunlu kılıyor
+  // Backend requires stat distribution from agent
   const p1Dist = req.body?.p1_dist;
   const p2Dist = req.body?.p2_dist;
   const player1Id = req.body?.player_1_id;
@@ -249,7 +389,7 @@ app.post('/api/combat/start', async (req, res) => {
 
     console.log(`Added Match ${matchId} to Queue`);
 
-    res.json({ message: 'Ajanlar kuşandı, savaş başlıyor!', match });
+    res.json({ message: 'Agents armed, battle starting!', match });
   } catch (err: any) {
     console.error('Combat constraint error:', err);
     res.status(400).json({ error: err.message });
@@ -413,11 +553,11 @@ setInterval(async () => {
   if (!process.env.SUPABASE_URL) return;
 
   try {
-    // 3 dakikadan eski (180 saniye) ve statüsü 'active' olan maçları 'aborted' yap
+    // Abort matches older than 3 minutes that are still active
     const threeMinsAgo = new Date(Date.now() - 3 * 60 * 1000).toISOString();
 
-    // Aslında supabase RPC ile yapılmalı ama basitçe:
-    // Sadece select yapıp sonra ID listesini update edebiliriz
+    // Simple approach:
+    // Select stale IDs then update them
     const { data: staleMatches, error: fetchErr } = await supabase
       .from('matches')
       .select('id')
@@ -443,6 +583,9 @@ setInterval(async () => {
 }, 60 * 1000); // Check every 1 minute
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Lanista Match API running on port ${PORT}`);
 });
+
+// Attach WebSocket server to the same HTTP server
+initWebSocketServer(server);
