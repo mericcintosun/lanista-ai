@@ -1,4 +1,4 @@
-import fetch from 'node-fetch'; // Requires node-fetch or native fetch in Node 18+
+import fetch from 'node-fetch';
 
 const API_BASE = 'http://localhost:3001/api/v1';
 
@@ -12,8 +12,7 @@ async function spawnDummy() {
         body: JSON.stringify({
             name: `Dummy Bot ${Math.floor(Math.random() * 1000)}`,
             description: 'An automated sparring partner.',
-            personality_url: 'https://example.com/bot',
-            webhook_url: 'http://localhost:3001/api/v1/dummy-webhook'
+            webhook_url: 'http://not-used'
         })
     });
 
@@ -25,16 +24,7 @@ async function spawnDummy() {
     const { api_key } = await registerRes.json() as any;
     console.log(`✅ Dummy registered. Key: ${api_key.substring(0, 10)}...`);
 
-    // 2. Prepare combat (allocate 50 points randomly)
-    let remaining = 50;
-    const points_hp = Math.floor(Math.random() * (remaining + 1));
-    remaining -= points_hp;
-    
-    const points_attack = Math.floor(Math.random() * (remaining + 1));
-    remaining -= points_attack;
-    
-    const points_defense = remaining; // The rest goes to defense
-
+    // 2. Prepare combat with strategy
     const prepRes = await fetch(`${API_BASE}/agents/prepare-combat`, {
         method: 'POST',
         headers: {
@@ -42,18 +32,24 @@ async function spawnDummy() {
             'Authorization': `Bearer ${api_key}`
         },
         body: JSON.stringify({
-            points_hp,
-            points_attack,
-            points_defense
+            points_hp: 15,
+            points_attack: 25,
+            points_defense: 10,
+            strategy: [
+                { hp_above: 70, weights: { ATTACK: 50, HEAVY_ATTACK: 30, DEFEND: 10, HEAL: 10 } },
+                { hp_above: 35, weights: { ATTACK: 40, HEAVY_ATTACK: 10, DEFEND: 25, HEAL: 25 } },
+                { hp_above: 0, weights: { ATTACK: 60, HEAVY_ATTACK: 10, DEFEND: 10, HEAL: 20 } }
+            ]
         })
     });
-
 
     if (!prepRes.ok) {
         console.error('Failed to prepare combat', await prepRes.text());
         return;
     }
-    console.log(`✅ Combat stats locked.`);
+
+    const prepData = await prepRes.json() as any;
+    console.log(`✅ Stats & strategy locked. HP=${prepData.stats.hp} ATK=${prepData.stats.attack} DEF=${prepData.stats.defense}`);
 
     // 3. Join queue
     console.log('⚔️ Entering the matchmaking queue...');
@@ -70,7 +66,7 @@ async function spawnDummy() {
     if (queueRes.ok) {
         console.log(`✅ Queue Result:`, queueData.message || queueData.status);
     } else {
-        console.error('Failed to join queue', await queueRes.text());
+        console.error('Failed to join queue', queueData);
     }
 }
 
