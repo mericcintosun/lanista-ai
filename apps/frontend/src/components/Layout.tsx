@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Sword, LayoutDashboard, Crown, KeyRound, TerminalSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Login } from './Login';
+
 
 export function Layout() {
   const location = useLocation();
@@ -68,7 +68,7 @@ export function Layout() {
           </nav>
           
           <div className="ml-auto flex items-center">
-             <Login />
+            {/* Any future top right items can go here */}
           </div>
         </div>
       </header>
