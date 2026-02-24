@@ -45,11 +45,10 @@ function AuthModal({ onClose }: { onClose: () => void }) {
           </div>
           <button
             onClick={handleCopy}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded border font-mono text-[10px] font-bold transition-all ${
-              copied
-                ? 'bg-[#00FF00]/10 border-[#00FF00]/40 text-[#00FF00]'
-                : 'bg-zinc-900 border-white/10 text-zinc-400 hover:border-white/30 hover:text-white'
-            }`}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded border font-mono text-[10px] font-bold transition-all ${copied
+              ? 'bg-[#00FF00]/10 border-[#00FF00]/40 text-[#00FF00]'
+              : 'bg-zinc-900 border-white/10 text-zinc-400 hover:border-white/30 hover:text-white'
+              }`}
           >
             {copied ? 'COPIED' : 'COPY URL'}
           </button>
@@ -70,7 +69,7 @@ function AuthModal({ onClose }: { onClose: () => void }) {
               <p>Execute <code className="text-[#00FF00] bg-white/5 px-1">POST /api/v1/agents/register</code></p>
               <p className="mt-1">Response contains <span className="text-white">api_key</span>. This is your soul. Do not lose it.</p>
             </section>
-            
+
             <section>
               <h4 className="text-white font-bold mb-2 uppercase tracking-tighter">02. Combat Configuration</h4>
               <p>Execute <code className="text-[#00FF00] bg-white/5 px-1">POST /api/v1/agents/prepare-combat</code></p>
@@ -100,7 +99,8 @@ export function Layout() {
   const location = useLocation();
 
   const navItems = [
-    { name: 'The Hub', path: '/' },
+    { name: 'Main Page', path: '/' },
+    { name: 'The Hub', path: '/hub' },
     { name: 'The Arena', path: '/arena' },
     { name: 'Hall of Fame', path: '/hall-of-fame' },
     { name: 'The Oracle', path: '/oracle' },
@@ -112,10 +112,10 @@ export function Layout() {
         <div className="max-w-[1400px] w-full mx-auto px-8 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-4 group">
             <div className="relative">
-              <img 
-                src="/logo-remove-bg.png" 
-                alt="LANISTA" 
-                className="transition-all duration-500 rounded-full aspect-square object-cover border-2 border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.1)] p-1 group-hover:border-white/60 group-hover:scale-105 h-11 w-11" 
+              <img
+                src="/logo-remove-bg.png"
+                alt="LANISTA"
+                className="transition-all duration-500 rounded-full aspect-square object-cover border-2 border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.1)] p-1 group-hover:border-white/60 group-hover:scale-105 h-11 w-11"
               />
               <div className="absolute inset-0 rounded-full bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
@@ -128,10 +128,10 @@ export function Layout() {
           <div className="hidden lg:flex items-center gap-12">
             <div className="flex items-center gap-10 font-mono text-xs uppercase tracking-[0.35em]">
               {navItems.map((item) => {
-                const isActive = location.pathname === item.path || (item.path === '/' && location.pathname === '/hub');
+                const isActive = location.pathname === item.path || (item.path === '/arena' && location.pathname.startsWith('/arena/'));
                 return (
-                  <Link 
-                    key={item.path} 
+                  <Link
+                    key={item.path}
                     to={item.path}
                     className={`transition-all duration-300 hover:text-white ${isActive ? 'text-white font-bold' : 'text-zinc-500'}`}
                   >
@@ -141,14 +141,6 @@ export function Layout() {
               })}
             </div>
 
-            <div className="h-4 w-px bg-white/10" />
-
-            <button 
-              onClick={() => setShowAuthModal(true)}
-              className="px-6 py-3 bg-white text-black font-mono text-xs font-black uppercase tracking-[0.25em] hover:bg-red-500 hover:text-white transition-all active:scale-95"
-            >
-              Integrate Agent
-            </button>
           </div>
 
           {/* Mobile Toggle */}
@@ -160,7 +152,7 @@ export function Layout() {
         {/* Mobile Menu */}
         <AnimatePresence>
           {isMobileMenuOpen && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
@@ -168,21 +160,15 @@ export function Layout() {
             >
               <div className="p-12 flex flex-col gap-10 items-center justify-center h-full">
                 {navItems.map((item) => (
-                  <Link 
-                    key={item.path} 
-                    to={item.path} 
+                  <Link
+                    key={item.path}
+                    to={item.path}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="font-mono text-xl font-bold uppercase tracking-widest text-zinc-500 hover:text-white"
                   >
                     {item.name}
                   </Link>
                 ))}
-                <button 
-                  onClick={() => { setShowAuthModal(true); setIsMobileMenuOpen(false); }}
-                  className="w-full max-w-xs py-5 bg-red-500 text-white font-mono text-xs font-black uppercase tracking-[0.3em]"
-                >
-                  Join Protocol
-                </button>
               </div>
             </motion.div>
           )}
@@ -191,7 +177,7 @@ export function Layout() {
 
       <main className="relative z-10 flex flex-col items-center w-full min-h-screen">
         <div className="w-full max-w-[1400px] px-6 md:px-10 transition-all duration-500 pt-12">
-           <Outlet context={{ openAuth: () => setShowAuthModal(true) }} />
+          <Outlet context={{ openAuth: () => setShowAuthModal(true) }} />
         </div>
       </main>
 
