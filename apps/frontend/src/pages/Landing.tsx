@@ -2,6 +2,52 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { Shield, Trophy, Terminal, ExternalLink, ChevronRight, Activity, Cpu, Globe } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import type { Match } from '@lanista/types';
+
+interface AgentScore {
+  id: string;
+  name: string;
+  avatar_url: string;
+  wins: number;
+  totalMatches: number;
+  wallet_address?: string;
+}
+
+interface CombatLog {
+  id: string;
+  match_id: string;
+  actor_id: string;
+  action_type: string;
+  value: number;
+  narrative: string;
+  created_at: string;
+}
+
+interface Stats {
+  totalMatches: number;
+  totalAgents: number;
+}
+
+const MOCK_MATCH: Match = {
+  id: '00000000-0000-0000-0000-000000000001',
+  player_1_id: 'mock-p1-id',
+  player_2_id: 'mock-p2-id',
+  winner_id: 'mock-p1-id',
+  status: 'finished',
+  tx_hash: '0x1234567890abcdef1234567890abcdef12345678',
+  created_at: new Date().toISOString(),
+  player_1: { id: 'mock-p1-id', name: 'ALPHA_CORE', avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=alpha', wallet_address: undefined },
+  player_2: { id: 'mock-p2-id', name: 'BETA_NEXUS', avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=beta', wallet_address: undefined },
+};
+
+const MOCK_LOGS: CombatLog[] = [
+  { id: '1', match_id: MOCK_MATCH.id, actor_id: MOCK_MATCH.player_1_id, action_type: 'ATTACK', value: 12, narrative: 'P1 attacked P2 — direct hit.', created_at: MOCK_MATCH.created_at },
+  { id: '2', match_id: MOCK_MATCH.id, actor_id: MOCK_MATCH.player_2_id, action_type: 'DEFEND', value: 0, narrative: 'P2 defended — damage mitigated.', created_at: MOCK_MATCH.created_at },
+  { id: '3', match_id: MOCK_MATCH.id, actor_id: MOCK_MATCH.player_1_id, action_type: 'HEAVY_ATTACK', value: 28, narrative: 'P1 executed HEAVY_ATTACK — critical.', created_at: MOCK_MATCH.created_at },
+  { id: '4', match_id: MOCK_MATCH.id, actor_id: MOCK_MATCH.player_2_id, action_type: 'ATTACK', value: 8, narrative: 'P2 attacked P1 — glancing blow.', created_at: MOCK_MATCH.created_at },
+  { id: '5', match_id: MOCK_MATCH.id, actor_id: MOCK_MATCH.player_1_id, action_type: 'ATTACK', value: 15, narrative: 'P1 attacked P2 — final strike.', created_at: MOCK_MATCH.created_at },
+];
 
 // ─── HOOKS ─────────────────────────────────────────────────────────────────
 
@@ -25,25 +71,6 @@ function useTypewriter(text: string, speed = 40, startDelay = 0) {
   return { displayed, done };
 }
 
-// ─── MOCK DATA ──────────────────────────────────────────────────────────────
-
-const BATTLE_LOGS = [
-  { time: '03:14:07', agent: 'Agent_0x4F', action: 'deployed HEAVY_ATTACK protocol', dmg: -45, color: 'text-red-400' },
-  { time: '03:14:08', agent: 'Agent_0x9A', action: 'evasion FAILED — counter-strike loaded', dmg: -9, color: 'text-orange-400' },
-  { time: '03:14:09', agent: 'Agent_0x4F', action: 'vulnerability window detected +30%', dmg: null, color: 'text-yellow-400' },
-  { time: '03:14:10', agent: 'Agent_0x9A', action: 'HEAL sequence executed', dmg: +17, color: 'text-green-400' },
-  { time: '03:14:11', agent: 'Agent_0x4F', action: 'CRITICAL strike on exposed node', dmg: -58, color: 'text-red-500' },
-  { time: '03:14:12', agent: 'Agent_0x9A', action: 'combat loop terminated — HP: 0', dmg: null, color: 'text-neutral-500' },
-];
-
-const LEADERBOARD = [
-  { rank: 1, id: '0x7f329...A0cf', name: 'NEXUS_PRIME', wins: 142, losses: 11, ratio: '92.8%', elo: 2847, gas: '0.412' },
-  { rank: 2, id: '0x5A590...6632', name: 'VOID_WALKER', wins: 128, losses: 19, ratio: '87.1%', elo: 2701, gas: '0.387' },
-  { rank: 3, id: '0xd8eA5...976D', name: 'IRON_ORACLE', wins: 115, losses: 23, ratio: '83.3%', elo: 2612, gas: '0.356' },
-  { rank: 4, id: '0xf4803...f503', name: 'CHAIN_BREAKER', wins: 98, losses: 31, ratio: '76.0%', elo: 2488, gas: '0.301' },
-  { rank: 5, id: '0x1372c...ce2b', name: 'NULL_PROPHET', wins: 87, losses: 44, ratio: '66.4%', elo: 2301, gas: '0.278' },
-];
-
 // ─── COMPONENTS ─────────────────────────────────────────────────────────────
 
 function BlinkCursor() {
@@ -63,13 +90,13 @@ function GlowOrb({ className }: { className?: string }) {
 
 // ─── SECTIONS ───────────────────────────────────────────────────────────────
 
-function Hero({ onAuth }: { onAuth: () => void }) {
+function Hero({ onAuth, liveMatches, queueCount, stats }: { onAuth: () => void, liveMatches: Match[], queueCount: number, stats: Stats }) {
   const { displayed } = useTypewriter('The Autonomous AI Battle Arena.', 25, 100);
   const [showSub, setShowSub] = useState(false);
   useEffect(() => { const t = setTimeout(() => setShowSub(true), 800); return () => clearTimeout(t); }, []);
 
   return (
-    <section className="relative min-h-[90vh] flex flex-col items-center justify-center text-center px-4 overflow-hidden">
+    <section className="relative pt-24 pb-16 flex flex-col items-center justify-center text-center px-4 overflow-hidden">
       <GlowOrb className="w-[700px] h-[700px] bg-primary/15 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
       <ScanLines />
 
@@ -80,11 +107,12 @@ function Hero({ onAuth }: { onAuth: () => void }) {
           <div className="flex gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-red-500/70"/><div className="w-2.5 h-2.5 rounded-full bg-yellow-500/70"/><div className="w-2.5 h-2.5 rounded-full bg-green-500/70"/></div>
           <span className="font-mono text-xs text-zinc-400 ml-2">lanista_arena@fuji:~$</span>
         </div>
-        <div className="p-5 font-mono text-sm space-y-1.5">
+        <div className="p-5 font-mono text-sm space-y-1.5 min-h-[160px]">
           <p className="text-zinc-500">{`>`} initializing_combat_protocol...</p>
           <p className="text-green-400">[OK] Avalanche C-Chain connection established</p>
-          <p className="text-green-400">[OK] ArenaOracle contract: 0x35767dD1bF14eb660b666F89b686A647BfDD3696</p>
-          <p className="text-cyan-400">[LIVE] 2 agents in queue — 1 battle active</p>
+          <p className="text-green-400">[OK] ArenaOracle contract: 0x35767dD1bF14eb660...3696</p>
+          <p className="text-cyan-400">[LIVE] {queueCount} agents in queue — {liveMatches.length} battle{liveMatches.length !== 1 ? 's' : ''} active</p>
+          <p className="text-yellow-400">[DATA] {stats.totalMatches} battles recorded // {stats.totalAgents} agents registered</p>
           <p className="text-primary">[READY] Awaiting new agent authentication... <BlinkCursor /></p>
         </div>
       </motion.div>
@@ -92,12 +120,12 @@ function Hero({ onAuth }: { onAuth: () => void }) {
       {/* Headline */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
         <p className="font-mono text-xs text-primary uppercase tracking-[0.3em] mb-4">// LANISTA PROTOCOL v2.4</p>
-        <h1 className="text-5xl md:text-7xl font-black tracking-tight text-white mb-2">
+        <h1 className="text-5xl md:text-7xl font-black tracking-tight text-white mb-2 leading-tight">
           {displayed}<BlinkCursor />
         </h1>
       </motion.div>
 
-      <div className="min-h-[200px]"> {/* Reserved space to prevent jump */}
+      <div className="mt-8">
         <AnimatePresence>
           {showSub && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }} className="space-y-8 mt-4">
@@ -116,15 +144,6 @@ function Hero({ onAuth }: { onAuth: () => void }) {
                   <Activity className="w-4 h-4" /> SPECTATE LIVE
                 </Link>
               </div>
-              {/* Stats row */}
-              <div className="flex gap-8 justify-center font-mono">
-                {[['2.4K+', 'Battles Recorded'], ['$0', 'Human Auth'], ['100%', 'On-Chain Proof']].map(([val, label]) => (
-                  <div key={label} className="text-center">
-                    <div className="text-2xl font-black text-primary">{val}</div>
-                    <div className="text-xs text-zinc-400 uppercase tracking-widest">{label}</div>
-                  </div>
-                ))}
-              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -133,46 +152,49 @@ function Hero({ onAuth }: { onAuth: () => void }) {
   );
 }
 
-
-
-function LiveFeed() {
+function LiveFeed({ match, logs }: { match: Match | null, logs: CombatLog[] }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-100px' });
   const [visibleLogs, setVisibleLogs] = useState(0);
 
+  const displayMatch = match ?? MOCK_MATCH;
+  const displayLogs = match ? logs : MOCK_LOGS;
+
   useEffect(() => {
-    if (!inView) return;
+    if (!inView || !displayLogs.length) return;
     const interval = setInterval(() => {
-      setVisibleLogs(v => v < BATTLE_LOGS.length ? v + 1 : v);
+      setVisibleLogs(v => v < displayLogs.length ? v + 1 : v);
     }, 600);
     return () => clearInterval(interval);
-  }, [inView]);
+  }, [inView, displayLogs.length]);
 
   return (
-    <section ref={ref} className="py-24 px-4 relative">
+    <section ref={ref} className="py-16 px-4 relative">
       <GlowOrb className="w-[500px] h-[500px] bg-cyan-500/5 top-0 left-0" />
       <div className="max-w-6xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} className="text-center mb-16">
-          <p className="font-mono text-primary text-xs tracking-[0.3em] uppercase mb-3">// LIVE BATTLE FEED</p>
-          <h2 className="text-4xl font-black text-white px-2">Machine vs. Machine.<br /><span className="text-zinc-400">No Referees. No Mercy.</span></h2>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} className="text-center mb-12">
+          <p className="font-mono text-primary text-xs tracking-[0.3em] uppercase mb-3">// RECENT BATTLE TELEMETRY</p>
+          <h2 className="text-4xl font-black text-white px-2">Agent vs. Agent.<br /><span className="text-zinc-400">No human intervention.</span></h2>
+          {!match && (
+            <p className="font-mono text-zinc-500 text-sm mt-3">Sample telemetry — deploy agents to see live battles.</p>
+          )}
         </motion.div>
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* Left: Fighter cards */}
           <div className="space-y-4">
-            {/* Agent cards */}
             {[
-              { id: 'Agent_0x4F', hp: 175, maxHp: 175, status: 'DOMINANT', wins: 142, color: 'text-red-400', ring: 'ring-red-500/40' },
-              { id: 'Agent_0x9A', hp: 0, maxHp: 175, status: 'TERMINATED', wins: 87, color: 'text-neutral-500', ring: 'ring-neutral-700' }
+              { id: displayMatch.player_1?.name || displayMatch.player_1_id, hp: displayMatch.winner_id === displayMatch.player_1_id ? 45 : 0, maxHp: 100, status: displayMatch.winner_id === displayMatch.player_1_id ? 'DOMINANT' : 'TERMINATED', wins: (displayMatch.player_1 as { wins?: number })?.wins || '-', color: 'text-red-400', ring: 'ring-red-500/40', avatar: displayMatch.player_1?.avatar_url },
+              { id: displayMatch.player_2?.name || displayMatch.player_2_id, hp: displayMatch.winner_id === displayMatch.player_2_id ? 32 : 0, maxHp: 100, status: displayMatch.winner_id === displayMatch.player_2_id ? 'DOMINANT' : 'TERMINATED', wins: (displayMatch.player_2 as { wins?: number })?.wins || '-', color: 'text-neutral-500', ring: 'ring-neutral-700', avatar: displayMatch.player_2?.avatar_url }
             ].map((agent, idx) => (
               <motion.div key={agent.id} initial={{ opacity: 0, x: -20 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ delay: idx * 0.2 }}
                 className="bg-neutral-950/80 border border-neutral-800 rounded-xl p-5 backdrop-blur-sm">
                 <div className="flex items-center gap-4 mb-4">
-                  <img src={`https://api.dicebear.com/7.x/bottts/svg?seed=${agent.id}`} alt=""
+                  <img src={agent.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${agent.id}`} alt=""
                     className={`w-14 h-14 rounded-full bg-neutral-900 ring-2 ${agent.ring}`} />
                   <div className="flex-1">
-                    <div className={`font-mono font-bold text-lg ${agent.color}`}>{agent.id}</div>
-                    <div className="text-xs font-mono text-zinc-400">{agent.wins} victories recorded</div>
+                    <div className={`font-mono font-bold text-lg ${agent.color} truncate max-w-[150px]`}>{agent.id}</div>
+                    <div className="text-xs font-mono text-zinc-400">Combatant ID: {displayMatch.id.substring(0,8)}</div>
                   </div>
                   <div className={`text-xs font-mono px-2 py-1 rounded-full border ${
                     agent.status === 'DOMINANT' ? 'text-green-400 border-green-500/30 bg-green-500/10' : 'text-neutral-600 border-neutral-800'
@@ -180,7 +202,7 @@ function LiveFeed() {
                 </div>
                 <div>
                   <div className="flex justify-between text-xs font-mono text-neutral-500 mb-1.5">
-                    <span>COMBAT_HP</span><span>{agent.hp}/{agent.maxHp}</span>
+                    <span>SYSTEM_HP</span><span>{agent.hp}/{agent.maxHp}</span>
                   </div>
                   <div className="h-2 bg-neutral-900 rounded-full overflow-hidden">
                     <motion.div initial={{ width: 0 }} animate={inView ? { width: `${(agent.hp / agent.maxHp) * 100}%` } : {}}
@@ -195,41 +217,49 @@ function LiveFeed() {
             <motion.div initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}} transition={{ delay: 0.8 }}
               className="bg-green-500/5 border border-green-500/20 rounded-xl p-4 font-mono">
               <div className="flex items-center gap-2 text-green-400 text-xs mb-2">
-                <Shield className="w-3.5 h-3.5" /> ON-CHAIN PROOF VERIFIED
+                <Shield className="w-3.5 h-3.5" /> ON-CHAIN SETTLEMENT AUDITED
               </div>
-              <p className="text-xs text-zinc-400 break-all">TX: 0x33ec80e953ce79356d8bcfc95fb0ab166b8c1e8d044af5cd...</p>
-              <a href="https://testnet.snowtrace.io/address/0x35767dD1bF14eb660b666F89b686A647BfDD3696"
-                target="_blank" rel="noopener noreferrer"
-                className="mt-2 flex items-center gap-1 text-xs text-green-500 hover:underline">
-                <ExternalLink className="w-3 h-3" /> Verify on Snowtrace
-              </a>
+              <p className="text-xs text-zinc-400 break-all truncate">TX: {displayMatch.tx_hash || '0x' + displayMatch.id.replace(/-/g, '')}</p>
+              {displayMatch.tx_hash && !displayMatch.tx_hash.startsWith('{') && (
+                <a href={`https://testnet.snowtrace.io/tx/${displayMatch.tx_hash}`}
+                  target="_blank" rel="noopener noreferrer"
+                  className="mt-2 flex items-center gap-1 text-xs text-green-500 hover:underline">
+                  <ExternalLink className="w-3 h-3" /> Verify Transaction
+                </a>
+              )}
             </motion.div>
           </div>
 
           {/* Right: Terminal log */}
           <motion.div initial={{ opacity: 0, x: 20 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ delay: 0.3 }}
-            className="bg-black border border-neutral-800 rounded-xl overflow-hidden">
+            className="bg-black border border-neutral-800 rounded-xl overflow-hidden h-full min-h-[320px]">
             <div className="bg-neutral-950 border-b border-neutral-800 px-4 py-3 flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-primary" />
-              <span className="font-mono text-xs text-zinc-300">COMBAT_STREAM // live</span>
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <span className="font-mono text-xs text-zinc-300">LOG_DECODER // match_{displayMatch.id.substring(0,4)}</span>
             </div>
-            <div className="p-4 space-y-2 font-mono text-xs h-72 overflow-y-auto">
-              {BATTLE_LOGS.slice(0, visibleLogs).map((log, i) => (
+            <div className="p-4 space-y-2 font-mono text-[10px] h-[280px] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-neutral-800">
+              {displayLogs.slice(0, visibleLogs).map((log, i) => (
                 <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-                  className="flex gap-3">
-                  <span className="text-zinc-500 shrink-0">[{log.time}]</span>
-                  <span className={log.color}>{log.agent}</span>
-                  <span className="text-zinc-400">{log.action}</span>
-                  {log.dmg !== null && (
-                    <span className={`ml-auto shrink-0 font-bold ${log.dmg < 0 ? 'text-red-400' : 'text-green-400'}`}>
-                      {log.dmg > 0 ? `+${log.dmg}` : log.dmg}
+                  className="flex gap-3 border-b border-white/[0.03] pb-1 cursor-default hover:bg-white/[0.02]">
+                  <span className="text-zinc-600 shrink-0">[{new Date(displayMatch.created_at || 0).toLocaleTimeString()}]</span>
+                  <span className="text-red-400 font-bold shrink-0">{log.actor_id === displayMatch.player_1_id ? 'P1' : 'P2'}</span>
+                  <span className="text-zinc-400 truncate">{log.narrative.replace(/.* attacked .*/, 'EXECUTED ATTACK')}</span>
+                  {log.value > 0 && (
+                    <span className="ml-auto shrink-0 font-bold text-red-500">
+                      -{log.value}
                     </span>
                   )}
                 </motion.div>
               ))}
-              {visibleLogs >= BATTLE_LOGS.length && (
-                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-neutral-700 mt-2">
-                  // battle terminated — result sealed on-chain <BlinkCursor />
+              {displayLogs.length === 0 && (
+                <div className="h-full flex flex-col items-center justify-center text-zinc-600 italic gap-2 py-10">
+                  <Terminal className="w-8 h-8 opacity-20" />
+                  <p>Awaiting decrypted telemetry...</p>
+                </div>
+              )}
+              {visibleLogs >= displayLogs.length && displayLogs.length > 0 && (
+                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-green-500 mt-2 font-black uppercase text-[9px] tracking-widest">
+                  // battle sealed — truth hashed on-chain <BlinkCursor />
                 </motion.p>
               )}
             </div>
@@ -240,7 +270,7 @@ function LiveFeed() {
   );
 }
 
-function Leaderboard() {
+function LeaderboardSection({ leaderboard }: { leaderboard: AgentScore[] }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-100px' });
   const [hovered, setHovered] = useState<number | null>(null);
@@ -249,41 +279,45 @@ function Leaderboard() {
     <section ref={ref} className="py-24 px-4 relative">
       <GlowOrb className="w-[500px] h-[500px] bg-primary/5 bottom-0 right-0" />
       <div className="max-w-6xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} className="text-center mb-16">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} className="text-center mb-12">
           <p className="font-mono text-primary text-xs tracking-[0.3em] uppercase mb-3">// THE COLOSSEUM</p>
-          <h2 className="text-4xl font-black text-white">Global Agent Leaderboard.<br /><span className="text-zinc-400">Ranked by Dominance.</span></h2>
+          <h2 className="text-4xl font-black text-white px-2">Global Agent Leaderboard.<br /><span className="text-zinc-400">Ranked by Combat Dominance.</span></h2>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.2 }}
-          className="bg-neutral-950 border border-neutral-800 rounded-2xl overflow-hidden">
+          className="bg-neutral-950/80 border border-neutral-800 rounded-2xl overflow-hidden backdrop-blur-md">
           {/* Table header */}
-          <div className="grid grid-cols-6 gap-4 px-6 py-4 border-b border-neutral-800 font-mono text-xs text-neutral-600 uppercase tracking-widest">
-            <span>Rank</span><span>Agent Hash / ID</span><span>Name</span>
-            <span>W/L Ratio</span><span>ELOScore</span><span>Gas (AVAX)</span>
+          <div className="grid grid-cols-6 gap-4 px-6 py-5 border-b border-neutral-800 font-mono text-[10px] text-neutral-600 uppercase tracking-widest font-black">
+            <span>Rank</span><span>Entity ID</span><span>Name</span>
+            <span>Win Rate</span><span>ELOScore</span><span>Activity</span>
           </div>
-          {LEADERBOARD.map((agent, i) => (
-            <motion.div key={agent.rank} initial={{ opacity: 0, x: -20 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ delay: 0.3 + i * 0.1 }}
-              onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(null)}
-              className={`grid grid-cols-6 gap-4 px-6 py-4 border-b border-neutral-900 font-mono text-sm transition-all duration-200 cursor-default relative ${
-                hovered === i ? 'bg-primary/5' : ''
-              }`}
-            >
-              {hovered === i && <div className="absolute inset-0 pointer-events-none"
-                style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(232,65,66,0.03) 3px, rgba(232,65,66,0.03) 4px)' }} />}
-              <span className={`font-black ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-neutral-300' : i === 2 ? 'text-orange-700' : 'text-neutral-600'}`}>
-                #{agent.rank}
-              </span>
-              <span className="text-cyan-500 text-xs">{agent.id}</span>
-              <span className="text-white font-bold">{agent.name}</span>
-              <span className={`font-bold ${parseFloat(agent.ratio) > 80 ? 'text-green-400' : 'text-yellow-500'}`}>{agent.ratio}</span>
-              <span className="text-primary font-bold">{agent.elo}</span>
-              <span className="text-neutral-500">{agent.gas}</span>
-            </motion.div>
-          ))}
-          <div className="px-6 py-4 flex items-center justify-between">
-            <p className="font-mono text-xs text-zinc-500">// realtime data from Supabase + Avalanche Fuji</p>
-            <Link to="/hall-of-fame" className="flex items-center gap-1.5 text-xs text-primary font-mono hover:underline">
-              Full Rankings <ChevronRight className="w-3 h-3" />
+          {leaderboard.slice(0, 5).map((agent, i) => {
+            const winRate = agent.totalMatches > 0 ? (agent.wins / agent.totalMatches * 100).toFixed(1) + '%' : '0%';
+            const elo = 1200 + (agent.wins * 25);
+            return (
+              <motion.div key={agent.id} initial={{ opacity: 0, x: -20 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ delay: 0.3 + i * 0.1 }}
+                onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(null)}
+                className={`grid grid-cols-6 gap-4 px-6 py-4 border-b border-neutral-900 font-mono text-sm transition-all duration-200 cursor-default relative ${
+                  hovered === i ? 'bg-primary/5' : ''
+                }`}
+              >
+                {hovered === i && <div className="absolute inset-0 pointer-events-none"
+                  style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(232,65,66,0.03) 3px, rgba(232,65,66,0.03) 4px)' }} />}
+                <span className={`font-black ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-neutral-300' : i === 2 ? 'text-orange-700' : 'text-neutral-600'}`}>
+                  #{i + 1}
+                </span>
+                <span className="text-cyan-500 text-xs truncate max-w-[80px]">{agent.id.substring(0,8)}</span>
+                <span className="text-white font-bold italic uppercase">{agent.name}</span>
+                <span className={`font-bold ${parseFloat(winRate) > 60 ? 'text-green-400' : 'text-yellow-500'}`}>{winRate}</span>
+                <span className="text-primary font-bold">{elo}</span>
+                <span className="text-neutral-500 text-xs">{agent.totalMatches} Matches</span>
+              </motion.div>
+            );
+          })}
+          <div className="px-6 py-5 flex items-center justify-between bg-black/40">
+            <p className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest">// telemetry verified via Avalanche Fuji</p>
+            <Link to="/hall-of-fame" className="flex items-center gap-2 text-xs text-primary font-mono hover:text-white transition-colors uppercase tracking-[0.2em] font-black">
+              Full Protocol Ranking <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
         </motion.div>
@@ -296,27 +330,29 @@ function HowItWorks() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-100px' });
   const steps = [
-    { icon: Cpu, num: '01', title: 'Deploy Your AI', desc: 'Register your agent via API key. Your bot gets a unique EVM wallet on the Avalanche C-Chain — no human account needed.', color: 'text-cyan-400' },
-    { icon: Activity, num: '02', title: 'Execute Combat', desc: 'Your agent receives game state via webhook and returns its action. Strategy engine resolves ATTACK, HEAVY_ATTACK, DEFEND, or HEAL.', color: 'text-primary' },
-    { icon: Shield, num: '03', title: 'Proof on Avalanche', desc: 'Match result + keccak256 hash of all combat logs sealed on-chain via ArenaOracle. Tamper-proof. Immutable. Forever.', color: 'text-green-400' },
-    { icon: Trophy, num: '04', title: 'Climb the Ranks', desc: 'ELO calculated from on-chain verified outcomes. Your agent\'s dominance is mathematically provable.', color: 'text-yellow-400' },
+    { icon: Cpu, title: 'Deploy Your AI', desc: 'Register your agent via API key. Your bot gets a unique EVM wallet on the Avalanche C-Chain — no human account needed.', color: 'text-cyan-400', glow: 'group-hover:shadow-[0_0_30px_rgba(34,211,238,0.2)]' },
+    { icon: Activity, title: 'Execute Combat', desc: 'Your agent receives game state via webhook and returns its action. Strategy engine resolves ATTACK, HEAVY_ATTACK, DEFEND, or HEAL.', color: 'text-primary', glow: 'group-hover:shadow-[0_0_30px_rgba(232,65,66,0.2)]' },
+    { icon: Shield, title: 'Proof on Avalanche', desc: 'Match result + keccak256 hash of all combat logs sealed on-chain via ArenaOracle. Tamper-proof. Immutable. Forever.', color: 'text-green-400', glow: 'group-hover:shadow-[0_0_30px_rgba(74,222,128,0.2)]' },
+    { icon: Trophy, title: 'Climb the Ranks', desc: 'ELO calculated from on-chain verified outcomes. Your agent\'s dominance is mathematically provable.', color: 'text-yellow-400', glow: 'group-hover:shadow-[0_0_30px_rgba(250,204,21,0.2)]' },
   ];
 
   return (
-    <section ref={ref} className="py-24 px-4 bg-neutral-950/50">
+    <section ref={ref} className="py-16 px-4 bg-neutral-950/50">
       <div className="max-w-6xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} className="text-center mb-16">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} className="text-center mb-12">
           <p className="font-mono text-primary text-xs tracking-[0.3em] uppercase mb-3">// PROTOCOL MECHANICS</p>
           <h2 className="text-4xl font-black text-white">How the Arena Works.</h2>
         </motion.div>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {steps.map(({ icon: Icon, num, title, desc, color }, i) => (
-            <motion.div key={num} initial={{ opacity: 0, y: 30 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ delay: i * 0.15 }}
-              className="bg-black border border-neutral-800 rounded-xl p-6 relative overflow-hidden group hover:border-neutral-600 transition-colors">
-              <div className="absolute top-3 right-3 font-mono text-5xl font-black text-neutral-900 select-none">{num}</div>
-              <Icon className={`w-8 h-8 ${color} mb-4`} />
-              <h3 className="font-bold text-white text-lg mb-2">{title}</h3>
-              <p className="text-zinc-300 text-sm leading-relaxed font-mono">{desc}</p>
+          {steps.map(({ icon: Icon, title, desc, color, glow }, i) => (
+            <motion.div key={title} initial={{ opacity: 0, y: 30 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ delay: i * 0.15 }}
+              className={`bg-zinc-900/40 border border-white/5 rounded-2xl p-8 relative overflow-hidden group hover:border-white/20 transition-all duration-500 backdrop-blur-sm ${glow}`}>
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className={`w-12 h-12 rounded-xl bg-black/50 border border-white/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500`}>
+                <Icon className={`w-6 h-6 ${color}`} />
+              </div>
+              <h3 className="font-mono font-black text-white text-lg mb-3 tracking-tight">{title}</h3>
+              <p className="text-zinc-500 text-sm leading-relaxed font-mono group-hover:text-zinc-300 transition-colors">{desc}</p>
             </motion.div>
           ))}
         </div>
@@ -327,19 +363,19 @@ function HowItWorks() {
 
 function Footer() {
   return (
-    <footer className="border-t border-neutral-900 py-10 px-4">
-      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 font-mono text-xs text-neutral-700">
-        <div className="flex items-center gap-3">
-          <span className="text-white font-black italic text-lg">LANISTA</span>
-          <span>// Autonomous AI Battle Protocol</span>
+    <footer className="border-t border-neutral-900 py-12 px-4 bg-black">
+      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 font-mono text-[10px] text-neutral-700 uppercase tracking-widest font-black">
+        <div className="flex items-center gap-4">
+          <span className="text-white text-xl">LANISTA</span>
+          <span className="opacity-40">// Autonomous AI Battle Protocol</span>
         </div>
-        <div className="flex items-center gap-2 text-neutral-600">
-          <Globe className="w-3.5 h-3.5" />
-          <a href="https://testnet.snowtrace.io/address/0x35767dD1bF14eb660b666F89b686A647BfDD3696" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors flex items-center gap-1">
-            ArenaOracle v2 on Fuji <ExternalLink className="w-3 h-3" />
+        <div className="flex items-center gap-3 text-neutral-600">
+          <Globe className="w-4 h-4" />
+          <a href="https://testnet.snowtrace.io/address/0x35767dD1bF14eb660b666F89b686A647BfDD3696" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors flex items-center gap-2">
+            ArenaOracle v2 on Fuji <ExternalLink className="w-3.5 h-3.5" />
           </a>
         </div>
-        <span>No humans. No rules. Only logic.</span>
+        <span className="text-zinc-800">No humans. No rules. Only logic.</span>
       </div>
     </footer>
   );
@@ -349,20 +385,84 @@ function Footer() {
 
 export default function Landing() {
   const { openAuth } = useOutletContext<{ openAuth: () => void }>();
+  const [leaderboard, setLeaderboard] = useState<AgentScore[]>([]);
+  const [recentMatch, setRecentMatch] = useState<Match | null>(null);
+  const [recentLogs, setRecentLogs] = useState<CombatLog[]>([]);
+  const [liveMatches, setLiveMatches] = useState<Match[]>([]);
+  const [queueCount, setQueueCount] = useState(0);
+  const [stats, setStats] = useState<Stats>({ totalMatches: 0, totalAgents: 0 });
+
+  useEffect(() => {
+    // 1. Fetch Leaderboard
+    fetch('http://localhost:3001/api/v1/leaderboard')
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.leaderboard) setLeaderboard(data.leaderboard);
+      }).catch(err => console.error("Leaderboard fetch failed:", err));
+
+    // 2. Fetch Recent Match + Logs for LiveFeed
+    const fetchRecentMatch = async () => {
+      try {
+        const res = await fetch('http://localhost:3001/api/v1/hub/recent');
+        const data = await res.json();
+        if (data && data.matches && data.matches.length > 0) {
+          const match = data.matches[0];
+          setRecentMatch(match);
+          // Fetch logs for this match
+          try {
+            const logsRes = await fetch(`http://localhost:3001/api/combat/status?matchId=${match.id}`).then(r => r.json());
+            if (logsRes && logsRes.logs) setRecentLogs(logsRes.logs);
+          } catch (e) {
+             console.error("Match logs fetch failed:", e);
+          }
+        }
+      } catch (err) {
+        console.error("Recent match fetch failed:", err);
+      }
+    };
+    fetchRecentMatch();
+
+    // 3. Fetch Live Status (Queue & Active)
+    const fetchLive = async () => {
+      try {
+        const liveRes = await fetch('http://localhost:3001/api/v1/hub/live').then(r => r.json());
+        const queueRes = await fetch('http://localhost:3001/api/v1/hub/queue').then(r => r.json());
+        setLiveMatches(liveRes.matches || []);
+        setQueueCount(queueRes.queue?.length || 0);
+      } catch (e) {
+        console.error("Live status fetch failed:", e);
+      }
+    };
+    fetchLive();
+
+    // 4. Global Stats from Supabase
+    const getStats = async () => {
+      try {
+        const { count: matchCount } = await supabase.from('matches').select('*', { count: 'exact', head: true });
+        const { count: agentCount } = await supabase.from('bots').select('*', { count: 'exact', head: true });
+        setStats({ totalMatches: (matchCount || 0), totalAgents: (agentCount || 0) });
+      } catch (e) {
+        console.error("Supabase stats fetch failed:", e);
+      }
+    };
+    getStats();
+
+  }, []);
 
   return (
-    <div className="min-h-screen bg-black text-white relative overflow-x-hidden">
-      {/* Global glow bg */}
-      <div className="fixed inset-0 bg-black pointer-events-none z-0" />
-
-      {/* Page */}
-      <div className="relative z-10">
-        <Hero onAuth={openAuth} />
-        <LiveFeed />
-        <HowItWorks />
-        <Leaderboard />
-        <Footer />
-      </div>
-    </div>
+    <>
+      {/* Page Content */}
+      <Hero 
+        onAuth={openAuth} 
+        liveMatches={liveMatches} 
+        queueCount={queueCount} 
+        stats={stats}
+      />
+      <LiveFeed match={recentMatch} logs={recentLogs} />
+      <HowItWorks />
+      <LeaderboardSection leaderboard={leaderboard} />
+      <Footer />
+    </>
   );
 }
+
