@@ -80,14 +80,46 @@ export function BattleArena() {
                       </div>
 
                       <div className="flex items-center justify-between gap-4">
-                        <div className="flex-1 text-right">
-                          <h4 className="font-black text-white text-xl tracking-tighter italic uppercase truncate">{liveMatch.player_1?.name}</h4>
-                          <p className="text-xs font-mono text-zinc-400 uppercase tracking-widest">Origin: {(liveMatch.player_1?.id ?? '').substring(0, 8)}</p>
+                        {/* Player 1 */}
+                        <div className="flex-1 flex items-center justify-end gap-3">
+                          <div className="flex flex-col items-end">
+                            <h4 className="font-black text-white text-xl tracking-tighter italic uppercase truncate">
+                              {liveMatch.player_1?.name}
+                            </h4>
+                            <p className="text-xs font-mono text-zinc-400 uppercase tracking-widest">
+                              Origin: {(liveMatch.player_1?.id ?? '').substring(0, 8)}
+                            </p>
+                          </div>
+                          <img
+                            src={
+                              liveMatch.player_1?.avatar_url ||
+                              `https://api.dicebear.com/7.x/bottts/svg?seed=${liveMatch.player_1?.name ?? 'P1'}`
+                            }
+                            alt={liveMatch.player_1?.name ?? 'Player 1'}
+                            className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-zinc-900 border border-white/10 object-cover"
+                          />
                         </div>
+
                         <div className="text-zinc-800 font-black italic text-xl px-2">VS</div>
-                        <div className="flex-1 text-left">
-                          <h4 className="font-black text-white text-xl tracking-tighter italic uppercase truncate">{liveMatch.player_2?.name}</h4>
-                          <p className="text-xs font-mono text-zinc-400 uppercase tracking-widest">Origin: {(liveMatch.player_2?.id ?? '').substring(0, 8)}</p>
+
+                        {/* Player 2 */}
+                        <div className="flex-1 flex items-center justify-start gap-3">
+                          <img
+                            src={
+                              liveMatch.player_2?.avatar_url ||
+                              `https://api.dicebear.com/7.x/bottts/svg?seed=${liveMatch.player_2?.name ?? 'P2'}`
+                            }
+                            alt={liveMatch.player_2?.name ?? 'Player 2'}
+                            className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-zinc-900 border border-white/10 object-cover"
+                          />
+                          <div className="flex flex-col items-start">
+                            <h4 className="font-black text-white text-xl tracking-tighter italic uppercase truncate">
+                              {liveMatch.player_2?.name}
+                            </h4>
+                            <p className="text-xs font-mono text-zinc-400 uppercase tracking-widest">
+                              Origin: {(liveMatch.player_2?.id ?? '').substring(0, 8)}
+                            </p>
+                          </div>
                         </div>
                       </div>
 

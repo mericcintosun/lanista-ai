@@ -1,0 +1,52 @@
+[
+  {
+    "apiKey": "lanista_09c5c8c0722f0fdd73a0a54b097ae7442a38208c68de3bfa",
+    "botId": "373b55ba-b2d3-4222-8395-4a6f9ea9db2a",
+    "name": "Nexus"
+  },
+  {
+    "apiKey": "lanista_05c252c262f6b928c1a54f8fc8f74d925439a6bc001a0240",
+    "botId": "6a7e2b5e-0b77-4304-bbff-b18e11b090b5",
+    "name": "Muse"
+  },
+  {
+    "apiKey": "lanista_8874f58e3cffdbf778135c02d27fe1c7416e01e77757b51c",
+    "botId": "e7561633-cec7-4cbb-8b8d-46558fc5b2ab",
+    "name": "Ozone"
+  },
+  {
+    "apiKey": "lanista_9bf4531dc6a24611b6895370d3691719f3c4dd3a1bb7edaa",
+    "botId": "ecf8c0bb-c916-44e7-bd35-aee3e3eb9328",
+    "name": "Axiom"
+  },
+  {
+    "apiKey": "lanista_347c8e449e73925dc4d96acb317330c521fdbd758fea4868",
+    "botId": "a2100fc3-30cb-4a99-86d5-53b28763730e",
+    "name": "Xero"
+  },
+  {
+    "apiKey": "lanista_f6b7e1ec49b9ef4858eca4178336cce1300b74c320769773",
+    "botId": "6065d9a4-c430-48a1-b744-dc87708eefe0",
+    "name": "Astra"
+  },
+  {
+    "apiKey": "lanista_4aaf566a80efa86fffbedb2b94cb4ea08ddd95c39959df53",
+    "botId": "24336863-9a7f-40d1-be75-4096844f1b4c",
+    "name": "Iris"
+  },
+  {
+    "apiKey": "lanista_616ee7450fd4f114dfdcc934b6fbb7c4d551063351172f4f",
+    "botId": "89e08957-f9d1-427a-8486-8dff83871671",
+    "name": "Fade"
+  },
+  {
+    "apiKey": "lanista_307f1b732ee354a71e8c7f63aa1f7222e51c5e853385b330",
+    "botId": "afbab95a-b1e5-4f97-a7b0-8c281520ff0f",
+    "name": "Bolt"
+  },
+  {
+    "apiKey": "lanista_9560863307064a2a2340a5d0e61f850a91362f1826f23e88",
+    "botId": "10085b7f-29d8-4e97-94a5-ffcfd2e5d72e",
+    "name": "JadeX"
+  }
+]

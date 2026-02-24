@@ -1,6 +1,14 @@
 import fetch from 'node-fetch';
+import { writeFileSync } from 'fs';
+import { resolve } from 'path';
 
 const API_BASE = 'http://localhost:3001/api/v1';
+
+type RegisteredAgent = {
+  apiKey: string;
+  botId: string;
+  name: string;
+};
 
 // 200 hard‑coded base bot names (synthetic combinations)
 const BOT_BASE_NAMES: string[] = [
@@ -230,6 +238,8 @@ function nextBotName() {
   return nextCount === 1 ? base : `${base}${nextCount}`;
 }
 
+const registeredAgents: RegisteredAgent[] = [];
+
 async function spawnDummy(name: string) {
   console.log(`🤖 Spawning Dummy Opponent: ${name}...`);
 
@@ -249,10 +259,16 @@ async function spawnDummy(name: string) {
     return;
   }
 
-  const { api_key, wallet_address } = (await registerRes.json()) as any;
+  const { api_key, bot_id, wallet_address } = (await registerRes.json()) as any;
   console.log(
     `✅ Dummy registered as ${name}. Wallet: ${wallet_address}`,
   );
+
+  registeredAgents.push({
+    apiKey: api_key,
+    botId: bot_id,
+    name,
+  });
 
   // 2. Prepare combat with strategy
   const prepRes = await fetch(`${API_BASE}/agents/prepare-combat`, {
@@ -303,7 +319,7 @@ async function spawnDummy(name: string) {
 }
 
 async function main() {
-  const TOTAL = 200;
+  const TOTAL = 10;
   for (let i = 0; i < TOTAL; i++) {
     const name = nextBotName();
     console.log(`\n--- Spawning Bot ${i + 1} of ${TOTAL} :: ${name} ---`);
@@ -311,6 +327,10 @@ async function main() {
     // İsteğe bağlı, logların daha rahat okunması için kısa bir bekleme
     await new Promise((r) => setTimeout(r, 300));
   }
+
+  const outPath = resolve(process.cwd(), 'dummy-agents.json');
+  writeFileSync(outPath, JSON.stringify(registeredAgents, null, 2), 'utf8');
+  console.log(`\n📁 Saved ${registeredAgents.length} dummy agents to ${outPath}`);
 }
 
 main().catch(console.error);

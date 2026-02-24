@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronUp, ChevronDown, Activity } from 'lucide-react';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 
 interface AgentScore {
   id: string;
@@ -9,24 +9,104 @@ interface AgentScore {
   wins: number;
   totalMatches: number;
   wallet_address?: string;
+  displayRank?: number;
+  trendDelta?: number;
 }
 
 export default function HallOfFame() {
   const [leaderboard, setLeaderboard] = useState<AgentScore[]>([]);
   const [loading, setLoading] = useState(true);
+  const [liveUpdates, setLiveUpdates] = useState(true);
+  const [previousRanks, setPreviousRanks] = useState<Record<string, number>>(() => {
+    if (typeof window === 'undefined') return {};
+    try {
+      const stored = window.localStorage.getItem('hofPreviousRanks');
+      return stored ? (JSON.parse(stored) as Record<string, number>) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const fetchLeaderboard = useCallback(async () => {
+    try {
+      const res = await fetch('http://localhost:3001/api/v1/leaderboard');
+      const data = await res.json();
+      if (data.leaderboard) {
+        const incoming: AgentScore[] = data.leaderboard;
+
+        // 1) Önce görüntülenecek rank'i hesapla:
+        // Aynı wins ve totalMatches değerine sahip ajanlar aynı rank'i paylaşsın.
+        let lastStatsKey: string | null = null;
+        let lastDisplayRank = 0;
+
+        const withDisplayRank: AgentScore[] = incoming.map((agent: AgentScore) => {
+          const key = `${agent.wins}-${agent.totalMatches}`;
+          let displayRank: number;
+
+          if (key === lastStatsKey) {
+            // Aynı istatistiklere sahip olanlar aynı rank'i paylaşsın
+            displayRank = lastDisplayRank;
+          } else {
+            // Yeni bir istatistik kombinasyonu gördüğümüzde,
+            // bir önceki display rank'in üzerine 1 ekleyerek devam et.
+            // Böylece 1,1,2,3,3,4 şeklinde gider; aralarda boşluk olmaz.
+            displayRank = lastDisplayRank + 1;
+            lastStatsKey = key;
+            lastDisplayRank = displayRank;
+          }
+
+          return { ...agent, displayRank };
+        });
+
+        // 2) Trend hesapla: önceki displayRank'e göre yukarı/aşağı hareket.
+        const withTrend: AgentScore[] = withDisplayRank.map((agent) => {
+          const currentRank = agent.displayRank ?? 0;
+          const prevRank = previousRanks[agent.id] ?? currentRank;
+          const delta = prevRank ? prevRank - currentRank : 0;
+          return { ...agent, trendDelta: delta };
+        });
+
+        // previousRanks'i sadece ilk yüklemede set et.
+        // Böylece trend okları, sayfa açıldığı andaki sıralamaya göre
+        // kalıcı olarak gösterilir ve her poll'da sıfırlanmaz.
+        if (Object.keys(previousRanks).length === 0) {
+          const nextPrev: Record<string, number> = {};
+          withTrend.forEach((agent) => {
+            if (agent.displayRank) {
+              nextPrev[agent.id] = agent.displayRank;
+            }
+          });
+          setPreviousRanks(nextPrev);
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem('hofPreviousRanks', JSON.stringify(nextPrev));
+          }
+        }
+        setLeaderboard(withTrend);
+      }
+      setLoading(false);
+    } catch (err) {
+      console.error("Failed to fetch leaderboard", err);
+      setLoading(false);
+    }
+  }, [previousRanks]);
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/v1/leaderboard')
-      .then(r => r.json())
-      .then(data => {
-        if (data.leaderboard) setLeaderboard(data.leaderboard);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Failed to fetch leaderboard", err);
-        setLoading(false);
-      });
-  }, []);
+    // İlk yüklemede veriyi bir sonraki event loop turunda çek
+    const id = setTimeout(() => {
+      fetchLeaderboard();
+    }, 0);
+
+    return () => clearTimeout(id);
+  }, [fetchLeaderboard]);
+
+  useEffect(() => {
+    if (!liveUpdates) return;
+
+    // Poll every 3 seconds to keep leaderboard live as bots fight
+    const intervalId = setInterval(fetchLeaderboard, 3000);
+
+    return () => clearInterval(intervalId);
+  }, [liveUpdates, fetchLeaderboard]);
 
   if (loading) {
     return (
@@ -126,10 +206,23 @@ export default function HallOfFame() {
             Only logic survives. Only hashes are forever.
           </p>
 
-          <div className="flex justify-center pt-2">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
             <span className="px-5 py-1.5 bg-red-500/10 border border-red-500/30 text-red-500 font-mono text-[10px] font-black uppercase tracking-[0.3em] rounded-full shadow-[0_0_15px_rgba(232,65,66,0.1)]">
               [ EPOCH 01 : ACTIVE ]
             </span>
+
+            <button
+              type="button"
+              onClick={() => setLiveUpdates((prev) => !prev)}
+              className="px-4 py-1.5 border border-white/10 bg-white/5 text-[10px] font-mono uppercase tracking-[0.25em] text-zinc-300 rounded-full hover:bg-white/10 hover:border-white/30 transition-colors flex items-center gap-2"
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  liveUpdates ? 'bg-[#00FF00]' : 'bg-zinc-500'
+                }`}
+              />
+              {liveUpdates ? 'Live Feed: On' : 'Live Feed: Off'}
+            </button>
           </div>
         </div>
       </section>
@@ -138,7 +231,7 @@ export default function HallOfFame() {
       {topThree.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {topThree.map((agent, i) => {
-            const rank = i + 1;
+            const rank = agent.displayRank ?? i + 1;
             const elo = 1200 + (agent.wins * 25) - ((agent.totalMatches - agent.wins) * 12);
             const isFirst = rank === 1;
 
@@ -208,13 +301,13 @@ export default function HallOfFame() {
         <div className="divide-y divide-white/5">
           {leaderboard.length > 0 ? (
             leaderboard.map((agent, index) => {
-              const rank = index + 1;
+              const rank = agent.displayRank ?? index + 1;
               const winRate = agent.totalMatches > 0
                 ? Math.round((agent.wins / agent.totalMatches) * 100)
                 : 0;
 
-              const trend = rank % 3 === 0 ? 'down' : 'up';
-              const trendVal = (index % 3) + 1;
+              const trendDelta = agent.trendDelta ?? 0;
+              const trendDirection = trendDelta > 0 ? 'up' : trendDelta < 0 ? 'down' : 'none';
 
               return (
                 <div
@@ -224,10 +317,10 @@ export default function HallOfFame() {
                   {/* Rank & Trend */}
                   <div className="col-span-1 flex items-center gap-2">
                     <span className="font-mono text-base lg:text-lg font-black italic text-zinc-600 group-hover:text-white transition-colors">#{rank}</span>
-                    {rank > 3 && (
-                      <span className={`text-[10px] font-mono flex items-center ${trend === 'up' ? 'text-[#00FF00]' : 'text-red-500'}`}>
-                        {trend === 'up' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                        {trendVal}
+                    {rank > 3 && trendDirection !== 'none' && (
+                      <span className={`text-[10px] font-mono flex items-center ${trendDirection === 'up' ? 'text-[#00FF00]' : 'text-red-500'}`}>
+                        {trendDirection === 'up' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        {Math.abs(trendDelta)}
                       </span>
                     )}
                   </div>
