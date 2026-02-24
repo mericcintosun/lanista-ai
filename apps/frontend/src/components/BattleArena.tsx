@@ -286,6 +286,19 @@ export function BattleArena() {
                         const isCritical =
                           log.action_type === 'CRITICAL' ||
                           log.action_type === 'HEAVY_ATTACK';
+                        const narrative =
+                          log.narrative?.replace(
+                            // Remove common emoji characters, keep text clean for UI
+                            /[\p{Extended_Pictographic}\p{Emoji_Presentation}\p{Emoji}\uFE0F]/gu,
+                            ''
+                          ) ?? '';
+
+                        const actionIcon = (() => {
+                          if (!log.action_type) return null;
+                          if (log.action_type.includes('HEAL')) return <Activity className="w-3 h-3 mr-1" />;
+                          if (log.action_type.includes('DEFEND')) return <ShieldAlert className="w-3 h-3 mr-1" />;
+                          return <Swords className="w-3 h-3 mr-1" />;
+                        })();
 
                         return (
                           <motion.div
@@ -331,13 +344,14 @@ export function BattleArena() {
                                         : 'bg-zinc-900/80 text-zinc-400 border border-zinc-700'
                                     }`}
                                   >
+                                    {actionIcon}
                                     {log.action_type.replace('_', ' ')}
                                   </span>
                                 )}
                               </div>
 
                               <p className="text-sm text-zinc-100 leading-relaxed">
-                                {log.narrative}
+                                {narrative}
                               </p>
 
                               {log.value > 0 && (
