@@ -30,12 +30,71 @@ export default function HallOfFame() {
 
   if (loading) {
     return (
-      <div className="w-full flex items-center justify-center min-h-[60vh] bg-black pt-6">
-        <div className="relative">
-          <div className="w-12 h-12 border border-white/10 rounded-full flex items-center justify-center">
-            <div className="w-2 h-2 bg-white rounded-full animate-ping" />
+      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 pb-24 pt-16 space-y-10">
+        {/* Heading skeleton */}
+        <div className="flex flex-col items-center text-center gap-6">
+          {/* Red circle with central dot indicator */}
+          <div className="flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full border border-red-500/70 flex items-center justify-center animate-pulse">
+              <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
+            </div>
           </div>
-          <p className="mt-4 font-mono text-xs text-zinc-300 uppercase tracking-widest text-center">Loading Hall of Fame...</p>
+          <div className="h-3 w-40 bg-white/5 rounded-full animate-pulse" />
+          <div className="relative inline-block w-full max-w-3xl">
+            <div className="h-14 sm:h-20 md:h-24 bg-white/5 rounded-lg animate-pulse" />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[pulse_1.8s_ease-in-out_infinite]" />
+          </div>
+          <div className="h-3 w-64 bg-white/5 rounded-full animate-pulse" />
+        </div>
+
+        {/* Top 3 podium skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="relative p-6 bg-white/[0.02] border border-white/10 rounded-2xl backdrop-blur-sm flex flex-col items-center gap-4 animate-pulse"
+            >
+              <div className="w-20 h-20 rounded-full bg-white/5" />
+              <div className="h-3 w-28 bg-white/5 rounded-full" />
+              <div className="h-2 w-24 bg-white/5 rounded-full" />
+              <div className="w-full h-2 bg-white/5 rounded-full mt-2" />
+            </div>
+          ))}
+        </div>
+
+        {/* Table skeleton */}
+        <div className="glass rounded-3xl overflow-hidden relative">
+          <div className="absolute inset-0 noise pointer-events-none" />
+          <div className="grid grid-cols-12 gap-4 px-6 lg:px-8 py-4 border-b border-white/5">
+            <div className="h-2 w-10 bg-white/5 rounded col-span-2" />
+            <div className="h-2 w-24 bg-white/5 rounded col-span-5" />
+            <div className="hidden lg:block h-2 w-20 bg-white/5 rounded col-span-3" />
+            <div className="hidden lg:block h-2 w-16 bg-white/5 rounded col-span-2" />
+          </div>
+          <div className="divide-y divide-white/5">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="grid grid-cols-2 lg:grid-cols-12 gap-4 px-6 lg:px-8 py-5 items-center"
+              >
+                <div className="h-3 w-10 bg-white/5 rounded col-span-1" />
+                <div className="col-span-1 lg:col-span-11 grid grid-cols-1 lg:grid-cols-11 gap-4 items-center">
+                  <div className="flex items-center gap-3 lg:col-span-5">
+                    <div className="w-10 h-10 rounded-full bg-white/5" />
+                    <div className="space-y-2 flex-1">
+                      <div className="h-2 w-24 bg-white/5 rounded" />
+                      <div className="h-2 w-16 bg-white/5 rounded" />
+                    </div>
+                  </div>
+                  <div className="lg:col-span-4 space-y-2">
+                    <div className="h-2 w-20 bg-white/5 rounded" />
+                    <div className="h-2 w-16 bg-white/5 rounded" />
+                  </div>
+                  <div className="hidden lg:block lg:col-span-2 h-3 w-10 bg-white/5 rounded ml-auto" />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -44,21 +103,21 @@ export default function HallOfFame() {
   const topThree = leaderboard.slice(0, 3);
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-16 pb-24 px-6 bg-black text-white selection:bg-red-500/30">
+    <div className="w-full max-w-[1400px] mx-auto space-y-16 pb-24">
 
       {/* ─── HEADER & EPOCH INFO ─── */}
-      <section className="text-center space-y-6 pt-12 relative overflow-hidden">
-        <div className="relative inline-block">
-          <h1 className="text-7xl md:text-8xl font-black italic tracking-tighter text-white select-none relative z-10 uppercase">
-            HALL OF FAME
-          </h1>
-          {/* Chromatic Aberration Shadows */}
-          <span className="absolute inset-0 z-0 translate-x-[3px] translate-y-[1px] text-[#ff0000] opacity-40 mix-blend-screen blur-[1px] italic font-black text-7xl md:text-8xl tracking-tighter uppercase">
-            HALL OF FAME
-          </span>
-          <span className="absolute inset-0 z-0 -translate-x-[3px] -translate-y-[1px] text-[#0000ff] opacity-40 mix-blend-screen blur-[1px] italic font-black text-7xl md:text-8xl tracking-tighter uppercase">
-            HALL OF FAME
-          </span>
+      <section className="text-center space-y-8 pt-12 px-4 flex flex-col items-center justify-center min-h-[30vh] relative overflow-hidden">
+        <div className="space-y-4 w-full">
+          <p className="font-mono text-[10px] md:text-xs text-red-500 font-bold uppercase tracking-[0.4em] md:tracking-[0.6em] mb-4">// LEGENDARY STATUS</p>
+          <div className="relative inline-block w-full">
+            <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-[10rem] font-black italic tracking-tighter text-white select-none relative z-10 uppercase leading-[0.8] break-words px-2">
+              HALL OF FAME
+            </h1>
+            {/* Theme Red Shadows (No mix-blend-difference) */}
+            <span className="absolute inset-0 z-0 translate-x-[2px] translate-y-[2px] md:translate-x-[4px] md:translate-y-[2px] text-red-500/30 blur-[2px] md:blur-[3px] italic font-black text-5xl sm:text-7xl md:text-8xl lg:text-[10rem] tracking-tighter uppercase leading-[0.8] break-words px-2 pointer-events-none">
+              HALL OF FAME
+            </span>
+          </div>
         </div>
 
         <div className="space-y-4">
@@ -132,23 +191,17 @@ export default function HallOfFame() {
       )}
 
       {/* ─── GLOBAL LEADERBOARD (DATA-DENSE) ─── */}
-      <div className="bg-white/[0.02] border border-white/10 rounded-none overflow-hidden backdrop-blur-sm">
-        <div className="px-8 py-5 border-b border-white/5 bg-white/[0.01] flex items-center justify-between">
-          <h2 className="font-mono text-base uppercase text-zinc-400 tracking-widest flex items-center gap-3">
-            <Activity className="w-5 h-5" />
-            Detailed Combat Telemetry
-          </h2>
-          <div className="font-mono text-sm text-zinc-500 font-bold uppercase tracking-widest">
-            {leaderboard.length} Entities Indexed
-          </div>
-        </div>
+      <div className="glass rounded-3xl overflow-hidden relative">
+        <div className="absolute inset-0 noise pointer-events-none" />
 
         {/* TABLE HEADER */}
-        <div className="hidden lg:grid grid-cols-12 gap-4 px-8 py-5 border-b border-white/5 font-mono text-xs text-zinc-600 uppercase tracking-widest font-black">
+        <div className="grid grid-cols-2 lg:grid-cols-12 gap-4 px-6 lg:px-8 py-5 border-b border-white/5 font-mono text-[10px] lg:text-xs text-zinc-600 uppercase tracking-widest font-black">
           <div className="col-span-1">Rank</div>
-          <div className="col-span-5">Entity / Protocol Name</div>
-          <div className="col-span-4 text-center">Record (W-L)</div>
-          <div className="col-span-2 text-right">Efficiency</div>
+          <div className="col-span-1 lg:col-span-11 grid grid-cols-1 lg:grid-cols-11 gap-4">
+            <div className="col-span-1 lg:col-span-5">Entity / Protocol Name</div>
+            <div className="hidden lg:block lg:col-span-4 text-center">Record (W-L)</div>
+            <div className="hidden lg:block lg:col-span-2 text-right">Efficiency</div>
+          </div>
         </div>
 
         {/* LIST OF LANYS */}
@@ -160,19 +213,17 @@ export default function HallOfFame() {
                 ? Math.round((agent.wins / agent.totalMatches) * 100)
                 : 0;
 
-
               const trend = rank % 3 === 0 ? 'down' : 'up';
-              // Deterministic trend value
               const trendVal = (index % 3) + 1;
 
               return (
                 <div
                   key={agent.id}
-                  className="grid grid-cols-1 lg:grid-cols-12 gap-4 px-8 py-6 items-center group hover:bg-white/[0.03] transition-all cursor-pointer border-l-2 border-l-transparent hover:border-l-red-500 relative"
+                  className="grid grid-cols-2 lg:grid-cols-12 gap-4 px-6 lg:px-8 py-6 items-center group hover:bg-white/[0.03] transition-all cursor-pointer border-l-2 border-l-transparent hover:border-l-red-500 relative"
                 >
                   {/* Rank & Trend */}
                   <div className="col-span-1 flex items-center gap-2">
-                    <span className="font-mono text-lg font-black italic text-zinc-600 group-hover:text-white transition-colors">#{rank}</span>
+                    <span className="font-mono text-base lg:text-lg font-black italic text-zinc-600 group-hover:text-white transition-colors">#{rank}</span>
                     {rank > 3 && (
                       <span className={`text-[10px] font-mono flex items-center ${trend === 'up' ? 'text-[#00FF00]' : 'text-red-500'}`}>
                         {trend === 'up' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -181,36 +232,42 @@ export default function HallOfFame() {
                     )}
                   </div>
 
-                  {/* Entity Info */}
-                  <div className="col-span-4 flex items-center gap-4">
-                    <img
-                      src={agent.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${agent.name}`}
-                      className="w-12 h-12 rounded-full bg-zinc-900 border border-white/5 grayscale group-hover:grayscale-0 transition-all p-0.5"
-                      alt=""
-                    />
-                    <div>
-                      <h4 className="font-black text-white text-lg tracking-tighter italic uppercase group-hover:text-red-500 transition-colors">{agent.name}</h4>
-                      <p className="text-xs font-mono text-zinc-400 uppercase tracking-widest font-bold">ID: {agent.id.substring(0, 10)}</p>
+                  {/* Right side container for mobile stack */}
+                  <div className="col-span-1 lg:col-span-11 grid grid-cols-1 lg:grid-cols-11 gap-4 items-center">
+                    {/* Entity Info */}
+                    <div className="lg:col-span-5 flex items-center gap-3 lg:gap-4">
+                      <img
+                        src={agent.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${agent.name}`}
+                        className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-zinc-900 border border-white/5 grayscale group-hover:grayscale-0 transition-all p-0.5"
+                        alt=""
+                      />
+                      <div className="min-w-0">
+                        <h4 className="font-black text-white text-sm lg:text-lg tracking-tighter italic uppercase group-hover:text-red-500 transition-colors truncate">{agent.name}</h4>
+                        <p className="text-[9px] lg:text-xs font-mono text-zinc-500 uppercase tracking-widest font-bold truncate">ID: {agent.id.substring(0, 10)}</p>
+                      </div>
                     </div>
-                  </div>
 
+                    {/* Record - Mobile optimized */}
+                    <div className="lg:col-span-4 text-left lg:text-center flex flex-row lg:flex-col items-center lg:justify-center gap-4 lg:gap-1">
+                      <div className="flex flex-col lg:block">
+                        <span className="block font-mono text-[9px] lg:text-xs text-zinc-500 uppercase tracking-widest font-bold">M: {agent.totalMatches}</span>
+                        <span className="block font-black text-xs lg:text-base text-white">
+                          <span className="text-white">{agent.wins}</span><span className="text-zinc-500 px-1">/</span><span className="text-zinc-400 font-bold">{agent.totalMatches - agent.wins}</span>
+                        </span>
+                      </div>
+                      <div className="lg:hidden ml-auto">
+                        <span className={`font-mono text-xs font-black ${winRate > 50 ? 'text-[#00FF00]' : 'text-zinc-500'}`}>
+                          {winRate}%
+                        </span>
+                      </div>
+                    </div>
 
-
-                  {/* Record */}
-                  <div className="col-span-4 text-center flex items-center justify-center gap-4 px-4">
-                    <div className="text-center">
-                      <span className="block font-mono text-xs text-zinc-500 uppercase tracking-widest mb-1 font-bold">M: {agent.totalMatches}</span>
-                      <span className="block font-black text-base text-white">
-                        <span className="text-white">{agent.wins}</span><span className="text-zinc-500 px-1">/</span><span className="text-zinc-400 font-bold">{agent.totalMatches - agent.wins}</span>
+                    {/* Efficiency - Desktop Only */}
+                    <div className="hidden lg:block lg:col-span-2 text-right">
+                      <span className={`font-mono text-base font-black ${winRate > 50 ? 'text-[#00FF00]' : 'text-zinc-500'}`}>
+                        {winRate}%
                       </span>
                     </div>
-                  </div>
-
-                  {/* Efficiency */}
-                  <div className="col-span-3 text-right">
-                    <span className={`font-mono text-base font-black ${winRate > 50 ? 'text-[#00FF00]' : 'text-zinc-500'}`}>
-                      {winRate}%
-                    </span>
                   </div>
                 </div>
               );

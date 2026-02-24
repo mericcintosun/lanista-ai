@@ -38,26 +38,26 @@ export function BattleArena() {
   }, [logs]);
 
   return (
-    <div className="min-h-[90vh] flex flex-col items-center bg-black text-white relative overflow-hidden px-6 pb-24">
+    <div className="min-h-[90vh] flex flex-col items-center relative overflow-hidden px-6 pb-24">
       {/* Background Flair: Radial Gradients */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-red-500/5 blur-[150px] rounded-full pointer-events-none" />
 
       <div className="z-10 w-full max-w-6xl flex flex-col items-center">
         {/* ─── HEADER ─── */}
-        <section className="text-center py-16 space-y-4">
-          <div className="relative inline-block">
-            <h1 className="text-7xl md:text-8xl font-black italic tracking-tighter text-white select-none relative z-10 uppercase">
-              LIVE ARENA
-            </h1>
-            {/* Chromatic Aberration Shadows */}
-            <span className="absolute inset-0 z-0 translate-x-[3px] translate-y-[1px] text-[#ff0000] opacity-40 mix-blend-screen blur-[1px] italic font-black text-7xl md:text-8xl tracking-tighter uppercase">
-              LIVE ARENA
-            </span>
-            <span className="absolute inset-0 z-0 -translate-x-[3px] -translate-y-[1px] text-[#0000ff] opacity-40 mix-blend-screen blur-[1px] italic font-black text-7xl md:text-8xl tracking-tighter uppercase">
-              LIVE ARENA
-            </span>
+        <section className="text-center py-16 space-y-8 flex flex-col items-center justify-center min-h-[30vh] px-4">
+          <div className="space-y-4 w-full">
+            <p className="font-mono text-[10px] md:text-xs text-red-500 font-bold uppercase tracking-[0.4em] md:tracking-[0.6em] mb-4">// LIVE NEURAL LINK</p>
+            <div className="relative inline-block w-full">
+              <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-[10rem] font-black italic tracking-tighter text-white select-none relative z-10 uppercase leading-[0.8] break-words px-2">
+                LIVE ARENA
+              </h1>
+              {/* Theme Red Shadows (No mix-blend-difference) */}
+              <span className="absolute inset-0 z-0 translate-x-[2px] translate-y-[2px] md:translate-x-[4px] md:translate-y-[2px] text-red-500/30 blur-[2px] md:blur-[3px] italic font-black text-6xl sm:text-7xl md:text-8xl lg:text-[10rem] tracking-tighter uppercase leading-[0.8] pointer-events-none">
+                LIVE ARENA
+              </span>
+            </div>
           </div>
-          <p className="text-zinc-400 font-mono text-xs md:text-sm uppercase tracking-[0.2em] block">
+          <p className="text-zinc-500 font-mono text-[10px] uppercase tracking-[0.5em] block animate-pulse">
             Neural Combat Link // Real-time Settlement Terminal
           </p>
         </section>
@@ -70,9 +70,10 @@ export function BattleArena() {
                 {liveMatches.map((liveMatch) => (
                   <Link key={liveMatch.id} to={`/arena/${liveMatch.id}`} className="group">
                     <motion.div
-                      whileHover={{ borderColor: 'rgba(232, 65, 66, 0.5)', scale: 1.01 }}
-                      className="relative p-8 bg-white/[0.02] border border-white/10 rounded-none transition-all flex flex-col gap-6"
+                      whileHover={{ scale: 1.02 }}
+                      className="relative p-10 glass rounded-3xl transition-all flex flex-col gap-8 overflow-hidden"
                     >
+                      <div className="absolute inset-0 noise pointer-events-none" />
                       <div className="flex items-center justify-between">
                         <span className="font-mono text-xs text-zinc-400 uppercase tracking-widest">Match #{liveMatch.id.substring(0, 8)}</span>
                         <div className="flex items-center gap-1.5 text-[10px] font-mono text-red-500 uppercase tracking-widest">
@@ -103,7 +104,8 @@ export function BattleArena() {
               </div>
             ) : (
               /* DORMANT TERMINAL EMPTY STATE */
-              <div className="w-full max-w-4xl bg-white/[0.02] border border-white/10 rounded-none p-12 relative overflow-hidden group min-h-[400px] flex items-center justify-center">
+              <div className="w-full max-w-4xl glass rounded-3xl p-16 relative overflow-hidden group min-h-[400px] flex items-center justify-center">
+                <div className="absolute inset-0 noise pointer-events-none" />
                 {/* Scanning Line Effect */}
                 <motion.div
                   initial={{ y: "-100%" }}
@@ -255,8 +257,9 @@ export function BattleArena() {
             </div>
 
             {/* ─── THE TERMINAL COMBAT LOG ─── */}
-            <div className="w-full max-w-4xl bg-black border border-zinc-800 p-1 rounded-none shadow-2xl relative">
-              <div className="bg-zinc-900/40 px-5 py-3 flex items-center justify-between border-b border-zinc-800 shrink-0">
+            <div className="w-full max-w-4xl glass p-1 rounded-3xl shadow-2xl relative overflow-hidden">
+              <div className="absolute inset-0 noise pointer-events-none opacity-10" />
+              <div className="bg-white/5 px-6 py-4 flex items-center justify-between border-b border-white/5 relative z-10">
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(232,65,66,0.6)]" />
                   <span className="font-mono text-[11px] text-zinc-300 uppercase tracking-[0.2em]">COMBAT_TELEMETRY.LOG</span>

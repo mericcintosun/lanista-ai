@@ -18,9 +18,10 @@ export function GladiatorCard({ bot, isRight = false }: Props) {
            initial={{ rotateY: isRight ? -10 : 10, opacity: 0 }}
            animate={{ rotateY: 0, opacity: 1 }}
            transition={{ duration: 0.8, ease: "easeOut" }}
-           className="bg-surface border border-neutral-800 p-4 rounded-xl shadow-2xl overflow-hidden relative"
+           className="glass p-6 rounded-[2rem] shadow-2xl overflow-hidden relative group/card transition-all duration-500 hover:-translate-y-2 hover:border-primary/30"
         >
-          <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="absolute inset-0 noise pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-500" />
           
           <img 
             src={bot.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${bot.name}`} 
