@@ -1,4 +1,4 @@
-﻿import dotenv from 'dotenv';
+import dotenv from 'dotenv';
 // Load envs first so they are available to all subsequent imports
 dotenv.config();
 dotenv.config({ path: '.env.local' });
@@ -24,6 +24,11 @@ const redis = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+function respondError(res: express.Response, status: number, clientMessage: string, err?: unknown): void {
+  if (err !== undefined) console.error(clientMessage, err);
+  res.status(status).json({ error: clientMessage });
+}
 
 // Initialize Queue
 const matchQueue = new Queue('match-queue', { connection });
@@ -87,7 +92,7 @@ app.post('/api/v1/agents/register', async (req: any, res: any) => {
 
     if (error) {
       console.error("Agent registration error:", error);
-      return res.status(400).json({ error: error.message });
+      return res.status(400).json({ error: "Registration failed. Check your input." });
     }
 
     res.json({
@@ -97,7 +102,7 @@ app.post('/api/v1/agents/register', async (req: any, res: any) => {
       wallet_address: wallet.address
     });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    respondError(res, 500, "Registration failed.", err);
   }
 });
 
@@ -125,7 +130,7 @@ app.get('/api/v1/agents/my-turn', agentAuth, async (req: any, res) => {
     const gameState = JSON.parse(pending);
     return res.json({ pending: true, game_state: gameState });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    respondError(res, 500, "Failed to check turn status.", err);
   }
 });
 
@@ -153,7 +158,7 @@ app.post('/api/v1/agents/submit-action', agentAuth, async (req: any, res) => {
 
     res.json({ success: true, message: `Action '${upperAction}' submitted.` });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    respondError(res, 500, "Failed to submit action.", err);
   }
 });
 
@@ -195,7 +200,8 @@ app.post('/api/v1/agents/prepare-combat', agentAuth, async (req: any, res) => {
       strategy: validatedStrategy
     });
   } catch (err: any) {
-    res.status(400).json({ success: false, error: err.message });
+    console.error("Combat preparation failed.", err);
+    res.status(400).json({ success: false, error: "Combat preparation failed. Check stats and strategy." });
   }
 });
 
@@ -403,8 +409,7 @@ app.post('/api/combat/start', async (req, res) => {
 
     res.json({ message: 'Agents armed, battle starting!', match });
   } catch (err: any) {
-    console.error('Combat constraint error:', err);
-    res.status(400).json({ error: err.message });
+    respondError(res, 400, "Failed to start combat. Check request body.", err);
   }
 });
 
@@ -426,14 +431,21 @@ app.get('/api/combat/status', async (req, res) => {
       return res.status(404).json({ error: "Match not found" });
     }
 
-    const { data: logs, error: lErr } = await supabase.from('combat_logs')
+    const { data: logs } = await supabase.from('combat_logs')
       .select('*')
       .eq('match_id', matchId)
       .order('created_at', { ascending: true });
 
+    if (match.player_1) {
+      match.player_1.current_hp = match.p1_current_hp ?? match.player_1.hp;
+    }
+    if (match.player_2) {
+      match.player_2.current_hp = match.p2_current_hp ?? match.player_2.hp;
+    }
+
     res.json({ match, logs: logs || [] });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    respondError(res, 500, "Failed to fetch match status.", error);
   }
 });
 
@@ -465,7 +477,7 @@ app.get('/api/v1/hub/live', async (req, res) => {
     if (error) throw error;
     res.json({ matches: matches || [] });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    respondError(res, 500, "Failed to fetch live matches.", error);
   }
 });
 
@@ -481,7 +493,7 @@ app.get('/api/v1/hub/recent', async (req, res) => {
     if (error) throw error;
     res.json({ matches: matches || [] });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    respondError(res, 500, "Failed to fetch recent matches.", error);
   }
 });
 
@@ -520,7 +532,7 @@ app.get('/api/v1/leaderboard', async (req, res) => {
 
     res.json({ leaderboard });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    respondError(res, 500, "Failed to fetch leaderboard.", error);
   }
 });
 
@@ -539,7 +551,7 @@ app.get('/api/v1/agent/:id', async (req, res) => {
 
     res.json({ agent: bot, history: matches || [] });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    respondError(res, 500, "Failed to fetch agent.", error);
   }
 });
 
@@ -562,7 +574,7 @@ app.get('/api/v1/oracle/matches', async (req, res) => {
     if (error) throw error;
     res.json({ matches: matches || [] });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    respondError(res, 500, "Failed to fetch oracle matches.", error);
   }
 });
 

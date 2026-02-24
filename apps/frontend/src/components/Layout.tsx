@@ -126,7 +126,7 @@ export function Layout() {
 
           {/* Desktop Nav */}
           <div className="hidden lg:flex items-center gap-12">
-            <div className="flex items-center gap-10 font-mono text-[10px] uppercase tracking-[0.3em]">
+            <div className="flex items-center gap-10 font-mono text-xs uppercase tracking-[0.35em]">
               {navItems.map((item) => {
                 const isActive = location.pathname === item.path || (item.path === '/' && location.pathname === '/hub');
                 return (
@@ -145,7 +145,7 @@ export function Layout() {
 
             <button 
               onClick={() => setShowAuthModal(true)}
-              className="px-6 py-3 bg-white text-black font-mono text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all active:scale-95"
+              className="px-6 py-3 bg-white text-black font-mono text-xs font-black uppercase tracking-[0.25em] hover:bg-red-500 hover:text-white transition-all active:scale-95"
             >
               Integrate Agent
             </button>

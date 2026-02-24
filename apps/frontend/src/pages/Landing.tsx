@@ -37,16 +37,17 @@ const MOCK_MATCH: Match = {
   status: 'finished',
   tx_hash: '0x1234567890abcdef1234567890abcdef12345678',
   created_at: new Date().toISOString(),
-  player_1: { id: 'mock-p1-id', name: 'ALPHA_CORE', avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=alpha', wallet_address: undefined },
-  player_2: { id: 'mock-p2-id', name: 'BETA_NEXUS', avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=beta', wallet_address: undefined },
+  player_1: { id: 'mock-p1-id', name: 'ALPHA_CORE', avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=alpha', wallet_address: undefined, hp: 100, attack: 10, defense: 10 },
+  player_2: { id: 'mock-p2-id', name: 'BETA_NEXUS', avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=beta', wallet_address: undefined, hp: 100, attack: 10, defense: 10 },
 };
 
+const MOCK_CREATED_AT = MOCK_MATCH.created_at ?? new Date().toISOString();
 const MOCK_LOGS: CombatLog[] = [
-  { id: '1', match_id: MOCK_MATCH.id, actor_id: MOCK_MATCH.player_1_id, action_type: 'ATTACK', value: 12, narrative: 'P1 attacked P2 — direct hit.', created_at: MOCK_MATCH.created_at },
-  { id: '2', match_id: MOCK_MATCH.id, actor_id: MOCK_MATCH.player_2_id, action_type: 'DEFEND', value: 0, narrative: 'P2 defended — damage mitigated.', created_at: MOCK_MATCH.created_at },
-  { id: '3', match_id: MOCK_MATCH.id, actor_id: MOCK_MATCH.player_1_id, action_type: 'HEAVY_ATTACK', value: 28, narrative: 'P1 executed HEAVY_ATTACK — critical.', created_at: MOCK_MATCH.created_at },
-  { id: '4', match_id: MOCK_MATCH.id, actor_id: MOCK_MATCH.player_2_id, action_type: 'ATTACK', value: 8, narrative: 'P2 attacked P1 — glancing blow.', created_at: MOCK_MATCH.created_at },
-  { id: '5', match_id: MOCK_MATCH.id, actor_id: MOCK_MATCH.player_1_id, action_type: 'ATTACK', value: 15, narrative: 'P1 attacked P2 — final strike.', created_at: MOCK_MATCH.created_at },
+  { id: '1', match_id: MOCK_MATCH.id, actor_id: MOCK_MATCH.player_1_id, action_type: 'ATTACK', value: 12, narrative: 'P1 attacked P2 — direct hit.', created_at: MOCK_CREATED_AT },
+  { id: '2', match_id: MOCK_MATCH.id, actor_id: MOCK_MATCH.player_2_id, action_type: 'DEFEND', value: 0, narrative: 'P2 defended — damage mitigated.', created_at: MOCK_CREATED_AT },
+  { id: '3', match_id: MOCK_MATCH.id, actor_id: MOCK_MATCH.player_1_id, action_type: 'HEAVY_ATTACK', value: 28, narrative: 'P1 executed HEAVY_ATTACK — critical.', created_at: MOCK_CREATED_AT },
+  { id: '4', match_id: MOCK_MATCH.id, actor_id: MOCK_MATCH.player_2_id, action_type: 'ATTACK', value: 8, narrative: 'P2 attacked P1 — glancing blow.', created_at: MOCK_CREATED_AT },
+  { id: '5', match_id: MOCK_MATCH.id, actor_id: MOCK_MATCH.player_1_id, action_type: 'ATTACK', value: 15, narrative: 'P1 attacked P2 — final strike.', created_at: MOCK_CREATED_AT },
 ];
 
 // ─── HOOKS ─────────────────────────────────────────────────────────────────
@@ -73,8 +74,8 @@ function useTypewriter(text: string, speed = 40, startDelay = 0) {
 
 // ─── COMPONENTS ─────────────────────────────────────────────────────────────
 
-function BlinkCursor() {
-  return <span className="text-primary">█</span>;
+function BlinkCursor({ className = 'text-primary' }: { className?: string }) {
+  return <span className={className}>█</span>;
 }
 
 function ScanLines() {
@@ -121,7 +122,7 @@ function Hero({ onAuth, liveMatches, queueCount, stats }: { onAuth: () => void, 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
         <p className="font-mono text-xs text-primary uppercase tracking-[0.3em] mb-4">// LANISTA PROTOCOL v2.4</p>
         <h1 className="text-5xl md:text-7xl font-black tracking-tight text-white mb-2 leading-tight">
-          {displayed}<BlinkCursor />
+          {displayed}<BlinkCursor className="text-white" />
         </h1>
       </motion.div>
 

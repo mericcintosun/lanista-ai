@@ -16,6 +16,10 @@ export const connection: any = process.env.REDIS_URL
     maxRetriesPerRequest: null
   });
 
+// Allow multiple matches to be processed concurrently for true \"live\" behavior.
+// Configurable via MATCH_WORKER_CONCURRENCY env; defaults to 5.
+const WORKER_CONCURRENCY = parseInt(process.env.MATCH_WORKER_CONCURRENCY || '5', 10);
+
 export const matchWorker = new Worker('match-queue', async (job) => {
   const { matchId, p1, p2 } = job.data;
 
@@ -39,6 +43,18 @@ export const matchWorker = new Worker('match-queue', async (job) => {
 
   let currentTurn = 1;
   let isP1Turn = Math.random() > 0.5;
+
+  try {
+    if (process.env.SUPABASE_URL) {
+      await supabase.from('matches').update({
+        p1_current_hp: p1.hp,
+        p2_current_hp: p2.hp,
+        current_turn: 0
+      }).eq('id', matchId);
+    }
+  } catch (err) {
+    console.error('[Worker] Initial state update error', err);
+  }
 
   // Combat Loop — fully automatic, no waiting
   while (p1_hp > 0 && p2_hp > 0) {
@@ -134,6 +150,12 @@ export const matchWorker = new Worker('match-queue', async (job) => {
           narrative,
           target_current_hp
         });
+
+        await supabase.from('matches').update({
+          p1_current_hp: Math.max(0, p1_hp),
+          p2_current_hp: Math.max(0, p2_hp),
+          current_turn: currentTurn
+        }).eq('id', matchId);
       }
     } catch (err) {
       console.error('[Worker] Supabase log error', err);
@@ -198,7 +220,7 @@ export const matchWorker = new Worker('match-queue', async (job) => {
 
   return { winnerId };
 
-}, { connection });
+}, { connection, concurrency: WORKER_CONCURRENCY });
 
 matchWorker.on('completed', job => {
   console.log(`Job ${job.id} completed`);

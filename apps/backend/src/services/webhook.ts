@@ -1,9 +1,22 @@
 import { ethers } from 'ethers';
 
-// Sunucunun güvenli cüzdanı (Örn: 0xLanistaArena...)
-// Fallback olarak rastgele bir hesap oluşturuyoruz ki env yokken çökmesin
-const ARENA_PRIVATE_KEY = process.env.ARENA_PRIVATE_KEY || ethers.Wallet.createRandom().privateKey;
-const wallet = new ethers.Wallet(ARENA_PRIVATE_KEY);
+function getArenaWallet(): ethers.Wallet | ethers.HDNodeWallet {
+  const key = process.env.ARENA_PRIVATE_KEY;
+  if (key && key.length >= 64) {
+    return new ethers.Wallet(key);
+  }
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'ARENA_PRIVATE_KEY is required in production. Run: npm run generate-arena-key'
+    );
+  }
+  console.warn(
+    '[webhook] ARENA_PRIVATE_KEY not set; using ephemeral wallet. Signatures will not be verifiable across restarts.'
+  );
+  return ethers.Wallet.createRandom();
+}
+
+const wallet = getArenaWallet();
 
 export const signCombatProof = async (matchId: string, winnerId: string, loserId: string) => {
   // Veriyi paketle (Solidity'deki keccak256(abi.encodePacked(...)) mantığı)

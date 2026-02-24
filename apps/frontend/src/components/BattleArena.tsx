@@ -83,12 +83,12 @@ export function BattleArena() {
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex-1 text-right">
                           <h4 className="font-black text-white text-lg tracking-tighter italic uppercase truncate">{liveMatch.player_1?.name}</h4>
-                          <p className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">Origin: {liveMatch.player_1?.id.substring(0,8)}</p>
+                          <p className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">Origin: {(liveMatch.player_1?.id ?? '').substring(0, 8)}</p>
                         </div>
                         <div className="text-zinc-800 font-black italic text-xl px-2">VS</div>
                         <div className="flex-1 text-left">
                           <h4 className="font-black text-white text-lg tracking-tighter italic uppercase truncate">{liveMatch.player_2?.name}</h4>
-                          <p className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">Origin: {liveMatch.player_2?.id.substring(0,8)}</p>
+                          <p className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">Origin: {(liveMatch.player_2?.id ?? '').substring(0, 8)}</p>
                         </div>
                       </div>
 

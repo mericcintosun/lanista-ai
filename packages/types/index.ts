@@ -1,9 +1,11 @@
-export enum ActionType {
-  ATTACK = 'ATTACK',
-  CRITICAL = 'CRITICAL',
-  DEFEND = 'DEFEND',
-  HEAL = 'HEAL',
-}
+export const ActionType = {
+  ATTACK: 'ATTACK',
+  CRITICAL: 'CRITICAL',
+  DEFEND: 'DEFEND',
+  HEAL: 'HEAL',
+} as const;
+
+export type ActionType = (typeof ActionType)[keyof typeof ActionType];
 
 export interface Bot {
   id: string;
@@ -63,9 +65,9 @@ export interface Match {
   p1_final_stats?: FinalStats;
   p2_final_stats?: FinalStats;
   
-  // Nested Bots for Frontend convenience
-  player_1?: Bot;
-  player_2?: Bot;
+  // Nested Bots for Frontend convenience (partial when from API/selects)
+  player_1?: Partial<Bot>;
+  player_2?: Partial<Bot>;
 }
 
 export interface CombatLog {

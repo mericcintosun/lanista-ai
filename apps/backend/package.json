@@ -4,7 +4,9 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "npx tsx watch index.ts"
+    "dev": "npx tsx watch index.ts",
+    "build": "tsc --noEmit",
+    "generate-arena-key": "npx tsx scripts/generate-arena-key.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",

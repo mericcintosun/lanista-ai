@@ -71,8 +71,8 @@ async function spawnDummy() {
 }
 
 async function main() {
-    for (let i = 0; i < 5; i++) {
-        console.log(`\n--- Spawning Bot ${i + 1} of 5 ---`);
+    for (let i = 0; i < 4; i++) {
+        console.log(`\n--- Spawning Bot ${i + 1} of 4 ---`);
         await spawnDummy();
         // İsteğe bağlı, logların daha rahat okunması için kısa bir bekleme
         await new Promise(r => setTimeout(r, 500)); 
