@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { BattleArena } from './components/BattleArena';
+import Landing from './pages/Landing';
 import Hub from './pages/Hub';
 import HallOfFame from './pages/HallOfFame';
 import Oracle from './pages/Oracle';
@@ -26,12 +27,16 @@ function App() {
     <BrowserRouter>
       <GlobalMatchDirector />
       <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Hub />} />
-          <Route path="arena" element={<BattleArena />} />
-          <Route path="arena/:matchId" element={<BattleArena />} />
-          <Route path="hall-of-fame" element={<HallOfFame />} />
-          <Route path="oracle" element={<Oracle />} />
+        {/* Landing page — full custom nav, no Layout wrapper */}
+        <Route path="/" element={<Landing />} />
+
+        {/* App shell with persistent nav */}
+        <Route element={<Layout />}>
+          <Route path="/hub" element={<Hub />} />
+          <Route path="/arena" element={<BattleArena />} />
+          <Route path="/arena/:matchId" element={<BattleArena />} />
+          <Route path="/hall-of-fame" element={<HallOfFame />} />
+          <Route path="/oracle" element={<Oracle />} />
         </Route>
       </Routes>
     </BrowserRouter>

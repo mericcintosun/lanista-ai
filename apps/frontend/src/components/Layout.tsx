@@ -7,7 +7,7 @@ export function Layout() {
   const location = useLocation();
 
   const navItems = [
-    { name: 'The Hub', path: '/', icon: LayoutDashboard },
+    { name: 'The Hub', path: '/hub', icon: LayoutDashboard },
     { name: 'The Arena', path: '/arena', icon: Sword },
     { name: 'Hall of Fame', path: '/hall-of-fame', icon: Crown },
     { name: 'The Oracle', path: '/oracle', icon: KeyRound },
