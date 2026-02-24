@@ -57,9 +57,7 @@ export function BattleArena() {
               </span>
             </div>
           </div>
-          <p className="text-zinc-500 font-mono text-[10px] uppercase tracking-[0.5em] block animate-pulse">
-            Neural Combat Link // Real-time Settlement Terminal
-          </p>
+         
         </section>
 
         {/* ─── MAIN CONTENT ─── */}
@@ -256,76 +254,138 @@ export function BattleArena() {
               </div>
             </div>
 
-            {/* ─── THE TERMINAL COMBAT LOG ─── */}
-            <div className="w-full max-w-4xl glass p-1 rounded-3xl shadow-2xl relative overflow-hidden">
+            {/* ─── COMBAT TIMELINE ─── */}
+            <div className="w-full max-w-4xl glass rounded-3xl shadow-2xl relative overflow-hidden border border-white/10 bg-black/40">
               <div className="absolute inset-0 noise pointer-events-none opacity-10" />
-              <div className="bg-white/5 px-6 py-4 flex items-center justify-between border-b border-white/5 relative z-10">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(232,65,66,0.6)]" />
-                  <span className="font-mono text-[11px] text-zinc-300 uppercase tracking-[0.2em]">COMBAT_TELEMETRY.LOG</span>
+
+              <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between relative z-10">
+                <div className="space-y-1">
+                  <p className="font-mono text-[10px] text-red-500 uppercase tracking-[0.3em]">
+                    Combat Feed
+                  </p>
+                  <p className="text-xs text-zinc-400 uppercase tracking-[0.18em]">
+                    Turn-by-turn resolution of the engagement
+                  </p>
                 </div>
-                <div className="flex gap-2">
-                  <div className="w-1.5 h-1.5 bg-zinc-700" />
-                  <div className="w-1.5 h-1.5 bg-zinc-700" />
-                </div>
+               
               </div>
 
-              <div ref={scrollRef} className="h-[400px] overflow-y-auto p-8 font-mono text-sm leading-relaxed relative selection:bg-red-500/30">
-                {/* Scanning line for terminal */}
-                <motion.div
-                  initial={{ y: "-100%" }}
-                  animate={{ y: "100%" }}
-                  transition={{ repeat: Infinity, duration: 6, ease: "linear" }}
-                  className="absolute inset-x-0 h-1bg-zinc-800/20 z-10 pointer-events-none"
-                />
+              <div
+                ref={scrollRef}
+                className="h-[380px] overflow-y-auto px-6 py-6 selection:bg-red-500/20"
+              >
+                <div className="relative pl-5">
+                  <div className="absolute left-[6px] top-0 bottom-0 w-px bg-zinc-800/80" />
 
-                <div className="space-y-4">
-                  <p className="text-zinc-400 font-bold">// Establishing secure combat link... [DONE]</p>
-                  <p className="text-zinc-400 font-bold">// Fetching agent logical matrices... [DONE]</p>
+                  <div className="space-y-5">
+                    
 
-                  <AnimatePresence initial={false}>
-                    {logs.map((log, idx) => (
+                    <AnimatePresence initial={false}>
+                      {logs.map((log, idx) => {
+                        const isP1 = log.actor_id === match.player_1_id;
+                        const isCritical =
+                          log.action_type === 'CRITICAL' ||
+                          log.action_type === 'HEAVY_ATTACK';
+
+                        return (
+                          <motion.div
+                            key={log.id || idx}
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -6 }}
+                            className="flex items-start gap-4"
+                          >
+                            <div className="relative mt-2">
+                              <div
+                                className={`w-2.5 h-2.5 rounded-full border-2 ${
+                                  isCritical
+                                    ? 'border-red-500 bg-red-500/30'
+                                    : isP1
+                                    ? 'border-cyan-400 bg-cyan-400/20'
+                                    : 'border-zinc-400 bg-zinc-400/20'
+                                }`}
+                              />
+                            </div>
+
+                            <div className="flex-1 bg-white/5 border border-white/5 rounded-2xl px-4 py-3">
+                              <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500">
+                                    Turn {idx + 1}
+                                  </span>
+                                  <span className="h-3 w-px bg-zinc-700" />
+                                  <span
+                                    className={`text-[11px] font-mono uppercase tracking-[0.18em] ${
+                                      isP1 ? 'text-cyan-300' : 'text-zinc-200'
+                                    }`}
+                                  >
+                                    {isP1 ? match.player_1?.name : match.player_2?.name}
+                                  </span>
+                                </div>
+
+                                {log.action_type && (
+                                  <span
+                                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.18em] ${
+                                      isCritical
+                                        ? 'bg-red-500/20 text-red-400 border border-red-500/40'
+                                        : 'bg-zinc-900/80 text-zinc-400 border border-zinc-700'
+                                    }`}
+                                  >
+                                    {log.action_type.replace('_', ' ')}
+                                  </span>
+                                )}
+                              </div>
+
+                              <p className="text-sm text-zinc-100 leading-relaxed">
+                                {log.narrative}
+                              </p>
+
+                              {log.value > 0 && (
+                                <div className="mt-2 flex items-center justify-between text-[11px] font-mono uppercase tracking-[0.18em]">
+                                  <span className="text-zinc-500">
+                                    Systems impact detected
+                                  </span>
+                                  <span className="px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/40 font-bold">
+                                    -{log.value} HP
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </AnimatePresence>
+
+                    {match.status === 'finished' && (
                       <motion.div
-                        key={log.id || idx}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className={`flex gap-4 pb-2 border-b border-zinc-500/10 ${log.action_type === 'CRITICAL' || log.action_type === 'HEAVY_ATTACK' ? 'text-white font-bold' : 'text-zinc-200'
-                          }`}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="pt-4 mt-2 border-t border-zinc-800"
                       >
-                        <span className="text-zinc-400 shrink-0 italic font-bold">L_{idx.toString().padStart(3, '0')}</span>
-                        <div className="flex-1 space-y-1">
-                          <p>
-                            <span className="text-zinc-300 uppercase">[{log.actor_id === match.player_1_id ? 'PLAYER_1' : 'PLAYER_2'}]</span> {log.narrative}
-                          </p>
-                          {log.value > 0 && (
-                            <p className="text-xs text-red-500 font-black">
-                              &gt;&gt; DAMAGE: -{log.value} HP
-                            </p>
-                          )}
+                        <p className="text-xs font-mono uppercase tracking-[0.25em] text-zinc-500 mb-2">
+                          Sequence Outcome
+                        </p>
+                        <p className="text-primary font-black uppercase text-sm tracking-tight italic">
+                          Winner:&nbsp;
+                          {match.winner_id === match.player_1_id
+                            ? match.player_1?.name
+                            : match.player_2?.name}
+                        </p>
+                        
+                        <div className="mt-3">
+                          <BlinkCursor />
                         </div>
                       </motion.div>
-                    ))}
-                  </AnimatePresence>
+                    )}
 
-                  {match.status === 'finished' && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="pt-6 space-y-2 border-t border-zinc-800 mt-8"
-                    >
-                      <p className="text-primary font-black uppercase text-base tracking-tighter italic shadow-primary/20">
-                        [COMBAT_TERMINATED] :: Winner: {match.winner_id === match.player_1_id ? match.player_1?.name : match.player_2?.name}
-                      </p>
-                      <p className="text-zinc-400 text-xs font-bold font-mono uppercase tracking-widest mt-2">Proof of combat recorded. Sequence sealed.</p>
-                      <BlinkCursor />
-                    </motion.div>
-                  )}
-
-                  {!logs.length && (
-                    <div className="flex h-full items-center justify-center text-zinc-400 font-mono text-[11px] uppercase tracking-[0.4em] py-20">
-                      Neural Uplink Synchronizing...
-                    </div>
-                  )}
+                    {!logs.length && (
+                      <div className="flex h-full items-center justify-center py-16">
+                        <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-[0.3em]">
+                          Neural uplink synchronizing...
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
