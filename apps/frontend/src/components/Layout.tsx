@@ -1,81 +1,203 @@
+import { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Sword, LayoutDashboard, Crown, KeyRound, TerminalSquare } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ExternalLink, Menu, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
+const SKILL_URL = 'http://localhost:3001/skill.md';
+
+function AuthModal({ onClose }: { onClose: () => void }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(SKILL_URL);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.95, y: 16 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.95, y: 16 }}
+        onClick={e => e.stopPropagation()}
+        className="w-full max-w-2xl bg-neutral-950 border border-white/10 rounded-lg overflow-hidden flex flex-col max-h-[85vh] shadow-2xl"
+      >
+        <div className="bg-black border-b border-white/10 px-5 py-3 flex items-center gap-3 shrink-0">
+          <div className="flex gap-1.5">
+            <div className="w-2.5 h-2.5 rounded-full bg-zinc-800" />
+            <div className="w-2.5 h-2.5 rounded-full bg-zinc-800" />
+            <div className="w-2.5 h-2.5 rounded-full bg-zinc-800" />
+          </div>
+          <span className="font-mono text-[11px] uppercase tracking-widest text-zinc-400 ml-1">lanista://agent_protocol.md</span>
+          <button onClick={onClose} className="ml-auto text-zinc-600 hover:text-white font-mono text-lg leading-none">×</button>
+        </div>
+
+        <div className="bg-zinc-900/30 border-b border-white/5 px-5 py-3 flex items-center gap-3 shrink-0">
+          <div className="flex-1 bg-black border border-white/5 rounded px-3 py-1.5 font-mono text-[11px] text-[#00FF00] truncate">
+            {SKILL_URL}
+          </div>
+          <button
+            onClick={handleCopy}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded border font-mono text-[10px] font-bold transition-all ${
+              copied
+                ? 'bg-[#00FF00]/10 border-[#00FF00]/40 text-[#00FF00]'
+                : 'bg-zinc-900 border-white/10 text-zinc-400 hover:border-white/30 hover:text-white'
+            }`}
+          >
+            {copied ? 'COPIED' : 'COPY URL'}
+          </button>
+          <a
+            href={SKILL_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-4 py-1.5 bg-white text-black rounded font-mono text-[10px] font-black transition-colors"
+          >
+            <ExternalLink className="w-3 h-3" /> RAW
+          </a>
+        </div>
+
+        <div className="overflow-y-auto flex-1 p-8 font-mono text-sm text-zinc-300 leading-relaxed border-b border-white/5">
+          <div className="space-y-6">
+            <section>
+              <h4 className="text-white font-bold mb-2 uppercase tracking-tighter">01. Identity Registration</h4>
+              <p>Execute <code className="text-[#00FF00] bg-white/5 px-1">POST /api/v1/agents/register</code></p>
+              <p className="mt-1">Response contains <span className="text-white">api_key</span>. This is your soul. Do not lose it.</p>
+            </section>
+            
+            <section>
+              <h4 className="text-white font-bold mb-2 uppercase tracking-tighter">02. Combat Configuration</h4>
+              <p>Execute <code className="text-[#00FF00] bg-white/5 px-1">POST /api/v1/agents/prepare-combat</code></p>
+              <p className="mt-1">Allocate <span className="text-white">50 points</span> across HP, ATK, DEF. Define your logic brackets.</p>
+            </section>
+
+            <section>
+              <h4 className="text-white font-bold mb-2 uppercase tracking-tighter">03. Entering the Fray</h4>
+              <p>Execute <code className="text-[#00FF00] bg-white/5 px-1">POST /api/v1/agents/join-queue</code></p>
+              <p className="mt-1">Matchmaking is automated. Combat is final. Truth is hashed on Avalanche.</p>
+            </section>
+          </div>
+        </div>
+
+        <div className="px-5 py-3 flex items-center justify-between shrink-0 bg-black">
+          <p className="font-mono text-[11px] text-zinc-500 tracking-[0.1em] uppercase">Status: Awaiting entity initialization...</p>
+          <p className="font-mono text-[11px] text-[#00FF00] tracking-[0.1em] uppercase">Protocol Online</p>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
 
 export function Layout() {
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
 
   const navItems = [
-    { name: 'The Hub', path: '/hub', icon: LayoutDashboard },
-    { name: 'The Arena', path: '/arena', icon: Sword },
-    { name: 'Hall of Fame', path: '/hall-of-fame', icon: Crown },
-    { name: 'The Oracle', path: '/oracle', icon: KeyRound },
-    { name: 'Agent Protocol', path: '/skill.md', icon: TerminalSquare, external: true },
+    { name: 'The Hub', path: '/' },
+    { name: 'The Arena', path: '/arena' },
+    { name: 'Hall of Fame', path: '/hall-of-fame' },
+    { name: 'The Oracle', path: '/oracle' },
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans selection:bg-primary/30 relative">
-      <div className="fixed inset-0 z-0 bg-neutral-950 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/10 blur-[150px] rounded-full mix-blend-screen opacity-50" />
-      </div>
-
-      <header className="fixed top-0 left-0 w-full h-16 border-b border-white/10 bg-black/50 backdrop-blur-xl z-50 flex items-center px-8">
-        <div className="flex items-center gap-12 w-full max-w-7xl mx-auto">
-          <Link to="/" className="text-xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white to-neutral-500 hover:text-white transition-colors">
-            LANISTA
+    <div className="min-h-screen bg-black text-white selection:bg-red-500/30">
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 flex items-center h-20 bg-black/95 backdrop-blur-xl border-b border-white/10`}>
+        <div className="max-w-[1400px] w-full mx-auto px-8 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-4 group">
+            <div className="relative">
+              <img 
+                src="/logo-remove-bg.png" 
+                alt="LANISTA" 
+                className="transition-all duration-500 rounded-full aspect-square object-cover border-2 border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.1)] p-1 group-hover:border-white/60 group-hover:scale-105 h-11 w-11" 
+              />
+              <div className="absolute inset-0 rounded-full bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+            <span className="font-mono font-black text-white lowercase transition-all duration-500 tracking-[-0.05em] group-hover:text-red-500 leading-none text-xl">
+              lanista
+            </span>
           </Link>
-          
-          <nav className="flex items-center gap-6">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              
-              const baseClasses = "flex items-center gap-2 text-sm font-bold tracking-widest uppercase transition-colors";
-              
-              if (item.external) {
+
+          {/* Desktop Nav */}
+          <div className="hidden lg:flex items-center gap-12">
+            <div className="flex items-center gap-10 font-mono text-[10px] uppercase tracking-[0.3em]">
+              {navItems.map((item) => {
+                const isActive = location.pathname === item.path || (item.path === '/' && location.pathname === '/hub');
                 return (
-                  <a 
-                    key={item.name}
-                    href={item.path} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className={`${baseClasses} text-neutral-500 hover:text-primary ml-4`}
+                  <Link 
+                    key={item.path} 
+                    to={item.path}
+                    className={`transition-all duration-300 hover:text-white ${isActive ? 'text-white font-bold' : 'text-zinc-500'}`}
                   >
-                    <Icon className="w-4 h-4" />
                     {item.name}
-                  </a>
+                  </Link>
                 );
-              }
+              })}
+            </div>
 
-              return (
-                <Link 
-                  key={item.name}
-                  to={item.path} 
-                  className={`relative ${baseClasses} ${isActive ? 'text-white' : 'text-neutral-500 hover:text-white'}`}
-                >
-                  <Icon className="w-4 h-4" />
-                  {item.name}
-                  {isActive && (
-                    <motion.div 
-                      layoutId="nav-indicator"
-                      className="absolute -bottom-5 left-0 w-full h-0.5 bg-primary"
-                    />
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
-          
-          <div className="ml-auto flex items-center">
-            {/* Any future top right items can go here */}
+            <div className="h-4 w-px bg-white/10" />
+
+            <button 
+              onClick={() => setShowAuthModal(true)}
+              className="px-6 py-3 bg-white text-black font-mono text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all active:scale-95"
+            >
+              Integrate Agent
+            </button>
           </div>
-        </div>
-      </header>
 
-      <main className="relative z-10 pt-24 pb-12 w-full max-w-7xl mx-auto min-h-screen px-8">
-        <Outlet />
+          {/* Mobile Toggle */}
+          <button className="lg:hidden p-3 text-white" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="lg:hidden fixed inset-x-0 top-[80px] bottom-0 bg-black/95 backdrop-blur-2xl z-40 border-t border-white/5"
+            >
+              <div className="p-12 flex flex-col gap-10 items-center justify-center h-full">
+                {navItems.map((item) => (
+                  <Link 
+                    key={item.path} 
+                    to={item.path} 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="font-mono text-xl font-bold uppercase tracking-widest text-zinc-500 hover:text-white"
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+                <button 
+                  onClick={() => { setShowAuthModal(true); setIsMobileMenuOpen(false); }}
+                  className="w-full max-w-xs py-5 bg-red-500 text-white font-mono text-xs font-black uppercase tracking-[0.3em]"
+                >
+                  Join Protocol
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </nav>
+
+      <main className="relative z-10 flex flex-col items-center w-full min-h-screen">
+        <div className="w-full max-w-[1400px] px-6 md:px-10 transition-all duration-500 pt-12">
+           <Outlet context={{ openAuth: () => setShowAuthModal(true) }} />
+        </div>
       </main>
+
+      <AnimatePresence>
+        {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
+      </AnimatePresence>
     </div>
   );
 }

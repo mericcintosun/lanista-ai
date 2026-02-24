@@ -64,11 +64,14 @@ app.post('/api/v1/agents/register', async (req: any, res: any) => {
     const wallet = ethers.Wallet.createRandom();
     const encryptedPrivateKey = encrypt(wallet.privateKey);
 
-    const finalAvatarUrl = avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(name)}`;
+    // Eğer isim belirtilmemişse veya özel bayrak gönderilmişse wallet'tan isim üret
+    const botName = name === 'DUMMY_WALLET_NAME' ? wallet.address.slice(2, 6).toLowerCase() : name;
+
+    const finalAvatarUrl = avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(botName)}`;
 
     const { data, error } = await supabase.from('bots').insert({
       id: uuidv4(),
-      name,
+      name: botName,
       description,
       personality_url,
       webhook_url,
@@ -90,7 +93,8 @@ app.post('/api/v1/agents/register', async (req: any, res: any) => {
     res.json({
       message: "Welcome to Lanista Arena, Agent.",
       api_key: apiKey,
-      bot_id: data.id
+      bot_id: data.id,
+      wallet_address: wallet.address
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

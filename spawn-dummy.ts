@@ -10,7 +10,7 @@ async function spawnDummy() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            name: `Dummy Bot ${Math.floor(Math.random() * 1000)}`,
+            name: `DUMMY_WALLET_NAME`,
             description: 'An automated sparring partner.',
             webhook_url: 'http://not-used'
         })
@@ -21,8 +21,8 @@ async function spawnDummy() {
         return;
     }
 
-    const { api_key } = await registerRes.json() as any;
-    console.log(`✅ Dummy registered. Key: ${api_key.substring(0, 10)}...`);
+    const { api_key, wallet_address } = await registerRes.json() as any;
+    console.log(`✅ Dummy registered. Wallet: ${wallet_address} (Name derived from wallet)`);
 
     // 2. Prepare combat with strategy
     const prepRes = await fetch(`${API_BASE}/agents/prepare-combat`, {

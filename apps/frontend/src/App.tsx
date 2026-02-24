@@ -27,11 +27,8 @@ function App() {
     <BrowserRouter>
       <GlobalMatchDirector />
       <Routes>
-        {/* Landing page — full custom nav, no Layout wrapper */}
-        <Route path="/" element={<Landing />} />
-
-        {/* App shell with persistent nav */}
         <Route element={<Layout />}>
+          <Route path="/" element={<Landing />} />
           <Route path="/hub" element={<Hub />} />
           <Route path="/arena" element={<BattleArena />} />
           <Route path="/arena/:matchId" element={<BattleArena />} />

@@ -25,7 +25,7 @@ export function GladiatorCard({ bot, isRight = false }: Props) {
           <img 
             src={bot.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${bot.name}`} 
             alt={bot.name}
-            className={`w-48 h-48 object-cover rounded-lg mb-4 bg-neutral-900 ${isDanger ? 'animate-pulse' : ''}`}
+            className={`w-48 h-48 object-cover rounded-lg mb-4 bg-neutral-900`}
           />
           
           <h2 className="text-2xl font-black uppercase tracking-tighter text-white/90 mb-1" data-text={bot.name}>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, ExternalLink, Trophy, Cpu, Zap, Link2, CheckCircle2, Clock, Database } from 'lucide-react';
+import { Shield, ExternalLink, Cpu, Zap, Link2, Database, Copy } from 'lucide-react';
 
 const ORACLE_CONTRACT = '0xAF470Ae9FE071451E5CC420fb7893326D66c7D12';
 const FUJI_EXPLORER = 'https://testnet.snowtrace.io';
@@ -19,6 +19,7 @@ interface OnChainMatch {
 export default function Oracle() {
   const [matches, setMatches] = useState<OnChainMatch[]>([]);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetch('http://localhost:3001/api/v1/oracle/matches')
@@ -30,85 +31,129 @@ export default function Oracle() {
       .catch(() => setLoading(false));
   }, []);
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(ORACLE_CONTRACT);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   const onChainCount = matches.filter(m => m.tx_hash && !m.tx_hash.startsWith('{')).length;
   const totalCount = matches.length;
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-12">
-
-      {/* Header */}
-      <section className="text-center space-y-6 mt-8">
-        <h1
-          className="text-7xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white to-neutral-500 glitch-effect select-none"
-          data-text="THE ORACLE"
-        >
-          THE ORACLE
-        </h1>
-        <p className="text-neutral-400 font-mono text-sm max-w-xl mx-auto leading-relaxed">
-          Every battle result is cryptographically sealed on Avalanche C-Chain (Fuji). Immutable. Trustless. Forever.
-        </p>
+    <div className="w-full max-w-6xl mx-auto space-y-16 pb-24 px-6 bg-black text-white selection:bg-red-500/30">
+      
+      {/* ─── HEADER ─── */}
+      <section className="text-center space-y-6 pt-12">
+        <div className="relative inline-block">
+          <h1 className="text-7xl md:text-8xl font-black italic tracking-tighter text-white select-none relative z-10 uppercase">
+            THE ORACLE
+          </h1>
+          {/* Chromatic Aberration Shadows */}
+          <span className="absolute inset-0 z-0 translate-x-[3px] translate-y-[1px] text-[#ff0000] opacity-40 mix-blend-screen blur-[1px] italic font-black text-7xl md:text-8xl tracking-tighter uppercase">
+            THE ORACLE
+          </span>
+          <span className="absolute inset-0 z-0 -translate-x-[3px] -translate-y-[1px] text-[#0000ff] opacity-40 mix-blend-screen blur-[1px] italic font-black text-7xl md:text-8xl tracking-tighter uppercase">
+            THE ORACLE
+          </span>
+        </div>
+        
+        <div className="space-y-4">
+          <p className="text-zinc-300 font-mono text-sm md:text-base max-w-xl mx-auto leading-relaxed uppercase tracking-wider">
+            Cryptographic ledger of all combat resolutions. <br />
+            Verified by on-chain consensus, immutable forever.
+          </p>
+          
+          <div className="flex items-center justify-center gap-3">
+             <div className="w-2 h-2 rounded-full bg-[#00FF00] shadow-[0_0_8px_rgba(0,255,0,0.6)]" />
+              <span className="font-mono text-xs text-zinc-400 uppercase tracking-widest font-black">
+                [ ORACLE SYNC: SECURE ]
+              </span>
+          </div>
+        </div>
       </section>
 
-      {/* Contract Info Banner */}
-      <div className="bg-gradient-to-r from-neutral-900/80 via-red-950/20 to-neutral-900/80 border border-primary/30 rounded-2xl p-6 backdrop-blur-md">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-              <Shield className="w-5 h-5 text-primary" />
+      {/* ─── SMART CONTRACT HUB (SERVER CONSOLE LOOK) ─── */}
+      <div className="bg-white/[0.02] border border-white/10 rounded-none p-10 relative overflow-hidden group">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-500/30 to-transparent" />
+        
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-12 relative z-10">
+          <div className="space-y-6 flex-1">
+            <div className="flex items-center gap-3">
+               <Shield className="w-5 h-5 text-red-500" />
+                <h2 className="font-mono text-xs uppercase text-zinc-400 tracking-widest">ArenaOracle Smart Contract</h2>
             </div>
-            <div>
-              <p className="text-xs font-mono uppercase tracking-widest text-neutral-500 mb-1">ArenaOracle Smart Contract</p>
-              <p className="font-mono text-xs text-neutral-300 break-all">{ORACLE_CONTRACT}</p>
+            
+            <div className="group/addr relative">
+              <p className="font-mono text-lg md:text-2xl text-white break-all tracking-tight leading-none">
+                {ORACLE_CONTRACT}
+              </p>
+              <button 
+                onClick={handleCopy}
+                className="absolute -right-8 top-1/2 -translate-y-1/2 opacity-0 group-hover/addr:opacity-100 transition-all p-2 hover:text-red-500"
+              >
+                {copied ? <span className="text-[10px] font-black text-[#00FF00]">COPIED</span> : <Copy className="w-4 h-4" />}
+              </button>
+            </div>
+            
+            <div className="pt-4">
+              <a
+                href={`${FUJI_EXPLORER}/address/${ORACLE_CONTRACT}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 px-8 py-4 border border-red-500/50 text-red-500 font-mono text-xs font-black uppercase tracking-[0.2em] transition-all hover:bg-red-500/10 hover:border-red-500 hover:shadow-[0_0_20px_rgba(232,65,66,0.2)]"
+              >
+                <ExternalLink className="w-4 h-4" /> Snowtrace Verification
+              </a>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="text-center">
-              <div className="text-2xl font-black text-primary">{onChainCount}</div>
-              <div className="text-xs font-mono text-neutral-500 uppercase">On-Chain</div>
+
+          <div className="flex gap-16">
+            <div className="text-center md:text-right">
+              <div className="text-6xl md:text-7xl font-black italic tracking-tighter text-red-500 leading-none">
+                {onChainCount}
+              </div>
+              <div className="text-[11px] font-mono text-zinc-400 uppercase tracking-widest mt-2 font-bold">Verified Logs</div>
             </div>
-            <div className="w-px h-10 bg-neutral-800" />
-            <div className="text-center">
-              <div className="text-2xl font-black text-white">{totalCount}</div>
-              <div className="text-xs font-mono text-neutral-500 uppercase">Total</div>
+            <div className="text-center md:text-right">
+              <div className="text-6xl md:text-7xl font-black italic tracking-tighter text-white leading-none">
+                {totalCount}
+              </div>
+              <div className="text-[11px] font-mono text-zinc-400 uppercase tracking-widest mt-2 font-bold">Total Ledger</div>
             </div>
-            <a
-              href={`${FUJI_EXPLORER}/address/${ORACLE_CONTRACT}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ml-4 flex items-center gap-2 px-4 py-2 bg-primary/20 hover:bg-primary/30 border border-primary/40 rounded-xl text-primary text-xs font-bold font-mono transition-colors"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              Snowtrace
-            </a>
           </div>
         </div>
       </div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-3 gap-4">
+      {/* ─── NETWORK TELEMETRY (LIVE NODE MONITORS) ─── */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
-          { icon: Database, label: 'Protocol', value: 'Avalanche C-Chain' },
-          { icon: Cpu, label: 'Network', value: 'Fuji Testnet' },
-          { icon: Link2, label: 'Chain ID', value: '43113' },
-        ].map(({ icon: Icon, label, value }) => (
-          <div key={label} className="bg-neutral-900/50 border border-neutral-800/80 rounded-2xl p-5 backdrop-blur-md text-center">
-            <Icon className="w-5 h-5 text-primary mx-auto mb-2" />
-            <div className="text-xs text-neutral-500 font-mono uppercase tracking-widest mb-1">{label}</div>
-            <div className="text-sm font-bold text-white">{value}</div>
+          { icon: Database, label: 'Protocol', value: 'Avalanche C-Chain', dot: 'bg-zinc-800' },
+          { icon: Cpu, label: 'Network', value: 'Fuji Testnet', dot: 'bg-[#00FF00]' },
+          { icon: Link2, label: 'Chain ID', value: '43113', dot: 'bg-red-500' },
+        ].map(({ icon: Icon, label, value, dot }) => (
+          <div key={label} className="bg-white/[0.01] border border-white/5 border-dashed p-8 relative overflow-hidden flex flex-col items-center text-center">
+            <div className={`absolute top-4 right-4 w-1.5 h-1.5 rounded-full ${dot}`} />
+            <Icon className="w-6 h-6 text-zinc-700 mb-4" />
+            <div className="text-[11px] text-zinc-400 font-mono uppercase tracking-widest mb-2 font-bold">{label}</div>
+            <div className="text-sm font-black text-white uppercase italic tracking-wider">{value}</div>
           </div>
         ))}
       </div>
 
-      {/* Match List */}
-      <div className="bg-neutral-900/50 border border-neutral-800/80 rounded-2xl p-8 backdrop-blur-md">
-        <div className="flex items-center gap-2 mb-8 pb-4 border-b border-neutral-800/50">
-          <Zap className="w-5 h-5 text-primary" />
-          <h2 className="text-sm font-bold tracking-widest uppercase text-white">On-Chain Combat Records</h2>
+      {/* ─── ON-CHAIN COMBAT RECORDS (LEDGER FEED) ─── */}
+      <div className="space-y-8">
+        <div className="flex items-center gap-4">
+          <Zap className="w-5 h-5 text-red-500" />
+          <h2 className="text-xs font-black tracking-[0.4em] uppercase text-white">Cryptographic Ledger Feed</h2>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-t-2 border-primary rounded-full animate-spin" />
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <div className="w-12 h-12 border border-white/10 rounded-full flex items-center justify-center">
+              <div className="w-2 h-2 bg-white rounded-full animate-ping" />
+            </div>
+            <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest italic">Interrogating Node...</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -121,101 +166,97 @@ export default function Oracle() {
                 return (
                   <motion.div
                     key={match.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.04 }}
-                    className={`rounded-xl border p-5 relative overflow-hidden ${
-                      isOnChain
-                        ? 'bg-black/50 border-primary/30'
-                        : 'bg-black/30 border-neutral-800'
-                    }`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="relative group bg-white/[0.02] border border-white/5 hover:border-white/10 hover:bg-white/[0.04] transition-all p-6"
                   >
-                    {/* Subtle glow for on-chain */}
-                    {isOnChain && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-transparent pointer-events-none" />
-                    )}
+                    {/* Scanning Line Micro-Animation */}
+                    <div className="absolute inset-0 pointer-events-none z-0 opacity-[0.02] bg-gradient-to-b from-transparent via-white to-transparent h-2 top-0 group-hover:animate-scan-line" />
 
-                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                      {/* Match Info */}
-                      <div className="flex items-center gap-6">
-                        {/* Status Badge */}
-                        <div className={`flex items-center gap-1.5 text-xs font-mono font-bold px-3 py-1 rounded-full border ${
+                    <div className="flex flex-col lg:flex-row items-center justify-between gap-8 py-2">
+                      
+                      {/* Left: Metadata */}
+                      <div className="flex items-center gap-8 w-full lg:w-auto">
+                        <div className={`shrink-0 font-mono text-[10px] font-black px-4 py-2 border ${
                           isOnChain
-                            ? 'text-green-400 border-green-500/30 bg-green-500/10'
-                            : 'text-yellow-500 border-yellow-500/30 bg-yellow-500/10'
+                            ? 'text-[#00FF00] border-[#00FF00]/40 bg-[#00FF00]/5'
+                            : 'text-zinc-400 border-white/10'
                         }`}>
-                          {isOnChain
-                            ? <><CheckCircle2 className="w-3 h-3" /> ON-CHAIN</>
-                            : <><Clock className="w-3 h-3" /> PENDING</>
-                          }
+                          {isOnChain ? '[ ON-CHAIN ]' : '[ PENDING ]'}
                         </div>
+                        <div className="font-mono text-[11px] text-zinc-400 uppercase tracking-widest hidden md:block font-bold">
+                          {new Date(match.created_at).toLocaleDateString('en-GB')} {new Date(match.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
 
-                        {/* Fighters */}
-                        <div className="flex items-center gap-3">
-                          <div className="text-right">
-                            <div className="flex items-center gap-2 justify-end">
-                              <Trophy className="w-3.5 h-3.5 text-primary" />
-                              <span className="text-sm font-bold text-white">{winner?.name}</span>
-                            </div>
-                            {winner?.wallet_address && (
-                              <p className="text-xs text-neutral-500 font-mono">
-                                {winner.wallet_address.substring(0, 8)}...
-                              </p>
-                            )}
-                          </div>
-                          <img
+                      {/* Middle: Combat Outcome */}
+                      <div className="flex items-center gap-6 flex-1 justify-center">
+                        <div className="text-right flex-1 flex items-center justify-end gap-3">
+                           <div>
+                             <span className="block font-black text-white text-sm tracking-tighter uppercase italic">{winner?.name}</span>
+                             <span className="block font-mono text-[10px] text-zinc-400 uppercase tracking-widest font-bold">{winner?.wallet_address?.substring(0, 10)}...</span>
+                           </div>
+                           <img
                             src={winner?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${winner?.name}`}
                             alt=""
-                            className="w-10 h-10 rounded-full bg-neutral-900 ring-2 ring-primary/50"
+                            className="w-8 h-8 rounded-full bg-zinc-900 border border-white/10 p-0.5"
                           />
-                          <span className="text-neutral-600 font-mono font-bold text-xs">def.</span>
-                          <img
+                        </div>
+                        
+                        <div className="text-zinc-800 font-mono text-[10px] italic font-black uppercase">def.</div>
+
+                        <div className="text-left flex-1 flex items-center gap-3">
+                           <img
                             src={loser?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${loser?.name}`}
                             alt=""
-                            className="w-10 h-10 rounded-full bg-neutral-900 ring-2 ring-neutral-800 opacity-60"
+                            className="w-8 h-8 rounded-full bg-zinc-900 border border-white/10 p-0.5 opacity-40"
                           />
                           <div>
-                            <div className="text-sm font-bold text-neutral-500">{loser?.name}</div>
-                            {loser?.wallet_address && (
-                              <p className="text-xs text-neutral-600 font-mono">
-                                {loser.wallet_address.substring(0, 8)}...
-                              </p>
-                            )}
+                             <span className="block font-black text-zinc-300 text-sm tracking-tighter uppercase italic">{loser?.name}</span>
+                             <span className="block font-mono text-[10px] text-zinc-600 uppercase tracking-widest font-bold">{loser?.wallet_address?.substring(0, 10)}...</span>
                           </div>
                         </div>
                       </div>
 
-                      {/* TX Hash + Link */}
-                      <div className="flex flex-col items-end gap-1.5">
-                        <span className="text-xs text-neutral-600 font-mono">
-                          {new Date(match.created_at).toLocaleString()}
-                        </span>
+                      {/* Right: TX Hash Proof */}
+                      <div className="w-full lg:w-48 text-right flex flex-col items-center lg:items-end gap-1">
                         {isOnChain ? (
                           <a
                             href={`${FUJI_EXPLORER}/tx/${match.tx_hash}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 text-xs text-primary font-mono hover:underline"
+                            className="font-mono text-[10px] text-zinc-500 hover:text-white transition-colors uppercase tracking-[0.1em] border-b border-zinc-950 hover:border-white/20"
                           >
-                            <ExternalLink className="w-3 h-3" />
-                            {match.tx_hash!.substring(0, 12)}...{match.tx_hash!.substring(60)}
+                             Proof: {match.tx_hash!.substring(0, 10)}...{match.tx_hash!.substring(60)}
                           </a>
                         ) : (
-                          <span className="text-xs text-neutral-600 font-mono">Awaiting confirmation...</span>
+                          <span className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest italic font-bold">Awaiting Settlement...</span>
                         )}
                       </div>
+
                     </div>
                   </motion.div>
                 );
               }) : (
-                <div className="text-center py-16 text-neutral-600 font-mono text-sm border border-dashed border-neutral-800 rounded-xl">
-                  No combat records yet. Spawn agents to begin.
+                <div className="text-center py-20 border border-dashed border-white/5 bg-white/[0.01]">
+                  <p className="font-mono text-[10px] text-zinc-800 uppercase tracking-[0.4em]">No cryptographic proofs indexed on current uplink.</p>
                 </div>
               )}
             </AnimatePresence>
           </div>
         )}
       </div>
+
+      <style>{`
+        @keyframes scan-line {
+          0% { transform: translateY(0); }
+          100% { transform: translateY(100px); }
+        }
+        .animate-scan-line {
+          animation: scan-line 3s linear infinite;
+        }
+      `}</style>
     </div>
   );
 }
