@@ -4,6 +4,7 @@ import { Shield, ExternalLink, Cpu, Zap, Link2, Database, Copy } from 'lucide-re
 
 const ORACLE_CONTRACT = '0xAF470Ae9FE071451E5CC420fb7893326D66c7D12';
 const FUJI_EXPLORER = 'https://testnet.snowtrace.io';
+const LOOT_CONTRACT = '0x2E078795472996d6FB090A630Dc63f09e3Bda0d1';
 
 interface OnChainMatch {
   id: string;
@@ -14,12 +15,24 @@ interface OnChainMatch {
   winner_id: string;
   player_1_id: string;
   player_2_id: string;
+  winner_loot_item_id?: number | null;
+}
+
+interface LootDetails {
+  fulfilled: boolean;
+  winner: string;
+  itemId: number;
+  randomness: string;
+  timestamp: number;
+  requestId: string;
 }
 
 export default function Oracle() {
   const [matches, setMatches] = useState<OnChainMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [lootDetailsByMatchId, setLootDetailsByMatchId] = useState<Record<string, LootDetails | null>>({});
+  const [lootModalMatchId, setLootModalMatchId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('http://localhost:3001/api/v1/oracle/matches')
@@ -30,6 +43,53 @@ export default function Oracle() {
       })
       .catch(() => setLoading(false));
   }, []);
+
+  const openLootModal = (matchId: string) => setLootModalMatchId(matchId);
+  const closeLootModal = () => setLootModalMatchId(null);
+
+  const selectedMatch = lootModalMatchId ? matches.find(m => m.id === lootModalMatchId) : null;
+  const selectedLootDetails = lootModalMatchId ? lootDetailsByMatchId[lootModalMatchId] : null;
+
+  useEffect(() => {
+    if (!lootModalMatchId) return;
+
+    const controller = new AbortController();
+    const loadDetails = async () => {
+      try {
+        const res = await fetch(`http://localhost:3001/api/v1/oracle/loot/${lootModalMatchId}`, {
+          signal: controller.signal
+        });
+        const json = await res.json();
+        if (json.found && json.loot) {
+          const details: LootDetails = {
+            fulfilled: Boolean(json.loot.fulfilled),
+            winner: String(json.loot.winner),
+            itemId: Number(json.loot.itemId),
+            randomness: String(json.loot.randomness),
+            timestamp: Number(json.loot.timestamp),
+            requestId: String(json.loot.requestId)
+          };
+          setLootDetailsByMatchId(prev => ({ ...prev, [lootModalMatchId]: details }));
+          // Eğer loot fulfill olduysa, matches state'ini de güncelle
+          if (details.fulfilled) {
+            setMatches(prev =>
+              prev.map(m =>
+                m.id === lootModalMatchId ? { ...m, winner_loot_item_id: details.itemId } : m
+              )
+            );
+          }
+        }
+      } catch {
+        // yut
+      }
+    };
+
+    if (!lootDetailsByMatchId[lootModalMatchId]) {
+      loadDetails();
+    }
+
+    return () => controller.abort();
+  }, [lootModalMatchId, lootDetailsByMatchId]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(ORACLE_CONTRACT);
@@ -165,6 +225,7 @@ export default function Oracle() {
                 const isOnChain = match.tx_hash && match.tx_hash.startsWith('0x') && match.tx_hash.length > 40;
                 const winner = match.winner_id === match.player_1_id ? match.player_1 : match.player_2;
                 const loser = match.winner_id === match.player_1_id ? match.player_2 : match.player_1;
+                const hasLoot = typeof match.winner_loot_item_id === 'number' && !Number.isNaN(match.winner_loot_item_id as number);
 
                 return (
                   <motion.div
@@ -198,6 +259,16 @@ export default function Oracle() {
                           <div>
                             <span className="block font-black text-white text-lg sm:text-xl tracking-tighter uppercase italic">{winner?.name}</span>
                             <span className="block font-mono text-xs text-zinc-400 uppercase tracking-widest font-bold">UID: {winner?.wallet_address?.substring(0, 10)}...</span>
+                            {isOnChain && hasLoot && (
+                              <span className="mt-1 inline-flex items-center rounded-full bg-zinc-900/80 border border-zinc-700 px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.16em] text-zinc-300">
+                                Item #{match.winner_loot_item_id}
+                              </span>
+                            )}
+                            {isOnChain && !hasLoot && (
+                              <span className="mt-1 inline-flex items-center rounded-full bg-zinc-900/80 border border-zinc-700 px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.16em] text-zinc-400">
+                                Loot pending (VRF)
+                              </span>
+                            )}
                           </div>
                           <img
                             src={winner?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${winner?.name}`}
@@ -224,15 +295,14 @@ export default function Oracle() {
                       {/* Right: TX Hash Proof */}
                       <div className="w-full lg:w-48 text-center md:text-right flex flex-col items-center md:items-end gap-1 mt-2 md:mt-0">
                         {isOnChain ? (
-                          <a
-                            href={`${FUJI_EXPLORER}/tx/${match.tx_hash}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="font-mono text-xs text-zinc-500 hover:text-primary transition-colors uppercase tracking-[0.1em] flex items-center gap-2 group/link"
+                          <button
+                            type="button"
+                            onClick={() => openLootModal(match.id)}
+                            className="font-mono text-[10px] text-zinc-200 bg-zinc-900/70 border border-zinc-600 hover:border-primary/60 hover:text-primary transition-colors uppercase tracking-[0.16em] px-3 py-1.5 rounded-full inline-flex items-center gap-2"
                           >
-                            Receipt ID: {match.tx_hash!.substring(0, 10)}...{match.tx_hash!.substring(60)}
-                            <ExternalLink className="w-3 h-3 opacity-0 group-hover/link:opacity-100 transition-opacity" />
-                          </a>
+                            View on-chain proof
+                            <ExternalLink className="w-3 h-3" />
+                          </button>
                         ) : (
                           <span className="font-mono text-xs text-zinc-500 uppercase tracking-widest italic font-bold">Awaiting Validation...</span>
                         )}
@@ -250,6 +320,135 @@ export default function Oracle() {
           </div>
         )}
       </div>
+
+      <AnimatePresence>
+        {lootModalMatchId && selectedMatch && (
+          <motion.div
+            key="loot-modal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center px-4"
+          >
+            <button
+              type="button"
+              aria-label="Close loot details"
+              onClick={closeLootModal}
+              className="absolute inset-0 bg-black/70"
+            />
+
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.98 }}
+              className="relative w-full max-w-2xl glass border border-white/10 rounded-3xl p-6 sm:p-8"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.35em] text-zinc-500 font-bold">
+                    Loot proof
+                  </div>
+                  <div className="mt-2 text-2xl sm:text-3xl font-black italic uppercase tracking-tight text-white">
+                    Winner Loot
+                  </div>
+                  <div className="mt-2 text-xs font-mono uppercase tracking-[0.18em] text-zinc-400">
+                    Verified via Chainlink VRF
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={closeLootModal}
+                  className="text-zinc-400 hover:text-white font-mono text-xs uppercase tracking-widest"
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-black/30 border border-white/10 rounded-2xl p-4">
+                  <div className="text-[10px] font-mono uppercase tracking-[0.3em] text-zinc-500 font-bold">
+                    Status
+                  </div>
+                  <div className="mt-2 text-sm font-black uppercase italic tracking-wide text-white">
+                    {selectedLootDetails?.fulfilled ? 'Fulfilled' : 'Pending'}
+                  </div>
+                </div>
+
+                <div className="bg-black/30 border border-white/10 rounded-2xl p-4">
+                  <div className="text-[10px] font-mono uppercase tracking-[0.3em] text-zinc-500 font-bold">
+                    Item
+                  </div>
+                  <div className="mt-2 text-sm font-black uppercase italic tracking-wide text-white">
+                    {selectedLootDetails?.fulfilled
+                      ? `Item #${selectedLootDetails.itemId}`
+                      : 'Awaiting VRF'}
+                  </div>
+                </div>
+
+                <div className="bg-black/30 border border-white/10 rounded-2xl p-4">
+                  <div className="text-[10px] font-mono uppercase tracking-[0.3em] text-zinc-500 font-bold">
+                    Winner address
+                  </div>
+                  <div className="mt-2 text-xs font-mono text-zinc-300 break-all">
+                    {selectedLootDetails?.winner && selectedLootDetails.winner !== '0x0000000000000000000000000000000000000000'
+                      ? `${selectedLootDetails.winner.substring(0, 10)}...${selectedLootDetails.winner.substring(38)}`
+                      : '—'}
+                  </div>
+                </div>
+
+                <div className="bg-black/30 border border-white/10 rounded-2xl p-4">
+                  <div className="text-[10px] font-mono uppercase tracking-[0.3em] text-zinc-500 font-bold">
+                    VRF request id
+                  </div>
+                  {selectedLootDetails?.requestId ? (
+                    <a
+                      href={`${FUJI_EXPLORER}/address/${LOOT_CONTRACT}#events`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 inline-flex items-center gap-1 text-xs font-mono text-zinc-300 hover:text-primary transition-colors break-all"
+                    >
+                      {`${selectedLootDetails.requestId.substring(0, 10)}...${selectedLootDetails.requestId.substring(
+                        selectedLootDetails.requestId.length - 10
+                      )}`}
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  ) : (
+                    <div className="mt-2 text-xs font-mono text-zinc-500">—</div>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="text-[10px] font-mono uppercase tracking-[0.3em] text-zinc-500 font-bold">
+                  Proof links
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                  {selectedMatch.tx_hash && (
+                    <a
+                      href={`${FUJI_EXPLORER}/tx/${selectedMatch.tx_hash}#eventlog`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-[0.18em] text-zinc-300 hover:text-primary transition-colors"
+                    >
+                      Match receipt (Avalanche)
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                  )}
+                  <a
+                    href={`${FUJI_EXPLORER}/address/${LOOT_CONTRACT}#events`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-[0.18em] text-zinc-300 hover:text-primary transition-colors"
+                  >
+                    Loot events (LootChest)
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <style>{`
         @keyframes scan-line {

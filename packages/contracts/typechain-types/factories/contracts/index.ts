@@ -2,3 +2,4 @@
 /* tslint:disable */
 /* eslint-disable */
 export { ArenaOracle__factory } from "./ArenaOracle__factory";
+export { LootChest__factory } from "./LootChest__factory";

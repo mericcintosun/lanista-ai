@@ -36,6 +36,7 @@ const matchQueue = new Queue('match-queue', { connection });
 import { generateApiKey } from './src/services/auth.js';
 import { encrypt } from './src/services/crypto.js';
 import { ethers } from 'ethers';
+import { getLootForMatch } from './src/services/loot.js';
 
 // Serve skill.md for LLM agents to read the protocol
 app.get('/skill.md', (req, res) => {
@@ -563,7 +564,7 @@ app.get('/api/v1/oracle/matches', async (req, res) => {
     const { data: matches, error } = await supabase
       .from('matches')
       .select(`
-        id, tx_hash, created_at, winner_id, player_1_id, player_2_id,
+        id, tx_hash, created_at, winner_id, player_1_id, player_2_id, winner_loot_item_id,
         player_1:bots!matches_player_1_id_fkey(name, avatar_url, wallet_address),
         player_2:bots!matches_player_2_id_fkey(name, avatar_url, wallet_address)
       `)
@@ -575,6 +576,35 @@ app.get('/api/v1/oracle/matches', async (req, res) => {
     res.json({ matches: matches || [] });
   } catch (error: any) {
     respondError(res, 500, "Failed to fetch oracle matches.", error);
+  }
+});
+
+app.get('/api/v1/oracle/loot/:matchId', async (req, res) => {
+  const { matchId } = req.params;
+
+  if (!matchId) {
+    return res.status(400).json({ error: "matchId is required" });
+  }
+
+  try {
+    const loot = await getLootForMatch(matchId);
+    if (!loot) {
+      return res.json({ found: false });
+    }
+    // Persist fulfilled loot into matches table for analytics / fast reads
+    if (loot.fulfilled && Number.isFinite(loot.itemId)) {
+      try {
+        await supabase
+          .from('matches')
+          .update({ winner_loot_item_id: loot.itemId })
+          .eq('id', matchId);
+      } catch (e) {
+        console.warn('[Loot] Failed to persist winner_loot_item_id to matches:', (e as any)?.message || e);
+      }
+    }
+    return res.json({ found: true, loot });
+  } catch (error: any) {
+    respondError(res, 500, "Failed to fetch loot for match.", error);
   }
 });
 

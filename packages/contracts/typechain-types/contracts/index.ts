@@ -2,3 +2,4 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { ArenaOracle } from "./ArenaOracle";
+export type { LootChest } from "./LootChest";

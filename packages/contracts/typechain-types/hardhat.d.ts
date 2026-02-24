@@ -14,6 +14,46 @@ import * as Contracts from ".";
 declare module "hardhat/types/runtime" {
   interface HardhatEthersHelpers extends HardhatEthersHelpersBase {
     getContractFactory(
+      name: "ConfirmedOwner",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ConfirmedOwner__factory>;
+    getContractFactory(
+      name: "ConfirmedOwnerWithProposal",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ConfirmedOwnerWithProposal__factory>;
+    getContractFactory(
+      name: "IOwnable",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IOwnable__factory>;
+    getContractFactory(
+      name: "IVRFCoordinatorV2Plus",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IVRFCoordinatorV2Plus__factory>;
+    getContractFactory(
+      name: "IVRFMigratableConsumerV2Plus",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IVRFMigratableConsumerV2Plus__factory>;
+    getContractFactory(
+      name: "IVRFSubscriptionV2Plus",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IVRFSubscriptionV2Plus__factory>;
+    getContractFactory(
+      name: "VRFV2PlusClient",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.VRFV2PlusClient__factory>;
+    getContractFactory(
+      name: "VRFConsumerBaseV2Plus",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.VRFConsumerBaseV2Plus__factory>;
+    getContractFactory(
+      name: "VRFCoordinatorV2Interface",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.VRFCoordinatorV2Interface__factory>;
+    getContractFactory(
+      name: "VRFConsumerBaseV2",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.VRFConsumerBaseV2__factory>;
+    getContractFactory(
       name: "Ownable",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Ownable__factory>;
@@ -21,7 +61,61 @@ declare module "hardhat/types/runtime" {
       name: "ArenaOracle",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ArenaOracle__factory>;
+    getContractFactory(
+      name: "LootChest",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.LootChest__factory>;
 
+    getContractAt(
+      name: "ConfirmedOwner",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ConfirmedOwner>;
+    getContractAt(
+      name: "ConfirmedOwnerWithProposal",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ConfirmedOwnerWithProposal>;
+    getContractAt(
+      name: "IOwnable",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IOwnable>;
+    getContractAt(
+      name: "IVRFCoordinatorV2Plus",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IVRFCoordinatorV2Plus>;
+    getContractAt(
+      name: "IVRFMigratableConsumerV2Plus",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IVRFMigratableConsumerV2Plus>;
+    getContractAt(
+      name: "IVRFSubscriptionV2Plus",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IVRFSubscriptionV2Plus>;
+    getContractAt(
+      name: "VRFV2PlusClient",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.VRFV2PlusClient>;
+    getContractAt(
+      name: "VRFConsumerBaseV2Plus",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.VRFConsumerBaseV2Plus>;
+    getContractAt(
+      name: "VRFCoordinatorV2Interface",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.VRFCoordinatorV2Interface>;
+    getContractAt(
+      name: "VRFConsumerBaseV2",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.VRFConsumerBaseV2>;
     getContractAt(
       name: "Ownable",
       address: string | ethers.Addressable,
@@ -32,7 +126,52 @@ declare module "hardhat/types/runtime" {
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.ArenaOracle>;
+    getContractAt(
+      name: "LootChest",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.LootChest>;
 
+    deployContract(
+      name: "ConfirmedOwner",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ConfirmedOwner>;
+    deployContract(
+      name: "ConfirmedOwnerWithProposal",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ConfirmedOwnerWithProposal>;
+    deployContract(
+      name: "IOwnable",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IOwnable>;
+    deployContract(
+      name: "IVRFCoordinatorV2Plus",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IVRFCoordinatorV2Plus>;
+    deployContract(
+      name: "IVRFMigratableConsumerV2Plus",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IVRFMigratableConsumerV2Plus>;
+    deployContract(
+      name: "IVRFSubscriptionV2Plus",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IVRFSubscriptionV2Plus>;
+    deployContract(
+      name: "VRFV2PlusClient",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.VRFV2PlusClient>;
+    deployContract(
+      name: "VRFConsumerBaseV2Plus",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.VRFConsumerBaseV2Plus>;
+    deployContract(
+      name: "VRFCoordinatorV2Interface",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.VRFCoordinatorV2Interface>;
+    deployContract(
+      name: "VRFConsumerBaseV2",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.VRFConsumerBaseV2>;
     deployContract(
       name: "Ownable",
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -41,7 +180,61 @@ declare module "hardhat/types/runtime" {
       name: "ArenaOracle",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ArenaOracle>;
+    deployContract(
+      name: "LootChest",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.LootChest>;
 
+    deployContract(
+      name: "ConfirmedOwner",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ConfirmedOwner>;
+    deployContract(
+      name: "ConfirmedOwnerWithProposal",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ConfirmedOwnerWithProposal>;
+    deployContract(
+      name: "IOwnable",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IOwnable>;
+    deployContract(
+      name: "IVRFCoordinatorV2Plus",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IVRFCoordinatorV2Plus>;
+    deployContract(
+      name: "IVRFMigratableConsumerV2Plus",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IVRFMigratableConsumerV2Plus>;
+    deployContract(
+      name: "IVRFSubscriptionV2Plus",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IVRFSubscriptionV2Plus>;
+    deployContract(
+      name: "VRFV2PlusClient",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.VRFV2PlusClient>;
+    deployContract(
+      name: "VRFConsumerBaseV2Plus",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.VRFConsumerBaseV2Plus>;
+    deployContract(
+      name: "VRFCoordinatorV2Interface",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.VRFCoordinatorV2Interface>;
+    deployContract(
+      name: "VRFConsumerBaseV2",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.VRFConsumerBaseV2>;
     deployContract(
       name: "Ownable",
       args: any[],
@@ -52,6 +245,11 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ArenaOracle>;
+    deployContract(
+      name: "LootChest",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.LootChest>;
 
     // default types
     getContractFactory(

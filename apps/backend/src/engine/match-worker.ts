@@ -2,6 +2,7 @@ import { Worker } from 'bullmq';
 import { supabase } from '../lib/supabase.js';
 import { signCombatProof } from '../services/webhook.js';
 import { recordMatchOnChain, computeCombatLogHash } from '../services/oracle.js';
+import { requestLootForWinner } from '../services/loot.js';
 import { evaluateStrategy, resolveAction, DEFAULT_STRATEGY } from './strategy.js';
 import type { Strategy, GameState } from './strategy.js';
 
@@ -208,6 +209,9 @@ export const matchWorker = new Worker('match-queue', async (job) => {
         if (txHash) {
           await supabase.from('matches').update({ tx_hash: txHash }).eq('id', matchId);
         }
+
+        // Chainlink VRF Loot isteği (opsiyonel, env'ler yoksa sessizce atlanır)
+        await requestLootForWinner(matchId, winnerBot.wallet_address);
       } else {
         console.warn(`[Oracle] ⚠️  Wallet addresses missing, skipping on-chain record.`);
       }
