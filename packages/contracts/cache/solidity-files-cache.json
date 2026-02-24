@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/mericcintosun/lanista/packages/contracts/contracts/ArenaOracle.sol": {
-      "lastModificationDate": 1771884346111,
-      "contentHash": "fb9f9f5f8a610c988d2db788c40a5005",
+      "lastModificationDate": 1771891550688,
+      "contentHash": "8ed29fcac5e80e5a567ea8135222738b",
       "sourceName": "contracts/ArenaOracle.sol",
       "solcConfig": {
         "version": "0.8.20",

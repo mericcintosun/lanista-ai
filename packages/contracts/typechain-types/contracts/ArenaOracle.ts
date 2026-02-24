@@ -26,7 +26,9 @@ import type {
 export interface ArenaOracleInterface extends Interface {
   getFunction(
     nameOrSignature:
+      | "getMatchRecord"
       | "isMatchRecorded"
+      | "matchRecords"
       | "owner"
       | "recordMatchResult"
       | "renounceOwnership"
@@ -38,13 +40,21 @@ export interface ArenaOracleInterface extends Interface {
   ): EventFragment;
 
   encodeFunctionData(
+    functionFragment: "getMatchRecord",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "isMatchRecorded",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "matchRecords",
     values: [string]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "recordMatchResult",
-    values: [string, AddressLike, AddressLike]
+    values: [string, AddressLike, AddressLike, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
@@ -56,7 +66,15 @@ export interface ArenaOracleInterface extends Interface {
   ): string;
 
   decodeFunctionResult(
+    functionFragment: "getMatchRecord",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "isMatchRecorded",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "matchRecords",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
@@ -79,18 +97,21 @@ export namespace MatchRecordedEvent {
     matchId: string,
     winner: AddressLike,
     loser: AddressLike,
+    combatLogHash: BytesLike,
     timestamp: BigNumberish
   ];
   export type OutputTuple = [
     matchId: string,
     winner: string,
     loser: string,
+    combatLogHash: string,
     timestamp: bigint
   ];
   export interface OutputObject {
     matchId: string;
     winner: string;
     loser: string;
+    combatLogHash: string;
     timestamp: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
@@ -155,12 +176,43 @@ export interface ArenaOracle extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  getMatchRecord: TypedContractMethod<
+    [matchId: string],
+    [
+      [string, string, string, bigint] & {
+        winner: string;
+        loser: string;
+        combatLogHash: string;
+        timestamp: bigint;
+      }
+    ],
+    "view"
+  >;
+
   isMatchRecorded: TypedContractMethod<[arg0: string], [boolean], "view">;
+
+  matchRecords: TypedContractMethod<
+    [arg0: string],
+    [
+      [string, string, string, bigint] & {
+        winner: string;
+        loser: string;
+        combatLogHash: string;
+        timestamp: bigint;
+      }
+    ],
+    "view"
+  >;
 
   owner: TypedContractMethod<[], [string], "view">;
 
   recordMatchResult: TypedContractMethod<
-    [matchId: string, winner: AddressLike, loser: AddressLike],
+    [
+      matchId: string,
+      winner: AddressLike,
+      loser: AddressLike,
+      combatLogHash: BytesLike
+    ],
     [void],
     "nonpayable"
   >;
@@ -178,15 +230,48 @@ export interface ArenaOracle extends BaseContract {
   ): T;
 
   getFunction(
+    nameOrSignature: "getMatchRecord"
+  ): TypedContractMethod<
+    [matchId: string],
+    [
+      [string, string, string, bigint] & {
+        winner: string;
+        loser: string;
+        combatLogHash: string;
+        timestamp: bigint;
+      }
+    ],
+    "view"
+  >;
+  getFunction(
     nameOrSignature: "isMatchRecorded"
   ): TypedContractMethod<[arg0: string], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "matchRecords"
+  ): TypedContractMethod<
+    [arg0: string],
+    [
+      [string, string, string, bigint] & {
+        winner: string;
+        loser: string;
+        combatLogHash: string;
+        timestamp: bigint;
+      }
+    ],
+    "view"
+  >;
   getFunction(
     nameOrSignature: "owner"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "recordMatchResult"
   ): TypedContractMethod<
-    [matchId: string, winner: AddressLike, loser: AddressLike],
+    [
+      matchId: string,
+      winner: AddressLike,
+      loser: AddressLike,
+      combatLogHash: BytesLike
+    ],
     [void],
     "nonpayable"
   >;
@@ -213,7 +298,7 @@ export interface ArenaOracle extends BaseContract {
   >;
 
   filters: {
-    "MatchRecorded(string,address,address,uint256)": TypedContractEvent<
+    "MatchRecorded(string,address,address,bytes32,uint256)": TypedContractEvent<
       MatchRecordedEvent.InputTuple,
       MatchRecordedEvent.OutputTuple,
       MatchRecordedEvent.OutputObject

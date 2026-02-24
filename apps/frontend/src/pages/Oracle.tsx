@@ -114,7 +114,7 @@ export default function Oracle() {
           <div className="space-y-4">
             <AnimatePresence>
               {matches.length > 0 ? matches.map((match, i) => {
-                const isOnChain = match.tx_hash && !match.tx_hash.startsWith('{');
+                const isOnChain = match.tx_hash && match.tx_hash.startsWith('0x') && match.tx_hash.length > 40;
                 const winner = match.winner_id === match.player_1_id ? match.player_1 : match.player_2;
                 const loser = match.winner_id === match.player_1_id ? match.player_2 : match.player_1;
 

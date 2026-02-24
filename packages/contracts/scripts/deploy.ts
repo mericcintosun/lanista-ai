@@ -3,29 +3,21 @@ import * as fs from "fs";
 import * as path from "path";
 import * as dotenv from "dotenv";
 
-dotenv.config();
+dotenv.config({ path: ".env" });
 
 async function main() {
-  console.log("🚀 ArenaOracle Avalanche Fuji Testnet'e deploy ediliyor...");
+  console.log("🚀 ArenaOracle v2 (with Combat Log Hash) Fuji'ye deploy ediliyor...");
 
   const privateKey = process.env.DEPLOYER_PRIVATE_KEY;
-  if (!privateKey) {
-    throw new Error("DEPLOYER_PRIVATE_KEY bulunamadı! .env dosyasını kontrol edin.");
-  }
+  if (!privateKey) throw new Error("DEPLOYER_PRIVATE_KEY bulunamadı!");
 
-  // Fuji RPC'ye doğrudan bağlan
   const provider = new ethers.JsonRpcProvider("https://api.avax-test.network/ext/bc/C/rpc");
   const wallet = new ethers.Wallet(privateKey, provider);
 
-  console.log("📦 Deployer Adresi:", wallet.address);
+  console.log("📦 Deployer:", wallet.address);
   const balance = await provider.getBalance(wallet.address);
   console.log("💰 Bakiye:", ethers.formatEther(balance), "AVAX");
 
-  if (balance === 0n) {
-    throw new Error("Yetersiz bakiye! Fuji faucet'ten AVAX alın: https://faucet.avax.network");
-  }
-
-  // ABI ve Bytecode'u artifacts'tan oku
   const artifactPath = path.join(__dirname, "../artifacts/contracts/ArenaOracle.sol/ArenaOracle.json");
   const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
 
@@ -37,10 +29,10 @@ async function main() {
 
   const address = await oracle.getAddress();
 
-  console.log("\n✅ ArenaOracle başarıyla deploy edildi!");
-  console.log("🛡️  Sözleşme Adresi:", address);
-  console.log(`\n👉 apps/backend/.env.local dosyasına ekleyin:\nORACLE_CONTRACT_ADDRESS=${address}`);
-  console.log(`\n🔗 Snowtrace'de görüntüle: https://testnet.snowtrace.io/address/${address}`);
+  console.log("\n✅ ArenaOracle v2 başarıyla deploy edildi!");
+  console.log("🛡️  Yeni Sözleşme Adresi:", address);
+  console.log(`\n👉 apps/backend/.env.local dosyasında güncelleyin:\nORACLE_CONTRACT_ADDRESS=${address}`);
+  console.log(`\n🔗 Snowtrace: https://testnet.snowtrace.io/address/${address}`);
 }
 
 main().catch((error) => {

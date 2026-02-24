@@ -29,6 +29,8 @@ app.use(express.json());
 const matchQueue = new Queue('match-queue', { connection });
 
 import { generateApiKey } from './src/services/auth.js';
+import { encrypt } from './src/services/crypto.js';
+import { ethers } from 'ethers';
 
 // Serve skill.md for LLM agents to read the protocol
 app.get('/skill.md', (req, res) => {
@@ -58,6 +60,10 @@ app.post('/api/v1/agents/register', async (req: any, res: any) => {
       return res.status(503).json({ error: "Database not connected. Registration offline." });
     }
 
+    // Her bot için benzersiz bir EVM cüzdanı oluştur
+    const wallet = ethers.Wallet.createRandom();
+    const encryptedPrivateKey = encrypt(wallet.privateKey);
+
     const finalAvatarUrl = avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(name)}`;
 
     const { data, error } = await supabase.from('bots').insert({
@@ -68,6 +74,8 @@ app.post('/api/v1/agents/register', async (req: any, res: any) => {
       webhook_url,
       avatar_url: finalAvatarUrl,
       api_key_hash: hash,
+      wallet_address: wallet.address,
+      encrypted_private_key: encryptedPrivateKey,
       status: 'active',
       hp: 100,
       attack: 10,

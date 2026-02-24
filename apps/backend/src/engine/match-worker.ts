@@ -1,7 +1,7 @@
 import { Worker } from 'bullmq';
 import { supabase } from '../lib/supabase.js';
 import { signCombatProof } from '../services/webhook.js';
-import { recordMatchOnChain } from '../services/oracle.js';
+import { recordMatchOnChain, computeCombatLogHash } from '../services/oracle.js';
 import { evaluateStrategy, resolveAction, DEFAULT_STRATEGY } from './strategy.js';
 import type { Strategy, GameState } from './strategy.js';
 
@@ -27,6 +27,9 @@ export const matchWorker = new Worker('match-queue', async (job) => {
   let p2_hp = p2.hp;
   const p1_max_hp = p1.hp;
   const p2_max_hp = p2.hp;
+
+  // In-memory combat log accumulator — hashed at end for on-chain proof
+  const allCombatLogs: object[] = [];
 
   // Track vulnerability from HEAVY_ATTACK
   let p1_vulnerable = false;
@@ -109,7 +112,18 @@ export const matchWorker = new Worker('match-queue', async (job) => {
 
     console.log(`[Turn ${currentTurn}] ${narrative} (Target HP: ${target_current_hp})`);
 
-    // Log to Supabase
+    // Log to Supabase + accumulate for on-chain hash
+    const logEntry = {
+      match_id: matchId,
+      actor_id: activeAgent.id,
+      action_type: action_type,
+      value: actualDamage || result.healing,
+      narrative,
+      target_current_hp,
+      turn: currentTurn
+    };
+    allCombatLogs.push(logEntry);
+
     try {
       if (process.env.SUPABASE_URL) {
         await supabase.from('combat_logs').insert({
@@ -156,10 +170,18 @@ export const matchWorker = new Worker('match-queue', async (job) => {
       ]);
 
       if (winnerBot?.wallet_address && loserBot?.wallet_address) {
+        // Tüm tur loglarının hash'ini hesapla (tamper-proof integrity)
+        const combatLogHash = allCombatLogs.length > 0
+          ? computeCombatLogHash(allCombatLogs)
+          : '0x0000000000000000000000000000000000000000000000000000000000000000';
+
+        console.log(`[Oracle] 📋 ${allCombatLogs.length} tur logu hash'lendi.`);
+
         const txHash = await recordMatchOnChain(
           matchId,
           winnerBot.wallet_address,
-          loserBot.wallet_address
+          loserBot.wallet_address,
+          combatLogHash
         );
         if (txHash) {
           await supabase.from('matches').update({ tx_hash: txHash }).eq('id', matchId);

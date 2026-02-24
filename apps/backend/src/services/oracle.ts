@@ -1,26 +1,37 @@
 import { ethers } from 'ethers';
 
-// Sadece kullandığımız fonksiyon ve event'i içeren minimal ABI (Human-Readable)
+// ArenaOracle v2 ABI — combatLogHash parametresi eklendi
 const ORACLE_ABI = [
-  "function recordMatchResult(string matchId, address winner, address loser) external",
-  "event MatchRecorded(string indexed matchId, address indexed winner, address indexed loser, uint256 timestamp)"
+  "function recordMatchResult(string matchId, address winner, address loser, bytes32 combatLogHash) external",
+  "function getMatchRecord(string matchId) external view returns (address winner, address loser, bytes32 combatLogHash, uint256 timestamp)",
+  "event MatchRecorded(string indexed matchId, address indexed winner, address indexed loser, bytes32 combatLogHash, uint256 timestamp)"
 ];
 
 /**
- * Maç sonucunu Avalanche C-Chain (Fuji) üzerindeki ArenaOracle sözleşmesine yazar.
- * Sadece bu backend sunucusu (onlyOwner) bu fonksiyonu çağırabilir.
- * 
- * @param matchId   Supabase'deki maç UUID'si
- * @param winner    Kazanan ajanın cüzdan adresi (wallet_address)
- * @param loser     Kaybeden ajanın cüzdan adresi (wallet_address)
- * @returns         İşlem hash'i (tx.hash) - Snowtrace'de doğrulanabilir
+ * Combat log'larının keccak256 hash'ini hesaplar.
+ * Log'lar Supabase'de saklanır, hash Avalanche'a yazılır — tamper-proof integrity.
+ */
+export function computeCombatLogHash(logs: object[]): string {
+  const canonical = JSON.stringify(logs, Object.keys(logs[0] || {}).sort());
+  return ethers.keccak256(ethers.toUtf8Bytes(canonical));
+}
+
+/**
+ * Maç sonucunu ve combat log hash'ini Avalanche C-Chain (Fuji) üzerindeki
+ * ArenaOracle v2 sözleşmesine yazar.
+ *
+ * @param matchId       Supabase'deki maç UUID'si
+ * @param winner        Kazanan ajanın cüzdan adresi
+ * @param loser         Kaybeden ajanın cüzdan adresi
+ * @param combatLogHash keccak256(combat_logs JSON) — integrity proof
+ * @returns             TX hash veya null (hata/eksik config durumunda)
  */
 export async function recordMatchOnChain(
   matchId: string,
   winner: string,
-  loser: string
+  loser: string,
+  combatLogHash: string = ethers.ZeroHash
 ): Promise<string | null> {
-  // Gerekli env değişkenleri yoksa sessizce geç (offline mod)
   const rpcUrl = process.env.AVALANCHE_RPC_URL;
   const privateKey = process.env.DEPLOYER_PRIVATE_KEY;
   const contractAddress = process.env.ORACLE_CONTRACT_ADDRESS;
@@ -30,7 +41,6 @@ export async function recordMatchOnChain(
     return null;
   }
 
-  // Geçersiz veya eksik cüzdan adresleri ile çağrı yapılmasın
   if (!winner || !loser || !ethers.isAddress(winner) || !ethers.isAddress(loser)) {
     console.warn(`[Oracle] ⚠️  Geçersiz adresler: winner=${winner}, loser=${loser}. Atlanıyor.`);
     return null;
@@ -44,10 +54,11 @@ export async function recordMatchOnChain(
     console.log(`[Oracle] 🔗 Zincire yazılıyor... Match: ${matchId}`);
     console.log(`[Oracle] 🏆 Kazanan: ${winner}`);
     console.log(`[Oracle] 💀 Kaybeden: ${loser}`);
+    console.log(`[Oracle] 📋 Combat Log Hash: ${combatLogHash}`);
 
-    const tx = await oracle.recordMatchResult(matchId, winner, loser, {
-      gasLimit: 200_000,
-      gasPrice: ethers.parseUnits('30', 'gwei') // Fuji için yeterli gas fiyatı
+    const tx = await oracle.recordMatchResult(matchId, winner, loser, combatLogHash, {
+      gasLimit: 250_000,
+      gasPrice: ethers.parseUnits('30', 'gwei')
     });
     console.log(`[Oracle] ⏳ TX gönderildi: ${tx.hash}`);
 
@@ -57,12 +68,11 @@ export async function recordMatchOnChain(
 
     return tx.hash as string;
   } catch (err: any) {
-    // "already recorded" hatası kritik değil, tekrar kaydı önlüyoruz
     if (err?.message?.includes('Match already recorded')) {
       console.warn(`[Oracle] ⚠️  Bu maç zaten zincirde kayıtlı: ${matchId}`);
       return null;
     }
     console.error('[Oracle] ❌ On-chain kayıt hatası:', err?.message || err);
-    return null; // Blockchain hatası maç akışını durdurmasın
+    return null;
   }
 }
