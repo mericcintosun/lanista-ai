@@ -133,7 +133,7 @@ export function BattleArena() {
             )}
 
             <Link
-              to="/"
+              to="/hub"
               className="mt-8 px-10 py-5 bg-transparent border border-red-500/50 text-red-500 font-mono text-xs font-black uppercase tracking-[0.2em] transition-all hover:bg-red-500/10 hover:border-red-500 hover:shadow-[0_0_20px_rgba(232,65,66,0.3)] flex items-center gap-3 group"
             >
               <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> &lt; RETURN TO HUB
@@ -286,12 +286,46 @@ export function BattleArena() {
                         const isCritical =
                           log.action_type === 'CRITICAL' ||
                           log.action_type === 'HEAVY_ATTACK';
-                        const narrative =
-                          log.narrative?.replace(
-                            // Remove common emoji characters, keep text clean for UI
-                            /[\p{Extended_Pictographic}\p{Emoji_Presentation}\p{Emoji}\uFE0F]/gu,
-                            ''
-                          ) ?? '';
+                        const actorCode = (log.actor_id ?? '')
+                          .slice(-4)
+                          .toUpperCase();
+                        const actorName = isP1
+                          ? match.player_1?.name || actorCode
+                          : match.player_2?.name || actorCode;
+                        const targetName = isP1
+                          ? match.player_2?.name || 'opponent'
+                          : match.player_1?.name || 'opponent';
+
+                        const narrative = (() => {
+                          const baseValue = log.value;
+
+                          if (!log.action_type) {
+                            return {
+                              type: 'custom' as const,
+                              text: log.narrative ?? '',
+                            };
+                          }
+
+                          if (log.action_type.includes('HEAL')) {
+                            return {
+                              type: 'heal' as const,
+                              text: `restored ${baseValue} HP.`,
+                            };
+                          }
+
+                          if (log.action_type.includes('DEFEND')) {
+                            return {
+                              type: 'defend' as const,
+                              text: `defended and counter-attacked ${targetName} for ${baseValue} damage.`,
+                            };
+                          }
+
+                          // ATTACK / CRITICAL and other offensive actions
+                          return {
+                            type: 'attack' as const,
+                            text: `attacked ${targetName} for ${baseValue} damage.`,
+                          };
+                        })();
 
                         const actionIcon = (() => {
                           if (!log.action_type) return null;
@@ -328,11 +362,11 @@ export function BattleArena() {
                                   </span>
                                   <span className="h-3 w-px bg-zinc-700" />
                                   <span
-                                    className={`text-[11px] font-mono uppercase tracking-[0.18em] ${
-                                      isP1 ? 'text-cyan-300' : 'text-zinc-200'
+                                    className={`text-[10px] font-mono uppercase tracking-[0.18em] ${
+                                      isP1 ? 'text-cyan-300' : 'text-zinc-400'
                                     }`}
                                   >
-                                    {isP1 ? match.player_1?.name : match.player_2?.name}
+                                    {actorCode}
                                   </span>
                                 </div>
 
@@ -351,16 +385,23 @@ export function BattleArena() {
                               </div>
 
                               <p className="text-sm text-zinc-100 leading-relaxed">
-                                {narrative}
+                                <span className="font-semibold text-white">
+                                  {actorName}
+                                </span>{' '}
+                                {narrative.text}
                               </p>
 
                               {log.value > 0 && (
-                                <div className="mt-2 flex items-center justify-between text-[11px] font-mono uppercase tracking-[0.18em]">
-                                  <span className="text-zinc-500">
-                                    Systems impact detected
-                                  </span>
-                                  <span className="px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/40 font-bold">
-                                    -{log.value} HP
+                                <div className="mt-2 flex items-center justify-end text-[11px] font-mono uppercase tracking-[0.18em]">
+                                  <span
+                                    className={`px-2 py-0.5 rounded-full border font-bold ${
+                                      log.action_type?.includes('HEAL')
+                                        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40'
+                                        : 'bg-red-500/15 text-red-400 border-red-500/40'
+                                    }`}
+                                  >
+                                    {log.action_type?.includes('HEAL') ? '+' : '-'}
+                                    {log.value} HP
                                   </span>
                                 </div>
                               )}
@@ -408,7 +449,7 @@ export function BattleArena() {
             <div className="flex flex-col items-center gap-6">
 
               <Link
-                to="/"
+                to="/hub"
                 className="px-12 py-5 bg-transparent border border-red-500/50 text-red-500 font-mono text-xs font-black uppercase tracking-[0.2em] transition-all hover:bg-red-500/10 hover:border-red-500 hover:shadow-[0_0_30px_rgba(232,65,66,0.3)] flex items-center gap-3 group"
               >
                 <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> &lt; RETURN TO HUB
