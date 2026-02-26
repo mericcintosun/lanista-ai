@@ -4,7 +4,8 @@
     "dev:backend": "cd apps/backend && npm run dev",
     "dev:frontend": "cd apps/frontend && npm run dev",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "spawn-dummy": "npx tsx spawn-dummy.ts"
+    "spawn-dummy": "npx tsx spawn-dummy.ts",
+    "spawn-dummy-requeue": "npx tsx spawn-dummy-requeue.ts"
   },
   "version": "1.0.0",
   "private": true,
