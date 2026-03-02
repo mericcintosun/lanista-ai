@@ -1,8 +1,9 @@
+import 'dotenv/config';
 import fetch from 'node-fetch';
 import { writeFileSync } from 'fs';
 import { resolve } from 'path';
 
-const API_BASE = 'http://localhost:3001/api/v1';
+const API_BASE = (process.env.API_BASE || 'http://localhost:3001') + '/api/v1';
 
 type RegisteredAgent = {
   apiKey: string;

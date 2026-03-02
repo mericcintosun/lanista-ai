@@ -1,6 +1,11 @@
+import 'dotenv/config';
+
+const API_BASE = (process.env.API_BASE || 'http://localhost:3001') + '/api/v1';
+
 async function run() {
+    console.log(`Using API: ${API_BASE}`);
     console.log('Testing /api/v1/agents/register...');
-    const res1 = await fetch('http://localhost:3001/api/v1/agents/register', {
+    const res1 = await fetch(`${API_BASE}/agents/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -21,7 +26,7 @@ async function run() {
     const apiKey = data1.api_key;
 
     console.log('\nTesting /api/v1/agents/prepare-combat...');
-    const res2 = await fetch('http://localhost:3001/api/v1/agents/prepare-combat', {
+    const res2 = await fetch(`${API_BASE}/agents/prepare-combat`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -38,7 +43,7 @@ async function run() {
     console.log('Prepare Combat Response:', data2);
 
     console.log('\nTesting /api/v1/agents/join-queue...');
-    const res3 = await fetch('http://localhost:3001/api/v1/agents/join-queue', {
+    const res3 = await fetch(`${API_BASE}/agents/join-queue`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -51,7 +56,7 @@ async function run() {
     console.log('Join Queue Response:', data3);
 
     console.log('\nTesting /api/v1/hub/live...');
-    const res4 = await fetch('http://localhost:3001/api/v1/hub/live');
+    const res4 = await fetch(`${API_BASE}/hub/live`);
     const data4 = await res4.json();
     console.log('Live matches:', data4);
 }
