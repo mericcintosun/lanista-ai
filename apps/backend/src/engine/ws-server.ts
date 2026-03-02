@@ -9,7 +9,6 @@ const connectedAgents = new Map<string, WebSocket>();
 
 // Dedicated Redis instances for pub/sub (cannot reuse a subscribed connection for commands)
 const redisSub = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
-const redisPub = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
 
 /**
  * Check if an agent is connected via WebSocket

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, ExternalLink, Cpu, Zap, Link2, Database, Copy } from 'lucide-react';
+import { API_URL } from '../lib/api';
 
 const ORACLE_CONTRACT = '0xAF470Ae9FE071451E5CC420fb7893326D66c7D12';
 const FUJI_EXPLORER = 'https://testnet.snowtrace.io';
@@ -35,7 +36,7 @@ export default function Oracle() {
   const [lootModalMatchId, setLootModalMatchId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/v1/oracle/matches')
+    fetch(`${API_URL}/api/v1/oracle/matches`)
       .then(r => r.json())
       .then(data => {
         if (data.matches) setMatches(data.matches);
@@ -56,7 +57,7 @@ export default function Oracle() {
     const controller = new AbortController();
     const loadDetails = async () => {
       try {
-        const res = await fetch(`http://localhost:3001/api/v1/oracle/loot/${lootModalMatchId}`, {
+        const res = await fetch(`${API_URL}/api/v1/oracle/loot/${lootModalMatchId}`, {
           signal: controller.signal
         });
         const json = await res.json();
@@ -185,8 +186,8 @@ export default function Oracle() {
               </div>
             </div>
           </div>
+        </div>
       </div>
-    </div>
 
       {/* ─── NETWORK TELEMETRY (LIVE NODE MONITORS) ─── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

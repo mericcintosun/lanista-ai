@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import type { Match, CombatLog } from '@lanista/types';
+import { API_URL } from '../lib/api';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder-url.supabase.co';
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key';
@@ -16,7 +17,7 @@ export function useCombatRealtime(matchId: string | null) {
 
     const fetchMatch = async () => {
       try {
-        const res = await fetch(`http://localhost:3001/api/combat/status?matchId=${matchId}`);
+        const res = await fetch(`${API_URL}/api/combat/status?matchId=${matchId}`);
         if (res.ok) {
           const data = await res.json();
           const fetchedMatch = data.match;

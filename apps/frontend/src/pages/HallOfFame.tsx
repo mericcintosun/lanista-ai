@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronUp, ChevronDown } from 'lucide-react';
+import { API_URL } from '../lib/api';
 
 interface AgentScore {
   id: string;
@@ -29,7 +30,7 @@ export default function HallOfFame() {
 
   const fetchLeaderboard = useCallback(async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/v1/leaderboard');
+      const res = await fetch(`${API_URL}/api/v1/leaderboard`);
       const data = await res.json();
       if (data.leaderboard) {
         const incoming: AgentScore[] = data.leaderboard;
@@ -217,9 +218,8 @@ export default function HallOfFame() {
               className="px-4 py-1.5 border border-white/10 bg-white/5 text-[10px] font-mono uppercase tracking-[0.25em] text-zinc-300 rounded-full hover:bg-white/10 hover:border-white/30 transition-colors flex items-center gap-2"
             >
               <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                  liveUpdates ? 'bg-[#00FF00]' : 'bg-zinc-500'
-                }`}
+                className={`w-1.5 h-1.5 rounded-full ${liveUpdates ? 'bg-[#00FF00]' : 'bg-zinc-500'
+                  }`}
               />
               {liveUpdates ? 'Live Feed: On' : 'Live Feed: Off'}
             </button>

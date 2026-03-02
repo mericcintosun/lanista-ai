@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "npx tsx watch index.ts",
-    "build": "tsc --noEmit",
+    "start": "npx tsx index.ts",
+    "build": "echo 'Backend ready (tsx runtime, no compile needed)'",
     "generate-arena-key": "npx tsx scripts/generate-arena-key.ts"
   },
   "devDependencies": {

@@ -3,8 +3,9 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { ExternalLink, Menu, X, Globe, Swords } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ParticleBackground from './ParticleBackground';
+import { API_URL } from '../lib/api';
 
-const SKILL_URL = 'http://localhost:3001/skill.md';
+const SKILL_URL = `${API_URL}/skill.md`;
 
 function AuthModal({ onClose }: { onClose: () => void }) {
   const [copied, setCopied] = useState(false);
@@ -240,11 +241,10 @@ export function Layout() {
                     <Link
                       to={item.path}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className={`block w-full text-center py-5 px-6 rounded-xl font-mono text-base font-bold uppercase tracking-widest transition-all duration-200 ${
-                        isActive
+                      className={`block w-full text-center py-5 px-6 rounded-xl font-mono text-base font-bold uppercase tracking-widest transition-all duration-200 ${isActive
                           ? 'bg-primary/20 text-white border border-primary/40'
                           : 'text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent'
-                      }`}
+                        }`}
                     >
                       {item.name}
                     </Link>

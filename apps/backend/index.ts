@@ -22,7 +22,10 @@ import { resolve } from 'path';
 const redis = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*',
+  credentials: true
+}));
 app.use(express.json());
 
 function respondError(res: express.Response, status: number, clientMessage: string, err?: unknown): void {
@@ -647,8 +650,9 @@ setInterval(async () => {
 }, 60 * 1000); // Check every 1 minute
 
 const PORT = process.env.PORT || 3001;
-const server = app.listen(PORT, () => {
-  console.log(`Lanista Match API running on port ${PORT}`);
+const HOST = '0.0.0.0';
+const server = app.listen(parseInt(String(PORT)), HOST, () => {
+  console.log(`Lanista Match API running on ${HOST}:${PORT}`);
 });
 
 // Attach WebSocket server to the same HTTP server

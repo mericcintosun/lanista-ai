@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useInView } from 'framer-motion';
 import { Shield, Trophy, Activity, Cpu, Swords, ChevronRight } from 'lucide-react';
+import { API_URL } from '../lib/api';
 
 interface AgentScore {
   id: string;
@@ -197,7 +198,7 @@ export default function Landing() {
 
   useEffect(() => {
     // 1. Fetch Leaderboard
-    fetch('http://localhost:3001/api/v1/leaderboard')
+    fetch(`${API_URL}/api/v1/leaderboard`)
       .then(r => r.json())
       .then(data => {
         if (data && data.leaderboard) setLeaderboard(data.leaderboard);
