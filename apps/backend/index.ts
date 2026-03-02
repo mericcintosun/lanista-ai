@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Queue } from 'bullmq';
 import { connection } from './src/engine/match-worker.js';
 import './src/engine/match-worker.js'; // Ensure worker started
+import './src/engine/blockchain-worker.js'; // Blockchain ops queue (concurrency=1)
 import type { Bot, Match } from '@lanista/types';
 import { supabase } from './src/lib/supabase.js';
 import { calculateFinalStats } from './src/engine/referee.js';

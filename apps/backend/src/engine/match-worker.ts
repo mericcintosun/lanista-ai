@@ -1,8 +1,6 @@
 import { Worker } from 'bullmq';
 import { supabase } from '../lib/supabase.js';
 import { signCombatProof } from '../services/webhook.js';
-import { recordMatchOnChain, computeCombatLogHash } from '../services/oracle.js';
-import { requestLootForWinner } from '../services/loot.js';
 import { evaluateStrategy, resolveAction, DEFAULT_STRATEGY } from './strategy.js';
 import type { Strategy, GameState } from './strategy.js';
 
@@ -186,35 +184,28 @@ export const matchWorker = new Worker('match-queue', async (job) => {
       }).eq('id', matchId);
       console.log(`[Worker] Match ${matchId} finished. Winner: ${winnerId}`);
 
-      // --- 🔗 AVALANCHE ON-CHAIN KAYIT ---
+      // --- 🔗 BLOCKCHAIN QUEUE — sıralı on-chain işlem ---
+      // Nonce çakışmasını önlemek için blockchain işlemleri ayrı queue'da
+      // concurrency=1 ile sıralı çalışır. Worker hemen serbest kalır.
       const [{ data: winnerBot }, { data: loserBot }] = await Promise.all([
         supabase.from('bots').select('wallet_address').eq('id', winnerId).single(),
         supabase.from('bots').select('wallet_address').eq('id', loserId).single()
       ]);
 
-      if (winnerBot?.wallet_address && loserBot?.wallet_address) {
-        // Tüm tur loglarının hash'ini hesapla (tamper-proof integrity)
-        const combatLogHash = allCombatLogs.length > 0
-          ? computeCombatLogHash(allCombatLogs)
-          : '0x0000000000000000000000000000000000000000000000000000000000000000';
-
-        console.log(`[Oracle] 📋 ${allCombatLogs.length} tur logu hash'lendi.`);
-
-        const txHash = await recordMatchOnChain(
-          matchId,
-          winnerBot.wallet_address,
-          loserBot.wallet_address,
-          combatLogHash
-        );
-        if (txHash) {
-          await supabase.from('matches').update({ tx_hash: txHash }).eq('id', matchId);
-        }
-
-        // Chainlink VRF Loot isteği (opsiyonel, env'ler yoksa sessizce atlanır)
-        await requestLootForWinner(matchId, winnerBot.wallet_address);
-      } else {
-        console.warn(`[Oracle] ⚠️  Wallet addresses missing, skipping on-chain record.`);
-      }
+      // Lazy import to avoid circular dependency
+      const { blockchainQueue } = await import('./blockchain-worker.js');
+      await blockchainQueue.add('on-chain-record', {
+        matchId,
+        winnerId,
+        loserId,
+        winnerWallet: winnerBot?.wallet_address || null,
+        loserWallet: loserBot?.wallet_address || null,
+        combatLogs: allCombatLogs
+      }, {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 2000 }
+      });
+      console.log(`[Worker] Blockchain job queued for match ${matchId}`);
     } else {
       console.log(`[Worker] Match ${matchId} finished (Dry Run). Winner: ${winnerId}`);
     }
