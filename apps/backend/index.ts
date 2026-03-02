@@ -23,8 +23,7 @@ const redis = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');
 
 const app = express();
 app.use(cors({
-  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*',
-  credentials: true
+  origin: process.env.CORS_ORIGIN || '*'
 }));
 app.use(express.json());
 
