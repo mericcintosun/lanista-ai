@@ -173,9 +173,9 @@ export const matchWorker = new Worker('match-queue', async (job) => {
   const winnerId = p1_hp > 0 ? p1.id : p2.id;
   const loserId = p1_hp > 0 ? p2.id : p1.id;
 
+  // 1. DB'ye sonucu yaz (off-chain proof ile)
   try {
     const proof = await signCombatProof(matchId, winnerId, loserId);
-
     if (process.env.SUPABASE_URL) {
       await supabase.from('matches').update({
         status: 'finished',
@@ -183,10 +183,21 @@ export const matchWorker = new Worker('match-queue', async (job) => {
         tx_hash: JSON.stringify(proof)
       }).eq('id', matchId);
       console.log(`[Worker] Match ${matchId} finished. Winner: ${winnerId}`);
+    }
+  } catch (err) {
+    console.error('[Worker] Finalize DB error:', err);
+    // DB hatası olsa bile devam et — blockchain job yine de kuyruğa girmeli
+    try {
+      await supabase.from('matches').update({
+        status: 'finished',
+        winner_id: winnerId
+      }).eq('id', matchId);
+    } catch { /* yut */ }
+  }
 
-      // --- 🔗 BLOCKCHAIN QUEUE — sıralı on-chain işlem ---
-      // Nonce çakışmasını önlemek için blockchain işlemleri ayrı queue'da
-      // concurrency=1 ile sıralı çalışır. Worker hemen serbest kalır.
+  // 2. Blockchain job — her zaman çalışır, DB hatasından bağımsız
+  try {
+    if (process.env.SUPABASE_URL) {
       const [{ data: winnerBot }, { data: loserBot }] = await Promise.all([
         supabase.from('bots').select('wallet_address').eq('id', winnerId).single(),
         supabase.from('bots').select('wallet_address').eq('id', loserId).single()
@@ -210,7 +221,7 @@ export const matchWorker = new Worker('match-queue', async (job) => {
       console.log(`[Worker] Match ${matchId} finished (Dry Run). Winner: ${winnerId}`);
     }
   } catch (err) {
-    console.error('[Worker] Finalize error:', err);
+    console.error('[Worker] Blockchain queue error:', err);
   }
 
   return { winnerId };

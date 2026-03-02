@@ -1,52 +1,52 @@
 [
   {
-    "apiKey": "lanista_09c5c8c0722f0fdd73a0a54b097ae7442a38208c68de3bfa",
-    "botId": "373b55ba-b2d3-4222-8395-4a6f9ea9db2a",
-    "name": "Nexus"
+    "apiKey": "lanista_f4c0d1296bb24250a52bb98c6943fb0410388f5fe3d5d30a",
+    "botId": "384ddb0e-2c09-4636-9ba8-fdeecb9f9d8a",
+    "name": "Zen"
   },
   {
-    "apiKey": "lanista_05c252c262f6b928c1a54f8fc8f74d925439a6bc001a0240",
-    "botId": "6a7e2b5e-0b77-4304-bbff-b18e11b090b5",
-    "name": "Muse"
+    "apiKey": "lanista_82727735c3a9a5f9c91a0ce6ecaa1a55d8415bddede9f7b4",
+    "botId": "daefbbd8-b0aa-445e-8fbb-4d7243cd5562",
+    "name": "Lynx"
   },
   {
-    "apiKey": "lanista_8874f58e3cffdbf778135c02d27fe1c7416e01e77757b51c",
-    "botId": "e7561633-cec7-4cbb-8b8d-46558fc5b2ab",
-    "name": "Ozone"
+    "apiKey": "lanista_db7bed11c33a73076d38a163c8dda6472541aa1c39894402",
+    "botId": "5b6133ea-5246-4927-9e44-2f4f4a4dd470",
+    "name": "Vector"
   },
   {
-    "apiKey": "lanista_9bf4531dc6a24611b6895370d3691719f3c4dd3a1bb7edaa",
-    "botId": "ecf8c0bb-c916-44e7-bd35-aee3e3eb9328",
-    "name": "Axiom"
+    "apiKey": "lanista_462098c23fcc8394925c5c2128c3190b7eb15cfcf94aca7c",
+    "botId": "44b6c45c-44f2-40f1-b9cd-44242dfed503",
+    "name": "Temple"
   },
   {
-    "apiKey": "lanista_347c8e449e73925dc4d96acb317330c521fdbd758fea4868",
-    "botId": "a2100fc3-30cb-4a99-86d5-53b28763730e",
-    "name": "Xero"
+    "apiKey": "lanista_14e63fcebd36a7a39ff7a82a3b64b62652c21691b5a6a0a1",
+    "botId": "44acdbce-617e-4f40-b8b1-cf9556bd962b",
+    "name": "Havoc"
   },
   {
-    "apiKey": "lanista_f6b7e1ec49b9ef4858eca4178336cce1300b74c320769773",
-    "botId": "6065d9a4-c430-48a1-b744-dc87708eefe0",
-    "name": "Astra"
+    "apiKey": "lanista_0f981dd685bb8d4589a88376b13aaa726ae9b61baa49b26b",
+    "botId": "91938f1b-dc49-4ddb-a501-74b1017e2e85",
+    "name": "Fission"
   },
   {
-    "apiKey": "lanista_4aaf566a80efa86fffbedb2b94cb4ea08ddd95c39959df53",
-    "botId": "24336863-9a7f-40d1-be75-4096844f1b4c",
-    "name": "Iris"
+    "apiKey": "lanista_aac7d367f6c4f43c96ba51b411cff146a00e47842b4efdf4",
+    "botId": "f7c36874-32f3-4791-9176-51f2750a29b2",
+    "name": "Ivy"
   },
   {
-    "apiKey": "lanista_616ee7450fd4f114dfdcc934b6fbb7c4d551063351172f4f",
-    "botId": "89e08957-f9d1-427a-8486-8dff83871671",
-    "name": "Fade"
+    "apiKey": "lanista_62d57719816f4ae5637e03f5131c1faf9ed6059fc8c14411",
+    "botId": "26513c9d-2d3d-4940-b608-875bfe945b13",
+    "name": "Dusk"
   },
   {
-    "apiKey": "lanista_307f1b732ee354a71e8c7f63aa1f7222e51c5e853385b330",
-    "botId": "afbab95a-b1e5-4f97-a7b0-8c281520ff0f",
-    "name": "Bolt"
+    "apiKey": "lanista_9ec07ae3394fb6cdab042781f91fdf68e8e0eb8f7545dbb0",
+    "botId": "3775b9c2-9b2c-4535-897a-d0580c4684db",
+    "name": "Quantum"
   },
   {
-    "apiKey": "lanista_9560863307064a2a2340a5d0e61f850a91362f1826f23e88",
-    "botId": "10085b7f-29d8-4e97-94a5-ffcfd2e5d72e",
-    "name": "JadeX"
+    "apiKey": "lanista_a7c34f5dbaa83f82e373e0f3d4f6f4b88cc2a73811a9b8ed",
+    "botId": "bb800c43-7b70-4c7a-8918-97c9d84a9ab4",
+    "name": "Xander"
   }
 ]

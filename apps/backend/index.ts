@@ -615,6 +615,39 @@ app.post('/api/v1/oracle/verify', async (req, res) => {
   res.status(410).json({ valid: false, error: "Deprecated. Check /api/v1/oracle/matches for on-chain records." });
 });
 
+// --- LOOT SYNC POLLER (CRON) ---
+// On-chain VRF fulfill olan ama DB'de winner_loot_item_id'si null olan maçları otomatik günceller
+setInterval(async () => {
+  if (!process.env.SUPABASE_URL) return;
+  try {
+    const { data: pendingLootMatches } = await supabase
+      .from('matches')
+      .select('id')
+      .eq('status', 'finished')
+      .not('tx_hash', 'is', null)
+      .is('winner_loot_item_id', null)
+      .order('created_at', { ascending: false })  // Yeni maçları önce kontrol et
+      .limit(20);
+
+    if (!pendingLootMatches || pendingLootMatches.length === 0) return;
+
+    for (const match of pendingLootMatches) {
+      try {
+        const loot = await getLootForMatch(match.id);
+        if (loot && loot.fulfilled && Number.isFinite(loot.itemId) && loot.itemId > 0) {
+          await supabase
+            .from('matches')
+            .update({ winner_loot_item_id: loot.itemId })
+            .eq('id', match.id);
+          console.log(`[LootPoller] ✅ Match ${match.id} → Item #${loot.itemId}`);
+        }
+      } catch { /* tek maç hatasını yut */ }
+    }
+  } catch (err: any) {
+    console.error('[LootPoller] ❌', err.message);
+  }
+}, 30 * 1000);
+
 // --- STALE MATCH SWEEPER (CRON) ---
 setInterval(async () => {
   if (!process.env.SUPABASE_URL) return;
