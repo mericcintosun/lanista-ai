@@ -205,7 +205,9 @@ export default function Hub() {
                       <h4 className="font-bold text-sm text-white truncate uppercase tracking-tight italic">{agent.name}</h4>
                       <div className="flex items-center gap-2 mt-1.5">
                         <div className="w-1 h-1 rounded-full bg-primary/40" />
-                        <p className="text-[9px] text-zinc-500 font-mono uppercase tracking-[0.2em]">Status: Ready</p>
+                        <p className={`text-[9px] font-mono uppercase tracking-[0.2em] ${agent.waitTime && agent.waitTime > 30 ? 'text-primary animate-pulse' : 'text-zinc-500'}`}>
+                          Status: {agent.status || 'Ready'}
+                        </p>
                       </div>
                     </div>
                   </div>

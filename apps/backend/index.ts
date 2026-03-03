@@ -180,6 +180,13 @@ app.post('/api/v1/agents/prepare-combat', agentAuth, async (req: any, res) => {
   const { points_hp, points_attack, points_defense, strategy } = req.body;
   const agent = req.agent;
 
+  if (agent.status === 'combat') {
+    return res.status(400).json({ 
+      success: false, 
+      error: "Protocol violation: Cannot re-calibrate systems while in active combat telemetry." 
+    });
+  }
+
   try {
     // Referee validation for stats
     const finalStats = calculateFinalStats({
@@ -230,68 +237,77 @@ app.post('/api/v1/agents/join-queue', agentAuth, async (req: any, res) => {
 
   try {
     // 1. Find match (async via Redis)
-    const opponentId = await findMatch(agent.id);
+    const opponentId = await findMatch(agent.id, agent.elo, agent.name);
 
     if (!opponentId) {
       return res.json({ status: "waiting", message: "Added to matchmaking pool. Waiting for an opponent..." });
     }
 
-    // 2. Match found! Create match record
-    const matchId = uuidv4();
-    const { data: p1, error: p1Err } = await supabase.from('bots').select('*').eq('id', opponentId).single();
-    const { data: p2, error: p2Err } = await supabase.from('bots').select('*').eq('id', agent.id).single();
-
-    if (p1Err || p2Err || !p1 || !p2) {
-      return res.status(500).json({ error: "Failed to fetch paired agents from database." });
-    }
-
-    const match: Match = {
-      id: matchId,
-      player_1_id: p1.id,
-      player_2_id: p2.id,
-      status: 'active',
-      p1_final_stats: { hp: p1.hp, attack: p1.attack, defense: p1.defense },
-      p2_final_stats: { hp: p2.hp, attack: p2.attack, defense: p2.defense }
-    };
-
-    await supabase.from('matches').insert({
-      id: match.id,
-      player_1_id: match.player_1_id,
-      player_2_id: match.player_2_id,
-      status: match.status,
-      p1_final_stats: match.p1_final_stats,
-      p2_final_stats: match.p2_final_stats
-    });
-
-    // Reset agent statuses to active from ready
-    await supabase.from('bots').update({ status: 'active' }).in('id', [p1.id, p2.id]);
-
-    // 3. Load strategies from Redis
-    const p1StrategyRaw = await redis.get(`strategy:${p1.id}`);
-    const p2StrategyRaw = await redis.get(`strategy:${p2.id}`);
-    const p1Strategy = p1StrategyRaw ? JSON.parse(p1StrategyRaw) : DEFAULT_STRATEGY;
-    const p2Strategy = p2StrategyRaw ? JSON.parse(p2StrategyRaw) : DEFAULT_STRATEGY;
-
-    // 4. Add match to BullMQ queue
-    await matchQueue.add('start-match', {
-      matchId,
-      p1: { ...p1, strategy: p1Strategy },
-      p2: { ...p2, strategy: p2Strategy }
-    }, {
-      removeOnComplete: true,
-      attempts: 3
-    });
-
+    const matchInfo = await startMatch(opponentId, agent.id);
+    
     res.json({
       status: "matched",
-      matchId,
-      opponent: p1.name,
+      matchId: matchInfo.matchId,
+      opponent: matchInfo.opponentName,
       message: "The arena gates have opened!"
     });
   } catch (err: any) {
     res.status(500).json({ success: false, error: "Matchmaking error." });
   }
 });
+
+/**
+ * startMatch: Core logic to initialize a match between two bots.
+ * Used by both the join-queue API and the background matchmaking sweeper.
+ */
+async function startMatch(p1Id: string, p2Id: string) {
+  const matchId = uuidv4();
+  const { data: p1, error: p1Err } = await supabase.from('bots').select('*').eq('id', p1Id).single();
+  const { data: p2, error: p2Err } = await supabase.from('bots').select('*').eq('id', p2Id).single();
+
+  if (p1Err || p2Err || !p1 || !p2) {
+    throw new Error("Failed to fetch paired agents from database.");
+  }
+
+  const match: Match = {
+    id: matchId,
+    player_1_id: p1.id,
+    player_2_id: p2.id,
+    status: 'active',
+    p1_final_stats: { hp: p1.hp, attack: p1.attack, defense: p1.defense },
+    p2_final_stats: { hp: p2.hp, attack: p2.attack, defense: p2.defense }
+  };
+
+  await supabase.from('matches').insert({
+    id: match.id,
+    player_1_id: match.player_1_id,
+    player_2_id: match.player_2_id,
+    status: match.status,
+    p1_final_stats: match.p1_final_stats,
+    p2_final_stats: match.p2_final_stats
+  });
+
+  // Set agent statuses to combat to prevent double entry
+  await supabase.from('bots').update({ status: 'combat' }).in('id', [p1.id, p2.id]);
+
+  // Load strategies from Redis
+  const p1StrategyRaw = await redis.get(`strategy:${p1.id}`);
+  const p2StrategyRaw = await redis.get(`strategy:${p2.id}`);
+  const p1Strategy = p1StrategyRaw ? JSON.parse(p1StrategyRaw) : DEFAULT_STRATEGY;
+  const p2Strategy = p2StrategyRaw ? JSON.parse(p2StrategyRaw) : DEFAULT_STRATEGY;
+
+  // Add match to BullMQ queue
+  await matchQueue.add('start-match', {
+    matchId,
+    p1: { ...p1, strategy: p1Strategy },
+    p2: { ...p2, strategy: p2Strategy }
+  }, {
+    removeOnComplete: true,
+    attempts: 3
+  });
+
+  return { matchId, opponentName: p1.name };
+}
 
 // --- AGENT STATUS ENDPOINT ---
 app.get('/api/v1/agents/status', agentAuth, async (req: any, res) => {
@@ -467,14 +483,40 @@ app.get('/api/combat/status', async (req, res) => {
 
 app.get('/api/v1/hub/queue', async (req, res) => {
   try {
-    // We check redis directly if anyone is waiting
-    const waitingAgentId = await redis.get('matchmaking:waiting_agent');
-    if (waitingAgentId) {
-      const { data: bot } = await supabase.from('bots').select('id, name, avatar_url').eq('id', waitingAgentId).single();
-      return res.json({ queue: bot ? [bot] : [] });
+    // 1. Get all waiting agent IDs from the Redis ZSET pool
+    const poolAgentIds = await redis.zrange('matchmaking:pool', 0, -1);
+    
+    if (poolAgentIds.length === 0) {
+      return res.json({ queue: [] });
     }
-    return res.json({ queue: [] });
+
+    // 2. Fetch bot identity details from Supabase
+    const { data: bots, error } = await supabase
+      .from('bots')
+      .select('id, name, avatar_url')
+      .in('id', poolAgentIds);
+
+    if (error || !bots) throw error || new Error("Bots not found");
+
+    const now = Math.floor(Date.now() / 1000);
+
+    // 3. Attach wait-time based status to each bot
+    const queueWithStatus = await Promise.all(bots.map(async (bot) => {
+      const entryTime = await redis.hget('matchmaking:entry_times', bot.id);
+      const waitTime = entryTime ? now - parseInt(entryTime) : 0;
+      
+      return {
+        ...bot,
+        waitTime,
+        status: waitTime > 30 
+          ? "Expanding search range... (Looking for balanced opponent)" 
+          : "Ready"
+      };
+    }));
+
+    return res.json({ queue: queueWithStatus });
   } catch (error) {
+    console.error("Hub queue fetch error:", error);
     res.status(500).json({ error: "Failed to fetch queue" });
   }
 });
@@ -778,11 +820,63 @@ setInterval(async () => {
         .in('id', matchIds);
 
       if (updateErr) throw updateErr;
+
+      // Also reset bot statuses back to active so they can compete again
+      for (const matchId of matchIds) {
+        const { data: matchData } = await supabase.from('matches').select('player_1_id, player_2_id').eq('id', matchId).single();
+        if (matchData) {
+          await supabase.from('bots').update({ status: 'active' }).in('id', [matchData.player_1_id, matchData.player_2_id]);
+        }
+      }
     }
   } catch (err: any) {
     console.error("🧹 [Sweeper] Error cleaning stale matches:", err.message);
   }
 }, 60 * 1000); // Check every 1 minute
+
+// --- ACTIVE MATCHMAKER POLLER (CRON) ---
+// This handles the "EXPANDING SEARCH RANGE" feature automatically.
+// It checks the Redis pool and tries to match bots that are already waiting.
+setInterval(async () => {
+  if (!process.env.SUPABASE_URL) return;
+
+  try {
+    // 1. Get all agents in the pool
+    const poolAgentIds = await redis.zrange('matchmaking:pool', 0, -1);
+    if (poolAgentIds.length < 2) return; // Need at least two to match
+
+    // 2. Fetch their ELOs and Names from DB (to supply to findMatch)
+    const { data: bots } = await supabase.from('bots').select('id, elo, name').in('id', poolAgentIds);
+    if (!bots || bots.length < 2) return;
+
+    // 3. Iterate and try to match
+    // We use a set to keep track of who got matched in this cycle to avoid double-matching the same bot twice in one loop
+    const matchedInThisCycle = new Set<string>();
+
+    for (const bot of bots) {
+      if (matchedInThisCycle.has(bot.id)) continue;
+
+      try {
+        // Try to find a match for this bot
+        const opponentId = await findMatch(bot.id, bot.elo || 1200, bot.name);
+        
+        if (opponentId) {
+          console.log(`🤖 [AutoMatch] Found match for ${bot.name} vs ${opponentId}`);
+          
+          matchedInThisCycle.add(bot.id);
+          matchedInThisCycle.add(opponentId);
+
+          // Initialize the match
+          await startMatch(opponentId, bot.id);
+        }
+      } catch (e: any) {
+        console.error(`[AutoMatch] Error matching ${bot.name}:`, e.message);
+      }
+    }
+  } catch (err: any) {
+    console.error("🤖 [AutoMatch] Sweeper error:", err.message);
+  }
+}, 10 * 1000); // Check every 10 seconds
 
 const PORT = process.env.PORT || 3001;
 const HOST = '0.0.0.0';

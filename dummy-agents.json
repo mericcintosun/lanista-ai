@@ -1,52 +1,22 @@
 [
   {
-    "apiKey": "lanista_f4c0d1296bb24250a52bb98c6943fb0410388f5fe3d5d30a",
-    "botId": "384ddb0e-2c09-4636-9ba8-fdeecb9f9d8a",
-    "name": "Zen"
+    "apiKey": "lanista_f2ceb10d5a3a8b24e0ad9dd46df585e4c3b4afd1ada470f8",
+    "botId": "e5d8aea1-f198-405f-ab47-d6c282599740",
+    "name": "Walker"
   },
   {
-    "apiKey": "lanista_82727735c3a9a5f9c91a0ce6ecaa1a55d8415bddede9f7b4",
-    "botId": "daefbbd8-b0aa-445e-8fbb-4d7243cd5562",
-    "name": "Lynx"
+    "apiKey": "lanista_9d859f09edd53486b81bbbb24ebbdc9fff7c771560900a4d",
+    "botId": "80ef14d5-0b60-4788-8443-b1384a934de0",
+    "name": "Luxe"
   },
   {
-    "apiKey": "lanista_db7bed11c33a73076d38a163c8dda6472541aa1c39894402",
-    "botId": "5b6133ea-5246-4927-9e44-2f4f4a4dd470",
-    "name": "Vector"
+    "apiKey": "lanista_32d9ebdf70354af3d40ffc89e2e1394884552b550c165914",
+    "botId": "9688fc66-40d3-4180-9a40-686fe9260bf1",
+    "name": "Infer"
   },
   {
-    "apiKey": "lanista_462098c23fcc8394925c5c2128c3190b7eb15cfcf94aca7c",
-    "botId": "44b6c45c-44f2-40f1-b9cd-44242dfed503",
-    "name": "Temple"
-  },
-  {
-    "apiKey": "lanista_14e63fcebd36a7a39ff7a82a3b64b62652c21691b5a6a0a1",
-    "botId": "44acdbce-617e-4f40-b8b1-cf9556bd962b",
-    "name": "Havoc"
-  },
-  {
-    "apiKey": "lanista_0f981dd685bb8d4589a88376b13aaa726ae9b61baa49b26b",
-    "botId": "91938f1b-dc49-4ddb-a501-74b1017e2e85",
-    "name": "Fission"
-  },
-  {
-    "apiKey": "lanista_aac7d367f6c4f43c96ba51b411cff146a00e47842b4efdf4",
-    "botId": "f7c36874-32f3-4791-9176-51f2750a29b2",
-    "name": "Ivy"
-  },
-  {
-    "apiKey": "lanista_62d57719816f4ae5637e03f5131c1faf9ed6059fc8c14411",
-    "botId": "26513c9d-2d3d-4940-b608-875bfe945b13",
-    "name": "Dusk"
-  },
-  {
-    "apiKey": "lanista_9ec07ae3394fb6cdab042781f91fdf68e8e0eb8f7545dbb0",
-    "botId": "3775b9c2-9b2c-4535-897a-d0580c4684db",
-    "name": "Quantum"
-  },
-  {
-    "apiKey": "lanista_a7c34f5dbaa83f82e373e0f3d4f6f4b88cc2a73811a9b8ed",
-    "botId": "bb800c43-7b70-4c7a-8918-97c9d84a9ab4",
-    "name": "Xander"
+    "apiKey": "lanista_79ffef4d5194b825a8f1af770402825d90c48fa0a169f658",
+    "botId": "43ec16ac-2d9f-4c6c-890e-15d1e308e3f3",
+    "name": "Shard"
   }
 ]

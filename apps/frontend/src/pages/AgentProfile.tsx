@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Shield, Swords, Trophy, Target, ExternalLink, Activity, Info } from 'lucide-react';
+import { Shield, Swords, Trophy, Target, ExternalLink } from 'lucide-react';
 import { ethers } from 'ethers';
 import { API_URL } from '../lib/api';
 import { TierBadge, TierProgressBar } from '../components/EloTier';
@@ -170,10 +170,7 @@ export default function AgentProfile() {
                 </div>
                 
                 <div className="flex flex-wrap flex-col sm:flex-row items-center justify-center sm:justify-start gap-3 mb-6 w-full">
-                  <span className="font-mono text-xs text-zinc-400 uppercase tracking-widest bg-black/60 px-3 py-1.5 rounded-md border border-white/5 flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500/80 animate-pulse" />
-                    AUTONOMY: FULL
-                  </span>
+
 
                   {agent.wallet_address && (
                     <div className="flex items-center gap-2">
@@ -251,59 +248,7 @@ export default function AgentProfile() {
              <TierProgressBar elo={elo} hasPlayed={totalMatches > 0} />
           </div>
 
-          {/* AUTONOMY STATUS CARD */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-2 bg-zinc-900/20 border border-white/5 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden group">
-               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                 <Activity className="w-12 h-12 text-red-500" />
-               </div>
-               <h3 className="text-zinc-400 font-mono text-[10px] uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                 <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
-                 Autonomous Protocol Status
-               </h3>
-               <div className="space-y-4">
-                 <div className="flex items-start gap-4 p-4 bg-white/[0.02] rounded-lg border border-white/5 font-mono text-xs">
-                    <div className="p-2 bg-red-500/10 rounded">
-                      <Swords className="w-4 h-4 text-red-500" />
-                    </div>
-                    <div>
-                      <p className="text-white mb-1">Arena Monitoring Active</p>
-                      <p className="text-zinc-500 leading-relaxed uppercase italic text-[9px]">Ajan, rakiplerini ve arena durumunu otonom olarak 7/24 takip ediyor.</p>
-                    </div>
-                 </div>
-                 <div className="flex items-start gap-4 p-4 bg-white/[0.02] rounded-lg border border-white/5 font-mono text-xs">
-                    <div className="p-2 bg-blue-500/10 rounded">
-                      <Target className="w-4 h-4 text-blue-500" />
-                    </div>
-                    <div>
-                      <p className="text-white mb-1">Loot Surveillance: ON</p>
-                      <p className="text-zinc-500 leading-relaxed uppercase italic text-[9px]">Kazanılan ganimetlerin cüzdana çekilmesi otonom döngü tarafından yönetiliyor.</p>
-                    </div>
-                 </div>
-               </div>
-            </div>
 
-            <div className="bg-gradient-to-br from-red-500/5 to-transparent border border-white/5 rounded-2xl p-6 flex flex-col justify-between group">
-               <div>
-                 <Info className="w-4 h-4 text-zinc-500 mb-4 group-hover:text-red-400 transition-colors" />
-                 <h4 className="text-white font-black italic uppercase tracking-tighter text-lg mb-2">Gas Policy</h4>
-                 <p className="text-zinc-500 font-mono text-[9px] leading-relaxed uppercase">Ajan, ödülleri talep etmek için kendi cüzdanındaki gas'ı kullanır. Düşük bakiye durumunda 'Autonomous Claim' protokolü beklemeye alınır.</p>
-               </div>
-               <div className="pt-6">
-                 <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                    <motion.div 
-                      className="h-full bg-red-500"
-                      initial={{ width: "0%" }}
-                      animate={{ width: "100%" }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    />
-                 </div>
-                 <p className="text-[8px] font-mono text-zinc-600 mt-2 text-right tracking-widest uppercase items-center flex justify-end gap-2">
-                   Syncing with network...
-                 </p>
-               </div>
-            </div>
-          </div>
         </motion.div>
 
         {/* COMBAT HISTORY */}

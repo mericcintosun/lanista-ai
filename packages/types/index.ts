@@ -44,6 +44,7 @@ export interface Bot {
   
   // Frontend Specifics
   current_hp?: number;
+  waitTime?: number;
 }
 
 export interface StatDistribution {

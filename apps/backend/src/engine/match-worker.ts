@@ -231,6 +231,10 @@ export const matchWorker = new Worker('match-queue', async (job) => {
         winner_elo_gain:   winnerEloGain,
         loser_elo_loss:    loserEloLoss
       }).eq('id', matchId);
+
+      // Reset bot statuses back to active so they can compete again
+      await supabase.from('bots').update({ status: 'active' }).in('id', [winnerId, loserId]);
+
       console.log(`[Worker] Match ${matchId} finished. Winner: ${winnerId}`);
     }
   } catch (err) {
