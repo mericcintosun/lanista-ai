@@ -1,4 +1,6 @@
 import dotenv from 'dotenv';
+import WDK from '@tetherto/wdk';
+import WalletManagerEvm from '@tetherto/wdk-wallet-evm';
 // Load envs first so they are available to all subsequent imports
 dotenv.config();
 dotenv.config({ path: '.env.local' });
@@ -40,6 +42,9 @@ import { generateApiKey } from './src/services/auth.js';
 import { encrypt } from './src/services/crypto.js';
 import { ethers } from 'ethers';
 import { getLootForMatch } from './src/services/loot.js';
+import { sponsorGas } from './src/services/gas-station.js';
+
+app.post('/api/v1/agents/sponsor-gas', sponsorGas);
 
 // Serve skill.md for LLM agents to read the protocol
 app.get('/skill.md', (req, res) => {
@@ -69,12 +74,17 @@ app.post('/api/v1/agents/register', async (req: any, res: any) => {
       return res.status(503).json({ error: "Database not connected. Registration offline." });
     }
 
-    // Her bot için benzersiz bir EVM cüzdanı oluştur
-    const wallet = ethers.Wallet.createRandom();
-    const encryptedPrivateKey = encrypt(wallet.privateKey);
+    const seedPhrase = WDK.getRandomSeedPhrase();
+    const encryptedPrivateKey = encrypt(seedPhrase);
+
+    // WDK ile cüzdan adresini oluştur
+    const wdk = new WDK(seedPhrase);
+    wdk.registerWallet('evm', WalletManagerEvm as any, { rpcUrl: process.env.AVALANCHE_RPC_URL || 'https://api.avax-test.network/ext/bc/C/rpc', chainId: 43114 } as any);
+    const evmAccount = await wdk.getAccount('evm');
+    const walletAddress = (evmAccount as any)._account.address || (evmAccount as any).address;
 
     // Eğer isim belirtilmemişse veya özel bayrak gönderilmişse wallet'tan isim üret
-    const botName = name === 'DUMMY_WALLET_NAME' ? wallet.address.slice(2, 6).toLowerCase() : name;
+    const botName = name === 'DUMMY_WALLET_NAME' ? walletAddress.slice(2, 6).toLowerCase() : name;
 
     const finalAvatarUrl = avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(botName)}`;
 
@@ -86,7 +96,7 @@ app.post('/api/v1/agents/register', async (req: any, res: any) => {
       webhook_url,
       avatar_url: finalAvatarUrl,
       api_key_hash: hash,
-      wallet_address: wallet.address,
+      wallet_address: walletAddress,
       encrypted_private_key: encryptedPrivateKey,
       status: 'active',
       hp: 100,
@@ -103,7 +113,7 @@ app.post('/api/v1/agents/register', async (req: any, res: any) => {
       message: "Welcome to Lanista Arena, Agent.",
       api_key: apiKey,
       bot_id: data.id,
-      wallet_address: wallet.address
+      wallet_address: walletAddress
     });
   } catch (err: any) {
     respondError(res, 500, "Registration failed.", err);
@@ -517,20 +527,28 @@ app.get('/api/v1/leaderboard', async (req, res) => {
 
     const botIds = bots.map(b => b.id);
 
-    // Wins + totalMatches için biten tüm maçları çek (player_1 veya player_2 olarak)
-    const { data: matches, error: matchErr } = await supabase
-      .from('matches')
-      .select('winner_id, player_1_id, player_2_id')
-      .eq('status', 'finished')
-      .or(`player_1_id.in.(${botIds.join(',')}),player_2_id.in.(${botIds.join(',')})`);
-
-    if (matchErr) throw matchErr;
+    // Fetch all finished matches via pagination to compute accurate stats without getting truncated at 1000
+    let allMatches: any[] = [];
+    let page = 0;
+    while (true) {
+      const { data: matchPage, error: matchErr } = await supabase
+        .from('matches')
+        .select('winner_id, player_1_id, player_2_id')
+        .eq('status', 'finished')
+        .range(page * 1000, (page + 1) * 1000 - 1);
+        
+      if (matchErr) throw matchErr;
+      if (!matchPage || matchPage.length === 0) break;
+      allMatches.push(...matchPage);
+      if (matchPage.length < 1000) break;
+      page++;
+    }
 
     // Her bot için wins ve totalMatches say
     const winsMap: Record<string, number> = {};
     const totalMap: Record<string, number> = {};
 
-    (matches || []).forEach(m => {
+    (allMatches || []).forEach(m => {
       if (m.player_1_id) totalMap[m.player_1_id] = (totalMap[m.player_1_id] || 0) + 1;
       if (m.player_2_id) totalMap[m.player_2_id] = (totalMap[m.player_2_id] || 0) + 1;
       if (m.winner_id)   winsMap[m.winner_id]     = (winsMap[m.winner_id]     || 0) + 1;
@@ -541,8 +559,13 @@ app.get('/api/v1/leaderboard', async (req, res) => {
       const wins         = winsMap[b.id]  ?? 0;
       const elo          = b.elo          ?? 0;
       const winRate      = totalMatches > 0 ? wins / totalMatches : 0;
+      
+      // LOGIC FIX: Negatif win rate'e sahip botların, pozitif botları geçmesini önlemek için
+      // sıralamada kullanılacak efektif bir ELO hesaplıyoruz (sadece sıralamayı etkiler ELO'yu düşürmez)
+      const effectiveElo = winRate < 0.5 && totalMatches > 0 ? elo * (winRate / 0.5) : elo;
+
       return { id: b.id, name: b.name, avatar_url: b.avatar_url, description: b.description,
-               elo, totalMatches, wins, winRate };
+               elo, effectiveElo, totalMatches, wins, winRate };
     })
     .sort((a, b) => {
       // 1. Hiç oynamamışlar en sona
@@ -550,11 +573,14 @@ app.get('/api/v1/leaderboard', async (req, res) => {
       const bPlayed = b.totalMatches > 0 ? 1 : 0;
       if (bPlayed !== aPlayed) return bPlayed - aPlayed;
 
-      // 2. ELO farkı anlamlıysa (>10) ELO'ya göre sırala
-      if (Math.abs(b.elo - a.elo) > 10) return b.elo - a.elo;
+      // 2. Win rate'i %50 altında olanları sert cezalandıran Efektif ELO'ya göre sırala
+      if (Math.abs(b.effectiveElo - a.effectiveElo) > 5) return b.effectiveElo - a.effectiveElo;
 
-      // 3. ELO yakınsa: önce wins, sonra win rate, sonra total matches
-      if (b.wins !== a.wins)         return b.wins - a.wins;
+      // 3. ELO yakınsa: ELO, Net Kazanım, Sonra Total Matches
+      if (b.elo !== a.elo) return b.elo - a.elo;
+      const netA = a.wins - (a.totalMatches - a.wins);
+      const netB = b.wins - (b.totalMatches - b.wins);
+      if (netA !== netB)             return netB - netA;
       if (b.winRate !== a.winRate)   return b.winRate - a.winRate;
       return b.totalMatches - a.totalMatches;
     });
@@ -573,11 +599,38 @@ app.get('/api/v1/agent/:id', async (req, res) => {
     const { data: bot, error: botErr } = await supabase.from('bots').select('*').eq('id', req.params.id).single();
     if (botErr || !bot) return res.status(404).json({ error: "Agent not found" });
 
+    // Calculate absolute stats for this agent by fetching lightweight match logs
+    // We fetch EVERYTHING for this agent just like HoF does! (but only for this agent)
+    let allFinished: any[] = [];
+    let page = 0;
+    while (true) {
+      const { data: mPage, error: mErr } = await supabase
+        .from('matches')
+        .select('winner_id')
+        .eq('status', 'finished')
+        .or(`player_1_id.eq.${bot.id},player_2_id.eq.${bot.id}`)
+        .range(page * 1000, (page + 1) * 1000 - 1);
+        
+      if (mErr) throw mErr;
+      if (!mPage || mPage.length === 0) break;
+      allFinished.push(...mPage);
+      if (mPage.length < 1000) break;
+      page++;
+    }
+
+    const wins = allFinished.filter(m => m.winner_id === bot.id).length;
+    const totalMatches = allFinished.length;
+
+    // Attach exact true stats to the bot object response
+    bot.true_wins = wins;
+    bot.true_total_matches = totalMatches;
+
     const { data: matches, error: matchErr } = await supabase
       .from('matches')
       .select('*, player_1:bots!matches_player_1_id_fkey(name, avatar_url), player_2:bots!matches_player_2_id_fkey(name, avatar_url)')
       .or(`player_1_id.eq.${bot.id},player_2_id.eq.${bot.id}`)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(50); // ONLY top 50 matches for the UI history list!
 
     if (matchErr) throw matchErr;
 
@@ -639,7 +692,28 @@ app.get('/api/v1/oracle/loot/:matchId', async (req, res) => {
   }
 });
 
-app.post('/api/v1/oracle/verify', async (req, res) => {
+import { claimLootWithWDK } from './src/services/loot-claim.js';
+
+app.post('/api/v1/agents/:id/claim-loot', async (req: any, res: any) => {
+  const { id } = req.params;
+  const { matchId } = req.body;
+
+  if (!id || !matchId) {
+    return res.status(400).json({ error: "botId (id) and matchId are required" });
+  }
+
+  try {
+    const txHash = await claimLootWithWDK(id, matchId);
+    if (!txHash) {
+      return res.status(400).json({ error: "Claim failed. Check bot balance or loot status." });
+    }
+    res.json({ success: true, txHash });
+  } catch (err: any) {
+    respondError(res, 500, "Loot claim error.", err);
+  }
+});
+
+app.get('/api/v1/oracle/verify', async (req, res) => {
   res.status(410).json({ valid: false, error: "Deprecated. Check /api/v1/oracle/matches for on-chain records." });
 });
 

@@ -3,7 +3,6 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumberish,
   BytesLike,
   FunctionFragment,
   Result,
@@ -21,43 +20,27 @@ import type {
   TypedLogDescription,
   TypedListener,
   TypedContractMethod,
-} from "../common";
+} from "../../../common";
 
-export interface ArenaOracleInterface extends Interface {
+export interface AccessControlInterface extends Interface {
   getFunction(
     nameOrSignature:
       | "DEFAULT_ADMIN_ROLE"
-      | "ORACLE_ROLE"
-      | "getMatchRecord"
       | "getRoleAdmin"
       | "grantRole"
       | "hasRole"
-      | "matchRecords"
-      | "recordMatchResult"
       | "renounceRole"
       | "revokeRole"
       | "supportsInterface"
   ): FunctionFragment;
 
   getEvent(
-    nameOrSignatureOrTopic:
-      | "MatchRecorded"
-      | "RoleAdminChanged"
-      | "RoleGranted"
-      | "RoleRevoked"
+    nameOrSignatureOrTopic: "RoleAdminChanged" | "RoleGranted" | "RoleRevoked"
   ): EventFragment;
 
   encodeFunctionData(
     functionFragment: "DEFAULT_ADMIN_ROLE",
     values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "ORACLE_ROLE",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getMatchRecord",
-    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "getRoleAdmin",
@@ -70,14 +53,6 @@ export interface ArenaOracleInterface extends Interface {
   encodeFunctionData(
     functionFragment: "hasRole",
     values: [BytesLike, AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "matchRecords",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "recordMatchResult",
-    values: [string, AddressLike, AddressLike, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "renounceRole",
@@ -97,27 +72,11 @@ export interface ArenaOracleInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "ORACLE_ROLE",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getMatchRecord",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "getRoleAdmin",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "matchRecords",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "recordMatchResult",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "renounceRole",
     data: BytesLike
@@ -127,34 +86,6 @@ export interface ArenaOracleInterface extends Interface {
     functionFragment: "supportsInterface",
     data: BytesLike
   ): Result;
-}
-
-export namespace MatchRecordedEvent {
-  export type InputTuple = [
-    matchId: string,
-    winner: AddressLike,
-    loser: AddressLike,
-    combatLogHash: BytesLike,
-    timestamp: BigNumberish
-  ];
-  export type OutputTuple = [
-    matchId: string,
-    winner: string,
-    loser: string,
-    combatLogHash: string,
-    timestamp: bigint
-  ];
-  export interface OutputObject {
-    matchId: string;
-    winner: string;
-    loser: string;
-    combatLogHash: string;
-    timestamp: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
 }
 
 export namespace RoleAdminChangedEvent {
@@ -215,11 +146,11 @@ export namespace RoleRevokedEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
-export interface ArenaOracle extends BaseContract {
-  connect(runner?: ContractRunner | null): ArenaOracle;
+export interface AccessControl extends BaseContract {
+  connect(runner?: ContractRunner | null): AccessControl;
   waitForDeployment(): Promise<this>;
 
-  interface: ArenaOracleInterface;
+  interface: AccessControlInterface;
 
   queryFilter<TCEvent extends TypedContractEvent>(
     event: TCEvent,
@@ -260,21 +191,6 @@ export interface ArenaOracle extends BaseContract {
 
   DEFAULT_ADMIN_ROLE: TypedContractMethod<[], [string], "view">;
 
-  ORACLE_ROLE: TypedContractMethod<[], [string], "view">;
-
-  getMatchRecord: TypedContractMethod<
-    [matchId: string],
-    [
-      [string, string, string, bigint] & {
-        winner: string;
-        loser: string;
-        combatLogHash: string;
-        timestamp: bigint;
-      }
-    ],
-    "view"
-  >;
-
   getRoleAdmin: TypedContractMethod<[role: BytesLike], [string], "view">;
 
   grantRole: TypedContractMethod<
@@ -287,30 +203,6 @@ export interface ArenaOracle extends BaseContract {
     [role: BytesLike, account: AddressLike],
     [boolean],
     "view"
-  >;
-
-  matchRecords: TypedContractMethod<
-    [arg0: string],
-    [
-      [string, string, string, bigint] & {
-        winner: string;
-        loser: string;
-        combatLogHash: string;
-        timestamp: bigint;
-      }
-    ],
-    "view"
-  >;
-
-  recordMatchResult: TypedContractMethod<
-    [
-      matchId: string,
-      winner: AddressLike,
-      loser: AddressLike,
-      combatLogHash: BytesLike
-    ],
-    [void],
-    "nonpayable"
   >;
 
   renounceRole: TypedContractMethod<
@@ -339,23 +231,6 @@ export interface ArenaOracle extends BaseContract {
     nameOrSignature: "DEFAULT_ADMIN_ROLE"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
-    nameOrSignature: "ORACLE_ROLE"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "getMatchRecord"
-  ): TypedContractMethod<
-    [matchId: string],
-    [
-      [string, string, string, bigint] & {
-        winner: string;
-        loser: string;
-        combatLogHash: string;
-        timestamp: bigint;
-      }
-    ],
-    "view"
-  >;
-  getFunction(
     nameOrSignature: "getRoleAdmin"
   ): TypedContractMethod<[role: BytesLike], [string], "view">;
   getFunction(
@@ -371,32 +246,6 @@ export interface ArenaOracle extends BaseContract {
     [role: BytesLike, account: AddressLike],
     [boolean],
     "view"
-  >;
-  getFunction(
-    nameOrSignature: "matchRecords"
-  ): TypedContractMethod<
-    [arg0: string],
-    [
-      [string, string, string, bigint] & {
-        winner: string;
-        loser: string;
-        combatLogHash: string;
-        timestamp: bigint;
-      }
-    ],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "recordMatchResult"
-  ): TypedContractMethod<
-    [
-      matchId: string,
-      winner: AddressLike,
-      loser: AddressLike,
-      combatLogHash: BytesLike
-    ],
-    [void],
-    "nonpayable"
   >;
   getFunction(
     nameOrSignature: "renounceRole"
@@ -416,13 +265,6 @@ export interface ArenaOracle extends BaseContract {
     nameOrSignature: "supportsInterface"
   ): TypedContractMethod<[interfaceId: BytesLike], [boolean], "view">;
 
-  getEvent(
-    key: "MatchRecorded"
-  ): TypedContractEvent<
-    MatchRecordedEvent.InputTuple,
-    MatchRecordedEvent.OutputTuple,
-    MatchRecordedEvent.OutputObject
-  >;
   getEvent(
     key: "RoleAdminChanged"
   ): TypedContractEvent<
@@ -446,17 +288,6 @@ export interface ArenaOracle extends BaseContract {
   >;
 
   filters: {
-    "MatchRecorded(string,address,address,bytes32,uint256)": TypedContractEvent<
-      MatchRecordedEvent.InputTuple,
-      MatchRecordedEvent.OutputTuple,
-      MatchRecordedEvent.OutputObject
-    >;
-    MatchRecorded: TypedContractEvent<
-      MatchRecordedEvent.InputTuple,
-      MatchRecordedEvent.OutputTuple,
-      MatchRecordedEvent.OutputObject
-    >;
-
     "RoleAdminChanged(bytes32,bytes32,bytes32)": TypedContractEvent<
       RoleAdminChangedEvent.InputTuple,
       RoleAdminChangedEvent.OutputTuple,

@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 
 const LOOT_ABI = [
   'function requestLoot(string matchId, address winner) external returns (uint256)',
-  'function getLoot(string matchId) external view returns (bool fulfilled, address winner, uint256 itemId, uint256 randomness, uint256 timestamp, uint256 requestId)'
+  'function getLoot(string matchId) external view returns (bool fulfilled, bool claimed, address winner, uint256 itemId, uint256 randomness, uint256 timestamp, uint256 requestId)'
 ];
 
 function getLootContract() {
@@ -51,9 +51,10 @@ export async function getLootForMatch(matchId: string) {
   if (!contract) return null;
 
   try {
-    const [fulfilled, winner, itemId, randomness, timestamp, requestId] = await contract.getLoot(matchId);
+    const [fulfilled, claimed, winner, itemId, randomness, timestamp, requestId] = await contract.getLoot(matchId);
     return {
       fulfilled: Boolean(fulfilled),
+      claimed: Boolean(claimed),
       winner: String(winner),
       itemId: Number(itemId),
       randomness: String(randomness),

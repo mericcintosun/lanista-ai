@@ -7,12 +7,15 @@ const ORACLE_ABI = [
   "event MatchRecorded(string indexed matchId, address indexed winner, address indexed loser, bytes32 combatLogHash, uint256 timestamp)"
 ];
 
+import stableStringify from 'fast-json-stable-stringify';
+
 /**
  * Combat log'larının keccak256 hash'ini hesaplar.
- * Log'lar Supabase'de saklanır, hash Avalanche'a yazılır — tamper-proof integrity.
+ * Node.js tarafında key sıralaması bağımsız, istikrarlı bir hash üretmek için 
+ * fast-json-stable-stringify kullanılır.
  */
 export function computeCombatLogHash(logs: object[]): string {
-  const canonical = JSON.stringify(logs, Object.keys(logs[0] || {}).sort());
+  const canonical = stableStringify(logs);
   return ethers.keccak256(ethers.toUtf8Bytes(canonical));
 }
 
@@ -51,14 +54,18 @@ export async function recordMatchOnChain(
     const wallet = new ethers.Wallet(privateKey, provider);
     const oracle = new ethers.Contract(contractAddress, ORACLE_ABI, wallet);
 
-    console.log(`[Oracle] 🔗 Zincire yazılıyor... Match: ${matchId}`);
+    console.log(`[Oracle] 🔗 Zincire yazılıyor (Relayer)... Match: ${matchId}`);
     console.log(`[Oracle] 🏆 Kazanan: ${winner}`);
     console.log(`[Oracle] 💀 Kaybeden: ${loser}`);
     console.log(`[Oracle] 📋 Combat Log Hash: ${combatLogHash}`);
 
+    // Dinamik gas ücretleri (Fuji/Avalanche için EIP-1559 desteği)
+    const feeData = await provider.getFeeData();
+
     const tx = await oracle.recordMatchResult(matchId, winner, loser, combatLogHash, {
-      gasLimit: 250_000,
-      gasPrice: ethers.parseUnits('30', 'gwei')
+      gasLimit: 300_000,
+      maxFeePerGas: feeData.maxFeePerGas,
+      maxPriorityFeePerGas: feeData.maxPriorityFeePerGas
     });
     console.log(`[Oracle] ⏳ TX gönderildi: ${tx.hash}`);
 

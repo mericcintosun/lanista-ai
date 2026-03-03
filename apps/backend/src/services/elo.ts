@@ -60,13 +60,19 @@ export function calculateElo(
   const expectedWinner = expectedScore(winnerElo, loserElo);
   const expectedLoser  = expectedScore(loserElo, winnerElo);
 
-  const kWinner = getKFactor(winnerMatches);
-  const kLoser  = getKFactor(loserMatches);
+  // Symmetric K-factor to prevent ELO inflation at the bottom.
+  // We use the lowest K factor (highest match count) so that 
+  // veterans don't gain immense ELO when paired with new bots over and over.
+  const kMatch = Math.min(getKFactor(winnerMatches), getKFactor(loserMatches));
 
-  const winnerGain = Math.round(kWinner * (1 - expectedWinner));
-  const loserLoss  = Math.round(kLoser  * (0 - expectedLoser));
+  // Win loss delta must be symmetrical (zero-sum) to keep the ladder honest and respect WRs
+  const delta = Math.round(kMatch * (1 - expectedWinner));
 
-  // ELO 0'ın altına düşmesin
+  // Give a small penalty for losing to lower Elo than expected? 
+  // Pure zero-sum:
+  const winnerGain = delta;
+  const loserLoss  = -delta;
+
   const newWinnerElo = Math.max(0, winnerElo + winnerGain);
   const newLoserElo  = Math.max(0, loserElo  + loserLoss);
 

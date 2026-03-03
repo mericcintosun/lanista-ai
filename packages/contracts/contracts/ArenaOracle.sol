@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
 /**
  * @title ArenaOracle
  * @dev Records autonomous AI agent battle results and combat log integrity proofs
- *      on the Avalanche C-Chain. Only the platform relayer (owner) can write results.
+ *      on the Avalanche C-Chain. Only the platform relayer (ORACLE_ROLE) can write results.
  *      Combat logs are stored off-chain (Supabase) but their Keccak256 hash is
  *      anchored on-chain to guarantee tamper-proof integrity.
  */
-contract ArenaOracle is Ownable {
+contract ArenaOracle is AccessControl {
+    bytes32 public constant ORACLE_ROLE = keccak256("ORACLE_ROLE");
 
     event MatchRecorded(
         string indexed matchId,
@@ -27,10 +28,12 @@ contract ArenaOracle is Ownable {
         uint256 timestamp;
     }
 
-    mapping(string => bool) public isMatchRecorded;
     mapping(string => MatchRecord) public matchRecords;
 
-    constructor() Ownable(msg.sender) {}
+    constructor() {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(ORACLE_ROLE, msg.sender);
+    }
 
     /**
      * @dev Records a match result with a cryptographic proof of combat logs.
@@ -44,12 +47,11 @@ contract ArenaOracle is Ownable {
         address winner,
         address loser,
         bytes32 combatLogHash
-    ) external onlyOwner {
-        require(!isMatchRecorded[matchId], "Match already recorded");
+    ) external onlyRole(ORACLE_ROLE) {
+        require(matchRecords[matchId].timestamp == 0, "Match already recorded");
         require(winner != address(0) && loser != address(0), "Invalid agent addresses");
         require(winner != loser, "Winner and loser cannot be the same");
 
-        isMatchRecorded[matchId] = true;
         matchRecords[matchId] = MatchRecord({
             winner: winner,
             loser: loser,
