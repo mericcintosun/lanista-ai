@@ -10,6 +10,7 @@ interface AgentScore {
   avatar_url: string;
   wins: number;
   totalMatches: number;
+  elo?: number;          // Gerçek ELO puanı (backend'den gelir)
   wallet_address?: string;
 }
 
@@ -122,7 +123,7 @@ function LeaderboardSection({ leaderboard }: { leaderboard: AgentScore[] }) {
           </div>
           {leaderboard.slice(0, 5).map((agent, i) => {
             const winRate = agent.totalMatches > 0 ? (agent.wins / agent.totalMatches * 100).toFixed(1) + '%' : '0%';
-            const elo = 1200 + (agent.wins * 25);
+            const elo = agent.elo ?? 0;  // Gerçek ELO backend'den gelir
             return (
               <motion.div key={agent.id} initial={{ opacity: 0, x: -20 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ delay: 0.3 + i * 0.1 }}
                 onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(null)}

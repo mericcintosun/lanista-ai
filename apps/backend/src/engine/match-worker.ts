@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase.js';
 import { signCombatProof } from '../services/webhook.js';
 import { evaluateStrategy, resolveAction, DEFAULT_STRATEGY } from './strategy.js';
 import type { Strategy, GameState } from './strategy.js';
+import { calculateElo } from '../services/elo.js';
 
 import Redis from 'ioredis';
 
@@ -173,14 +174,62 @@ export const matchWorker = new Worker('match-queue', async (job) => {
   const winnerId = p1_hp > 0 ? p1.id : p2.id;
   const loserId = p1_hp > 0 ? p2.id : p1.id;
 
-  // 1. DB'ye sonucu yaz (off-chain proof ile)
+  // 1. ELO güncelleme — blockchain'den bağımsız, önce yap
+  let winnerEloBefore = 1200;
+  let loserEloBefore = 1200;
+  let winnerEloGain = 0;
+  let loserEloLoss = 0;
+
+  try {
+    if (process.env.SUPABASE_URL) {
+      const [{ data: winnerData }, { data: loserData }] = await Promise.all([
+        supabase.from('bots').select('elo, total_matches').eq('id', winnerId).single(),
+        supabase.from('bots').select('elo, total_matches').eq('id', loserId).single()
+      ]);
+
+      winnerEloBefore = winnerData?.elo ?? 0;
+      loserEloBefore  = loserData?.elo  ?? 0;
+
+      const eloResult = calculateElo(
+        winnerEloBefore,
+        loserEloBefore,
+        winnerData?.total_matches ?? 0,
+        loserData?.total_matches  ?? 0
+      );
+
+      winnerEloGain = eloResult.winnerGain;
+      loserEloLoss  = eloResult.loserLoss;
+
+      await Promise.all([
+        supabase.from('bots').update({
+          elo: eloResult.newWinnerElo,
+          total_matches: (winnerData?.total_matches ?? 0) + 1
+        }).eq('id', winnerId),
+        supabase.from('bots').update({
+          elo: eloResult.newLoserElo,
+          total_matches: (loserData?.total_matches ?? 0) + 1
+        }).eq('id', loserId)
+      ]);
+
+      console.log(`[ELO] Winner ${winnerId}: ${winnerEloBefore} → ${eloResult.newWinnerElo} (+${winnerEloGain})`);
+      console.log(`[ELO] Loser  ${loserId}: ${loserEloBefore} → ${eloResult.newLoserElo} (-${loserEloLoss})`);
+    }
+  } catch (err) {
+    console.error('[Worker] ELO update error:', err);
+  }
+
+  // 2. DB'ye maç sonucunu yaz (off-chain proof + ELO snapshot ile)
   try {
     const proof = await signCombatProof(matchId, winnerId, loserId);
     if (process.env.SUPABASE_URL) {
       await supabase.from('matches').update({
         status: 'finished',
         winner_id: winnerId,
-        tx_hash: JSON.stringify(proof)
+        tx_hash: JSON.stringify(proof),
+        winner_elo_before: winnerEloBefore,
+        loser_elo_before:  loserEloBefore,
+        winner_elo_gain:   winnerEloGain,
+        loser_elo_loss:    loserEloLoss
       }).eq('id', matchId);
       console.log(`[Worker] Match ${matchId} finished. Winner: ${winnerId}`);
     }
@@ -195,7 +244,7 @@ export const matchWorker = new Worker('match-queue', async (job) => {
     } catch { /* yut */ }
   }
 
-  // 2. Blockchain job — her zaman çalışır, DB hatasından bağımsız
+  // 3. Blockchain job — her zaman çalışır, DB hatasından bağımsız
   try {
     if (process.env.SUPABASE_URL) {
       const [{ data: winnerBot }, { data: loserBot }] = await Promise.all([

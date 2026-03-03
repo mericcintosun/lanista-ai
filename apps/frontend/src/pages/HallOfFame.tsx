@@ -9,9 +9,121 @@ interface AgentScore {
   avatar_url: string;
   wins: number;
   totalMatches: number;
+  elo?: number;
   wallet_address?: string;
   displayRank?: number;
   trendDelta?: number;
+}
+
+// ─── ELO TIER SİSTEMİ ───────────────────────────────────────────────────────
+// ELO 0'dan başlar. Tüm botlar birbirleriyle oynuyor (sıfır toplamlı sistem).
+// Birbirine yakın win rate'lerde ELO'lar yakın kalır.
+// 55% win rate / 200 maç ≈ 150-200 ELO (en iyi botlar için)
+// Tier eşikleri buna göre kalibre edilmiştir:
+const ELO_TIERS = [
+  { name: 'MASTER',   min: 1000, color: 'text-fuchsia-400', border: 'border-fuchsia-500/40', bg: 'bg-fuchsia-500/10', glow: 'shadow-[0_0_12px_rgba(217,70,239,0.4)]', icon: '♛' },
+  { name: 'DIAMOND',  min:  600, color: 'text-cyan-300',    border: 'border-cyan-400/40',    bg: 'bg-cyan-400/10',    glow: 'shadow-[0_0_12px_rgba(34,211,238,0.3)]', icon: '◆' },
+  { name: 'PLATINUM', min:  350, color: 'text-emerald-400', border: 'border-emerald-500/40', bg: 'bg-emerald-500/10', glow: 'shadow-[0_0_12px_rgba(52,211,153,0.3)]', icon: '✦' },
+  { name: 'GOLD',     min:  200, color: 'text-yellow-400',  border: 'border-yellow-500/40',  bg: 'bg-yellow-500/10',  glow: 'shadow-[0_0_12px_rgba(234,179,8,0.3)]',  icon: '●' },
+  { name: 'SILVER',   min:  100, color: 'text-zinc-300',    border: 'border-zinc-400/40',    bg: 'bg-zinc-400/10',    glow: '',                                        icon: '○' },
+  { name: 'BRONZE',   min:   30, color: 'text-orange-600',  border: 'border-orange-700/40',  bg: 'bg-orange-700/10',  glow: '',                                        icon: '△' },
+  { name: 'IRON',     min:    0, color: 'text-zinc-600',    border: 'border-zinc-700/40',    bg: 'bg-zinc-700/10',    glow: '',                                        icon: '▽' },
+] as const;
+
+function getEloTier(elo: number, hasPlayed: boolean) {
+  if (!hasPlayed) return ELO_TIERS.find(t => t.name === 'IRON')!;
+  return ELO_TIERS.find(t => elo >= t.min) ?? ELO_TIERS[ELO_TIERS.length - 1];
+}
+
+/** Mevcut tier içindeki ilerleme bilgisini döndürür */
+function getTierProgress(elo: number, hasPlayed: boolean) {
+  const tierIndex = hasPlayed
+    ? ELO_TIERS.findIndex(t => elo >= t.min)
+    : ELO_TIERS.length - 1;
+
+  const currentTier = ELO_TIERS[tierIndex];
+  const nextTier    = tierIndex > 0 ? ELO_TIERS[tierIndex - 1] : null; // bir üst tier
+
+  if (!nextTier) {
+    // MASTER — zaten max tier
+    return { pct: 100, toNext: 0, nextName: null, tierMin: currentTier.min, nextMin: null };
+  }
+
+  const tierMin = currentTier.min;
+  const nextMin = nextTier.min;
+  const pct     = Math.min(100, Math.round(((elo - tierMin) / (nextMin - tierMin)) * 100));
+  const toNext  = nextMin - elo;
+
+  return { pct, toNext, nextName: nextTier.name, tierMin, nextMin };
+}
+
+function TierBadge({ elo, hasPlayed }: { elo: number; hasPlayed: boolean }) {
+  const tier = getEloTier(elo, hasPlayed);
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-black uppercase tracking-widest border ${tier.color} ${tier.border} ${tier.bg} ${tier.glow}`}>
+      <span>{tier.icon}</span> {tier.name}
+    </span>
+  );
+}
+
+/** Tier progress bar — Valorant tarzı */
+function TierProgressBar({ elo, hasPlayed, compact = false }: { elo: number; hasPlayed: boolean; compact?: boolean }) {
+  const tier  = getEloTier(elo, hasPlayed);
+  const prog  = getTierProgress(elo, hasPlayed);
+
+  // bar rengi tier'a göre
+  const barColor = {
+    MASTER:   'bg-fuchsia-400',
+    DIAMOND:  'bg-cyan-300',
+    PLATINUM: 'bg-emerald-400',
+    GOLD:     'bg-yellow-400',
+    SILVER:   'bg-zinc-300',
+    BRONZE:   'bg-orange-600',
+    IRON:     'bg-zinc-600',
+  }[tier.name] ?? 'bg-zinc-600';
+
+  if (!hasPlayed) return (
+    <div className="flex items-center gap-2">
+      <div className="flex-1 h-1 bg-white/5 rounded-full" />
+      <span className="font-mono text-[9px] text-zinc-600 uppercase tracking-widest">UNRANKED</span>
+    </div>
+  );
+
+  return (
+    <div className={`w-full ${compact ? '' : 'space-y-1'}`}>
+      {/* Bar */}
+      <div className="relative h-1.5 bg-white/10 rounded-full overflow-hidden">
+        <motion.div
+          className={`absolute inset-y-0 left-0 rounded-full ${barColor}`}
+          initial={{ width: 0 }}
+          animate={{ width: `${prog.pct}%` }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
+        />
+        {/* Glow effect */}
+        <motion.div
+          className={`absolute inset-y-0 left-0 rounded-full ${barColor} blur-sm opacity-50`}
+          initial={{ width: 0 }}
+          animate={{ width: `${prog.pct}%` }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
+        />
+      </div>
+      {/* Label */}
+      {!compact && (
+        <div className="flex justify-between items-center">
+          <span className={`font-mono text-[9px] font-bold uppercase tracking-widest ${tier.color}`}>
+            {elo} ELO
+          </span>
+          {prog.nextName ? (
+            <span className="font-mono text-[9px] text-zinc-500 uppercase tracking-widest">
+              {prog.toNext} → {prog.nextName}
+            </span>
+          ) : (
+            <span className="font-mono text-[9px] text-fuchsia-400 uppercase tracking-widest">MAX RANK</span>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function HallOfFame() {
@@ -37,27 +149,10 @@ export default function HallOfFame() {
 
         // 1) Önce görüntülenecek rank'i hesapla:
         // Aynı wins ve totalMatches değerine sahip ajanlar aynı rank'i paylaşsın.
-        let lastStatsKey: string | null = null;
-        let lastDisplayRank = 0;
-
-        const withDisplayRank: AgentScore[] = incoming.map((agent: AgentScore) => {
-          const key = `${agent.wins}-${agent.totalMatches}`;
-          let displayRank: number;
-
-          if (key === lastStatsKey) {
-            // Aynı istatistiklere sahip olanlar aynı rank'i paylaşsın
-            displayRank = lastDisplayRank;
-          } else {
-            // Yeni bir istatistik kombinasyonu gördüğümüzde,
-            // bir önceki display rank'in üzerine 1 ekleyerek devam et.
-            // Böylece 1,1,2,3,3,4 şeklinde gider; aralarda boşluk olmaz.
-            displayRank = lastDisplayRank + 1;
-            lastStatsKey = key;
-            lastDisplayRank = displayRank;
-          }
-
-          return { ...agent, displayRank };
-        });
+        const withDisplayRank: AgentScore[] = incoming.map((agent: AgentScore, idx: number) => ({
+          ...agent,
+          displayRank: idx + 1,  // ELO'ya göre sıralandığı için sıra numarası basit
+        }));
 
         // 2) Trend hesapla: önceki displayRank'e göre yukarı/aşağı hareket.
         const withTrend: AgentScore[] = withDisplayRank.map((agent) => {
@@ -232,8 +327,9 @@ export default function HallOfFame() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {topThree.map((agent, i) => {
             const rank = agent.displayRank ?? i + 1;
-            const elo = 1200 + (agent.wins * 25) - ((agent.totalMatches - agent.wins) * 12);
+            const elo = agent.elo ?? 0;
             const isFirst = rank === 1;
+            const tier = getEloTier(elo, agent.totalMatches > 0);
 
             return (
               <motion.div
@@ -264,18 +360,13 @@ export default function HallOfFame() {
                 <h3 className="text-xl font-black italic tracking-tighter text-white uppercase group-hover:text-red-500 transition-colors">{agent.name}</h3>
                 <p className="font-mono text-[10px] text-zinc-400 uppercase tracking-widest mb-6 px-4 truncate w-full font-bold">ID: {agent.id.substring(0, 16)}...</p>
 
-                <div className="w-full space-y-2 mt-auto">
+                <div className="w-full space-y-3 mt-auto">
+                  <TierBadge elo={elo} hasPlayed={agent.totalMatches > 0} />
                   <div className="flex justify-between font-mono text-[10px] text-zinc-400 uppercase tracking-widest font-bold">
-                    <span>Performance Rating</span>
-                    <span>{elo}</span>
+                    <span>ELO Rating</span>
+                    <span className={tier.color}>{elo}</span>
                   </div>
-                  <div className="h-4 bg-white/5 border border-white/5 relative overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${Math.min(100, (elo / 2000) * 100)}%` }}
-                      className={`h-full ${isFirst ? 'bg-yellow-500' : 'bg-red-500'} opacity-60`}
-                    />
-                  </div>
+                  <TierProgressBar elo={elo} hasPlayed={agent.totalMatches > 0} />
                 </div>
               </motion.div>
             );
@@ -327,16 +418,23 @@ export default function HallOfFame() {
 
                   {/* Right side container for mobile stack */}
                   <div className="col-span-1 lg:col-span-11 grid grid-cols-1 lg:grid-cols-11 gap-4 items-center">
-                    {/* Entity Info */}
-                    <div className="lg:col-span-5 flex items-center gap-3 lg:gap-4">
+                   {/* Entity Info */}
+                    <div className="lg:col-span-4 flex items-center gap-3 lg:gap-4">
                       <img
                         src={agent.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${agent.name}`}
                         className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-zinc-900 border border-white/5 grayscale group-hover:grayscale-0 transition-all p-0.5"
                         alt=""
                       />
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <h4 className="font-black text-white text-sm lg:text-lg tracking-tighter italic uppercase group-hover:text-red-500 transition-colors truncate">{agent.name}</h4>
-                        <p className="text-[9px] lg:text-xs font-mono text-zinc-500 uppercase tracking-widest font-bold truncate">ID: {agent.id.substring(0, 10)}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <p className="text-[9px] lg:text-xs font-mono text-zinc-500 uppercase tracking-widest font-bold truncate">ID: {agent.id.substring(0, 10)}</p>
+                          <TierBadge elo={agent.elo ?? 0} hasPlayed={agent.totalMatches > 0} />
+                        </div>
+                        {/* Tier Progress Bar */}
+                        <div className="mt-2 hidden lg:block">
+                          <TierProgressBar elo={agent.elo ?? 0} hasPlayed={agent.totalMatches > 0} />
+                        </div>
                       </div>
                     </div>
 
@@ -356,7 +454,7 @@ export default function HallOfFame() {
                     </div>
 
                     {/* Efficiency - Desktop Only */}
-                    <div className="hidden lg:block lg:col-span-2 text-right">
+                    <div className="hidden lg:block lg:col-span-3 text-right">
                       <span className={`font-mono text-base font-black ${winRate > 50 ? 'text-[#00FF00]' : 'text-zinc-500'}`}>
                         {winRate}%
                       </span>

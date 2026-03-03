@@ -504,41 +504,69 @@ app.get('/api/v1/hub/recent', async (req, res) => {
 // --- HALL OF FAME ENDPOINTS ---
 
 app.get('/api/v1/leaderboard', async (req, res) => {
-  // Using a simplified counting approach due to lack of complex SQL RPC for now
   try {
-    // 1. Fetch bots
-    const { data: bots, error: botErr } = await supabase.from('bots').select('id, name, avatar_url, description');
-    if (botErr) throw botErr;
+    // Her bot için ELO'ya göre sıralı liste
+    const { data: bots, error: botErr } = await supabase
+      .from('bots')
+      .select('id, name, avatar_url, description, elo, total_matches')
+      .order('elo', { ascending: false })
+      .limit(50);
 
-    // 2. Fetch all finished matches to aggregate wins manually (in-memory for simple demo)
-    const { data: matches, error: matchErr } = await supabase.from('matches').select('winner_id, player_1_id, player_2_id').eq('status', 'finished');
+    if (botErr) throw botErr;
+    if (!bots) return res.json({ leaderboard: [] });
+
+    const botIds = bots.map(b => b.id);
+
+    // Wins + totalMatches için biten tüm maçları çek (player_1 veya player_2 olarak)
+    const { data: matches, error: matchErr } = await supabase
+      .from('matches')
+      .select('winner_id, player_1_id, player_2_id')
+      .eq('status', 'finished')
+      .or(`player_1_id.in.(${botIds.join(',')}),player_2_id.in.(${botIds.join(',')})`);
+
     if (matchErr) throw matchErr;
 
-    if (!bots || !matches) return res.json({ leaderboard: [] });
+    // Her bot için wins ve totalMatches say
+    const winsMap: Record<string, number> = {};
+    const totalMap: Record<string, number> = {};
 
-    const statsMap: Record<string, { id: string, name: string, avatar_url: string, wins: number, totalMatches: number }> = {};
-
-    bots.forEach(b => {
-      statsMap[b.id] = { id: b.id, name: b.name, avatar_url: b.avatar_url, wins: 0, totalMatches: 0 };
+    (matches || []).forEach(m => {
+      if (m.player_1_id) totalMap[m.player_1_id] = (totalMap[m.player_1_id] || 0) + 1;
+      if (m.player_2_id) totalMap[m.player_2_id] = (totalMap[m.player_2_id] || 0) + 1;
+      if (m.winner_id)   winsMap[m.winner_id]     = (winsMap[m.winner_id]     || 0) + 1;
     });
 
-    matches.forEach(m => {
-      if (statsMap[m.player_1_id]) statsMap[m.player_1_id].totalMatches++;
-      if (statsMap[m.player_2_id]) statsMap[m.player_2_id].totalMatches++;
-      if (m.winner_id && statsMap[m.winner_id]) {
-        statsMap[m.winner_id].wins++;
-      }
-    });
+    const leaderboard = bots.map(b => {
+      const totalMatches = totalMap[b.id] ?? 0;
+      const wins         = winsMap[b.id]  ?? 0;
+      const elo          = b.elo          ?? 0;
+      const winRate      = totalMatches > 0 ? wins / totalMatches : 0;
+      return { id: b.id, name: b.name, avatar_url: b.avatar_url, description: b.description,
+               elo, totalMatches, wins, winRate };
+    })
+    .sort((a, b) => {
+      // 1. Hiç oynamamışlar en sona
+      const aPlayed = a.totalMatches > 0 ? 1 : 0;
+      const bPlayed = b.totalMatches > 0 ? 1 : 0;
+      if (bPlayed !== aPlayed) return bPlayed - aPlayed;
 
-    const leaderboard = Object.values(statsMap)
-      .sort((a, b) => b.wins - a.wins)
-      .slice(0, 50); // Top 50
+      // 2. ELO farkı anlamlıysa (>10) ELO'ya göre sırala
+      if (Math.abs(b.elo - a.elo) > 10) return b.elo - a.elo;
+
+      // 3. ELO yakınsa: önce wins, sonra win rate, sonra total matches
+      if (b.wins !== a.wins)         return b.wins - a.wins;
+      if (b.winRate !== a.winRate)   return b.winRate - a.winRate;
+      return b.totalMatches - a.totalMatches;
+    });
 
     res.json({ leaderboard });
+
   } catch (error: any) {
     respondError(res, 500, "Failed to fetch leaderboard.", error);
   }
 });
+
+
 
 app.get('/api/v1/agent/:id', async (req, res) => {
   try {

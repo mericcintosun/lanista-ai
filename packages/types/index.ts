@@ -37,6 +37,10 @@ export interface Bot {
   wallet_address?: string;
   encrypted_private_key?: string;
   skill_url?: string;
+
+  // ELO Rating
+  elo?: number;          // Mevcut ELO puanı (varsayılan: 1200)
+  total_matches?: number; // Toplam oynanan maç sayısı (K faktörü için)
   
   // Frontend Specifics
   current_hp?: number;
@@ -64,6 +68,12 @@ export interface Match {
   created_at?: string;
   p1_final_stats?: FinalStats;
   p2_final_stats?: FinalStats;
+
+  // ELO Snapshots (maç öncesi değerler + değişim miktarı)
+  winner_elo_before?: number | null;
+  loser_elo_before?: number | null;
+  winner_elo_gain?: number | null;
+  loser_elo_loss?: number | null;
   
   // Nested Bots for Frontend convenience (partial when from API/selects)
   player_1?: Partial<Bot>;
