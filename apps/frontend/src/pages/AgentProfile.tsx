@@ -37,6 +37,8 @@ export default function AgentProfile() {
   const [agent, setAgent] = useState<BotData | null>(null);
   const [history, setHistory] = useState<MatchData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     async function fetchAgentData() {
@@ -137,40 +139,42 @@ export default function AgentProfile() {
             </div>
 
             {/* Stats Column */}
-            <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="bg-black/40 border border-white/5 p-4 flex flex-col justify-center">
-                <span className="text-zinc-500 font-mono text-[10px] uppercase tracking-widest mb-1 flex items-center gap-1">
-                  <Trophy className="w-3 h-3" /> ELO Rating
-                </span>
-                <span className="text-2xl font-black text-white">{elo}</span>
-              </div>
-              <div className="bg-black/40 border border-white/5 p-4 flex flex-col justify-center">
-                <span className="text-zinc-500 font-mono text-[10px] uppercase tracking-widest mb-1 flex items-center gap-1">
-                  <Swords className="w-3 h-3" /> Matches
-                </span>
-                <span className="text-2xl font-black text-white">{totalMatches}</span>
-              </div>
-              <div className="bg-black/40 border border-white/5 p-4 flex flex-col justify-center">
-                <span className="text-zinc-500 font-mono text-[10px] uppercase tracking-widest mb-1 flex items-center gap-1">
-                  <Shield className="w-3 h-3" /> Win Rate
-                </span>
-                <span className={`text-2xl font-black ${winRate >= 50 ? 'text-[#00FF00]' : 'text-zinc-300'}`}>
-                  {winRate}%
-                </span>
-              </div>
-              <div className="bg-black/40 border border-white/5 p-4 flex flex-col justify-center">
-                <span className="text-zinc-500 font-mono text-[10px] uppercase tracking-widest mb-1 flex items-center gap-1">
-                  <Target className="w-3 h-3" /> Record (W/L)
-                </span>
-                <span className="text-2xl font-black text-white">
-                  <span className="text-[#00FF00]">{wins}</span>
-                  <span className="text-zinc-600 px-1">-</span>
-                  <span className="text-red-500">{Math.max(0, totalMatches - wins)}</span>
-                </span>
+            <div className="lg:col-span-7 flex flex-col justify-center gap-4 lg:gap-6 mt-6 lg:mt-0">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="bg-black/40 border border-white/5 p-6 rounded-xl flex flex-col items-center sm:items-start justify-center text-center sm:text-left hover:border-white/10 transition-colors">
+                  <span className="text-zinc-500 font-mono text-[10px] uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <Trophy className="w-3 h-3" /> ELO
+                  </span>
+                  <span className="text-3xl font-black text-white">{elo}</span>
+                </div>
+                <div className="bg-black/40 border border-white/5 p-6 rounded-xl flex flex-col items-center sm:items-start justify-center text-center sm:text-left hover:border-white/10 transition-colors">
+                  <span className="text-zinc-500 font-mono text-[10px] uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <Swords className="w-3 h-3" /> MATCHES
+                  </span>
+                  <span className="text-3xl font-black text-white">{totalMatches}</span>
+                </div>
+                <div className="bg-black/40 border border-white/5 p-6 rounded-xl flex flex-col items-center sm:items-start justify-center text-center sm:text-left hover:border-white/10 transition-colors">
+                  <span className="text-zinc-500 font-mono text-[10px] uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <Shield className="w-3 h-3" /> WIN RATE
+                  </span>
+                  <span className={`text-3xl font-black ${winRate >= 50 ? 'text-[#00FF00]' : 'text-zinc-300'}`}>
+                    {winRate}%
+                  </span>
+                </div>
+                <div className="bg-black/40 border border-white/5 p-6 rounded-xl flex flex-col items-center sm:items-start justify-center text-center sm:text-left hover:border-white/10 transition-colors">
+                  <span className="text-zinc-500 font-mono text-[10px] uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <Target className="w-3 h-3" /> W/L RECORD
+                  </span>
+                  <span className="text-3xl font-black text-white">
+                    <span className="text-[#00FF00]">{wins}</span>
+                    <span className="text-zinc-600 px-1">-</span>
+                    <span className="text-red-500">{Math.max(0, totalMatches - wins)}</span>
+                  </span>
+                </div>
               </div>
 
               {/* Tier Progress Full Width inside stats */}
-              <div className="col-span-2 sm:col-span-4 bg-black/40 border border-white/5 p-4">
+              <div className="w-full bg-black/40 border border-white/5 rounded-xl p-6">
                  <TierProgressBar elo={elo} hasPlayed={totalMatches > 0} />
               </div>
             </div>
@@ -186,8 +190,9 @@ export default function AgentProfile() {
 
           <div className="bg-zinc-900/30 border border-white/5 rounded-xl overflow-hidden">
             {history.length > 0 ? (
-              <div className="divide-y divide-white/5">
-                {history.map((match) => {
+              <>
+                <div className="divide-y divide-white/5">
+                  {history.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((match) => {
                   const isWinner = match.winner_id === agent.id;
                   const isPlayer1 = match.player_1_id === agent.id;
                   const opponent = isPlayer1 ? match.player_2 : match.player_1;
@@ -252,7 +257,7 @@ export default function AgentProfile() {
                          </button>
                          {match.tx_hash && (
                             <a 
-                              href={`https://subnets-test.avax.network/lanista/tx/${match.tx_hash}`}
+                              href={`https://testnet.snowtrace.io/tx/${match.tx_hash}`}
                               target="_blank"
                               rel="noreferrer"
                               className="p-2 text-zinc-400 hover:text-blue-400 hover:bg-white/10 rounded transition-colors tooltip-trigger"
@@ -267,7 +272,26 @@ export default function AgentProfile() {
                     </div>
                   );
                 })}
-              </div>
+                </div>
+                {/* Pagination Controls */}
+                {Math.ceil(history.length / itemsPerPage) > 1 && (
+                  <div className="border-t border-white/5 p-4 flex items-center justify-center gap-2 bg-black/20">
+                    {Array.from({ length: Math.ceil(history.length / itemsPerPage) }).map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i + 1)}
+                        className={`w-8 h-8 flex items-center justify-center rounded font-mono text-xs transition-colors border ${
+                          currentPage === i + 1 
+                            ? 'bg-red-500/20 text-red-500 border-red-500/30' 
+                            : 'bg-white/5 text-zinc-500 border-white/5 hover:bg-white/10 hover:text-white'
+                        }`}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
             ) : (
               <div className="p-12 text-center border-t border-white/5">
                  <p className="font-mono text-zinc-600 text-[10px] uppercase tracking-widest">No combat logs found for this agent.</p>
