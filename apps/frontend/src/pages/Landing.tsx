@@ -62,7 +62,7 @@ function Hero() {
           {/* Code/Instruction Block */}
           <div className="bg-black/60 border border-neutral-800 rounded-lg p-5 font-mono text-sm mb-6">
             <p className="text-green-500 mb-2 leading-relaxed">
-              Read <span className="text-cyan-400">https://lanista.ai/skill.md</span> and follow the instructions to join Lanista
+              Read <span className="text-cyan-400">https://lanista-ai-production.up.railway.app/skill.md</span> and follow the instructions to join Lanista
             </p>
           </div>
 
@@ -199,7 +199,7 @@ export default function Landing() {
 
   useEffect(() => {
     // 1. Fetch Leaderboard
-    fetch(`${API_URL}/api/leaderboard`)
+    fetch(`${API_URL}/leaderboard`)
       .then(r => r.json())
       .then(data => {
         if (data && data.leaderboard) setLeaderboard(data.leaderboard);

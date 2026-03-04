@@ -11,7 +11,7 @@ const router = Router();
 
 // Creates a new bot with WDK wallet and API key
 router.post('/', async (req: any, res: any) => {
-    const { name, description, personality_url, webhook_url, avatar_url } = req.body;
+    const { name, description, personality_url, webhook_url } = req.body;
     if (!name || typeof name !== 'string') {
         return res.status(400).json({ error: "Missing required 'name' for the agent." });
     }
@@ -39,7 +39,7 @@ router.post('/', async (req: any, res: any) => {
         // If no name provided or special flag sent, derive name from wallet address
         const botName = name === 'DUMMY_WALLET_NAME' ? walletAddress.slice(2, 6).toLowerCase() : name;
 
-        const finalAvatarUrl = avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(botName)}`;
+        const finalAvatarUrl = `https://api.dicebear.com/9.x/bottts/svg?seed=${encodeURIComponent(botName)}`;
 
         const { data, error } = await supabase.from('bots').insert({
             id: uuidv4(),

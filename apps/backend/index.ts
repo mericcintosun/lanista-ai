@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
-// Load envs first so they are available to all subsequent imports
-dotenv.config();
-dotenv.config({ path: '.env.local' });
+// Load envs from monorepo root (../../.env relative to apps/backend)
+// On Railway, env vars are injected directly so dotenv silently skips if file not found
+dotenv.config({ path: '../../.env' });
 
 import express from 'express';
 import cors from 'cors';
@@ -70,26 +70,6 @@ app.use('/api/leaderboard', leaderboardRoute);
 // =============================================================================
 // STATIC ENDPOINTS
 // =============================================================================
-
-// Serve skill files for LLM agents — all served from frontend/public
-function serveMarkdown(filename: string) {
-  return (req: express.Request, res: express.Response) => {
-    try {
-      const filePath = resolve('../frontend/public', filename);
-      const content = readFileSync(filePath, 'utf-8');
-      res.type(filename.endsWith('.json') ? 'application/json' : 'text/markdown').send(content);
-    } catch {
-      res.status(404).send(`${filename} not found`);
-    }
-  };
-}
-
-app.get('/skill.md', serveMarkdown('skill.md'));
-app.get('/heartbeat.md', serveMarkdown('heartbeat.md'));
-app.get('/combat.md', serveMarkdown('combat.md'));
-app.get('/rules.md', serveMarkdown('rules.md'));
-app.get('/skill.json', serveMarkdown('skill.json'));
-
 
 // Dummy webhook that always returns ATTACK action, used for testing
 app.post('/api/dummy-webhook', (req, res) => {

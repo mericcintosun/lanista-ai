@@ -50,13 +50,9 @@ router.get('/', async (req, res) => {
             const elo = b.elo ?? 0;
             const winRate = totalMatches > 0 ? wins / totalMatches : 0;
 
-            // LOGIC FIX: Prevent bots with sub-50% win rate from outranking positive bots.
-            // We compute an effective ELO for sorting only (does not modify actual ELO).
-            const effectiveElo = winRate < 0.5 && totalMatches > 0 ? elo * (winRate / 0.5) : elo;
-
             return {
                 id: b.id, name: b.name, avatar_url: b.avatar_url, description: b.description,
-                elo, effectiveElo, totalMatches, wins, winRate
+                elo, totalMatches, wins, winRate
             };
         })
             .sort((a, b) => {
@@ -65,14 +61,10 @@ router.get('/', async (req, res) => {
                 const bPlayed = b.totalMatches > 0 ? 1 : 0;
                 if (bPlayed !== aPlayed) return bPlayed - aPlayed;
 
-                // 2. Sort by effective ELO (heavily penalizes sub-50% win rate bots)
-                if (Math.abs(b.effectiveElo - a.effectiveElo) > 5) return b.effectiveElo - a.effectiveElo;
-
-                // 3. If ELO is close: tiebreak by ELO, then net wins, then total matches
+                // 2. Sort by raw ELO (descending)
                 if (b.elo !== a.elo) return b.elo - a.elo;
-                const netA = a.wins - (a.totalMatches - a.wins);
-                const netB = b.wins - (b.totalMatches - b.wins);
-                if (netA !== netB) return netB - netA;
+
+                // 3. Tiebreak: win rate, then total matches
                 if (b.winRate !== a.winRate) return b.winRate - a.winRate;
                 return b.totalMatches - a.totalMatches;
             });

@@ -1,12 +1,7 @@
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import type { Match, CombatLog } from '@lanista/types';
+import { supabase } from '../lib/supabase';
 import { API_URL } from '../lib/api';
-
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder-url.supabase.co';
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key';
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export function useCombatRealtime(matchId: string | null) {
   const [match, setMatch] = useState<Match | null>(null);
@@ -17,7 +12,7 @@ export function useCombatRealtime(matchId: string | null) {
 
     const fetchMatch = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/combat/status?matchId=${matchId}`);
+        const res = await fetch(`${API_URL}/combat/status?matchId=${matchId}`);
         if (res.ok) {
           const data = await res.json();
           const fetchedMatch = data.match;
@@ -50,6 +45,7 @@ export function useCombatRealtime(matchId: string | null) {
 
     fetchMatch();
 
+    // Realtime subscription for instant updates
     const channel = supabase
       .channel(`combat-${matchId}`)
       .on(
@@ -102,8 +98,38 @@ export function useCombatRealtime(matchId: string | null) {
       )
       .subscribe();
 
+    // Polling fallback: re-fetch every 3s in case realtime misses an event
+    // Stops once match is finished
+    const poll = setInterval(async () => {
+      try {
+        const res = await fetch(`${API_URL}/combat/status?matchId=${matchId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.logs?.length) {
+          setLogs(data.logs);
+        }
+        if (data.match) {
+          const m = data.match;
+          setMatch((prev) => {
+            if (!prev) return prev;
+            const next = { ...prev };
+            if (m.p1_current_hp != null && next.player_1) next.player_1.current_hp = m.p1_current_hp;
+            if (m.p2_current_hp != null && next.player_2) next.player_2.current_hp = m.p2_current_hp;
+            if (m.status) next.status = m.status;
+            if (m.winner_id) next.winner_id = m.winner_id;
+            return next;
+          });
+          // Stop polling when match is done
+          if (m.status === 'finished' || m.status === 'aborted') {
+            clearInterval(poll);
+          }
+        }
+      } catch { /* silent fallback */ }
+    }, 3000);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(poll);
     };
   }, [matchId]);
 

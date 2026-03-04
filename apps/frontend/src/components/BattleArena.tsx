@@ -4,7 +4,7 @@ import { useCombatRealtime } from '../hooks/useCombatRealtime';
 import { Swords, ChevronLeft, Activity, Search, ShieldAlert } from 'lucide-react';
 import { useParams, Link } from 'react-router-dom';
 import type { Match } from '@lanista/types';
-import { supabase } from '../lib/supabase';
+import { API_URL } from '../lib/api';
 
 export function BattleArena() {
   const { matchId: routeMatchId } = useParams<{ matchId: string }>();
@@ -15,18 +15,19 @@ export function BattleArena() {
   useEffect(() => {
     if (!routeMatchId) {
       const fetchLiveMatches = async () => {
-        const { data } = await supabase
-          .from('matches')
-          .select('*, player_1:bots!matches_player_1_id_fkey(id, name, avatar_url), player_2:bots!matches_player_2_id_fkey(id, name, avatar_url)')
-          .eq('status', 'active')
-          .order('created_at', { ascending: false })
-          .limit(10);
-        if (data) setLiveMatches(data);
+        try {
+          const res = await fetch(`${API_URL}/hub/live`);
+          const data = await res.json();
+          if (data.matches) setLiveMatches(data.matches);
+        } catch (err) {
+          console.error('Failed to fetch live matches', err);
+        }
       };
 
       fetchLiveMatches();
-      const sub = supabase.channel('arena:matches').on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, fetchLiveMatches).subscribe();
-      return () => { supabase.removeChannel(sub); };
+      // Poll for updates every 5 seconds
+      const interval = setInterval(fetchLiveMatches, 5000);
+      return () => { clearInterval(interval); };
     }
   }, [routeMatchId]);
 
@@ -57,7 +58,7 @@ export function BattleArena() {
               </span>
             </div>
           </div>
-         
+
         </section>
 
         {/* ─── MAIN CONTENT ─── */}
@@ -299,7 +300,7 @@ export function BattleArena() {
                     Turn-by-turn resolution of the engagement
                   </p>
                 </div>
-               
+
               </div>
 
               <div
@@ -310,7 +311,7 @@ export function BattleArena() {
                   <div className="absolute left-[6px] top-0 bottom-0 w-px bg-zinc-800/80" />
 
                   <div className="space-y-5">
-                    
+
 
                     <AnimatePresence initial={false}>
                       {logs.map((log, idx) => {
@@ -376,13 +377,12 @@ export function BattleArena() {
                           >
                             <div className="relative mt-2">
                               <div
-                                className={`w-2.5 h-2.5 rounded-full border-2 ${
-                                  isCritical
-                                    ? 'border-red-500 bg-red-500/30'
-                                    : isP1
+                                className={`w-2.5 h-2.5 rounded-full border-2 ${isCritical
+                                  ? 'border-red-500 bg-red-500/30'
+                                  : isP1
                                     ? 'border-cyan-400 bg-cyan-400/20'
                                     : 'border-zinc-400 bg-zinc-400/20'
-                                }`}
+                                  }`}
                               />
                             </div>
 
@@ -394,9 +394,8 @@ export function BattleArena() {
                                   </span>
                                   <span className="h-3 w-px bg-zinc-700" />
                                   <span
-                                    className={`text-[10px] font-mono uppercase tracking-[0.18em] ${
-                                      isP1 ? 'text-cyan-300' : 'text-zinc-400'
-                                    }`}
+                                    className={`text-[10px] font-mono uppercase tracking-[0.18em] ${isP1 ? 'text-cyan-300' : 'text-zinc-400'
+                                      }`}
                                   >
                                     {actorCode}
                                   </span>
@@ -404,11 +403,10 @@ export function BattleArena() {
 
                                 {log.action_type && (
                                   <span
-                                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.18em] ${
-                                      isCritical
-                                        ? 'bg-red-500/20 text-red-400 border border-red-500/40'
-                                        : 'bg-zinc-900/80 text-zinc-400 border border-zinc-700'
-                                    }`}
+                                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.18em] ${isCritical
+                                      ? 'bg-red-500/20 text-red-400 border border-red-500/40'
+                                      : 'bg-zinc-900/80 text-zinc-400 border border-zinc-700'
+                                      }`}
                                   >
                                     {actionIcon}
                                     {log.action_type.replace('_', ' ')}
@@ -426,11 +424,10 @@ export function BattleArena() {
                               {log.value > 0 && (
                                 <div className="mt-2 flex items-center justify-end text-[11px] font-mono uppercase tracking-[0.18em]">
                                   <span
-                                    className={`px-2 py-0.5 rounded-full border font-bold ${
-                                      log.action_type?.includes('HEAL')
-                                        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40'
-                                        : 'bg-red-500/15 text-red-400 border-red-500/40'
-                                    }`}
+                                    className={`px-2 py-0.5 rounded-full border font-bold ${log.action_type?.includes('HEAL')
+                                      ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40'
+                                      : 'bg-red-500/15 text-red-400 border-red-500/40'
+                                      }`}
                                   >
                                     {log.action_type?.includes('HEAL') ? '+' : '-'}
                                     {log.value} HP
@@ -458,7 +455,7 @@ export function BattleArena() {
                             ? match.player_1?.name
                             : match.player_2?.name}
                         </p>
-                        
+
                         <div className="mt-3">
                           <BlinkCursor />
                         </div>

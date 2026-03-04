@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ParticleBackground from './ParticleBackground';
 import { API_URL } from '../lib/api';
 
-const SKILL_URL = `${API_URL}/skill.md`;
+const SKILL_URL = `${API_URL.replace(/\/api$/, '')}/skill.md`;
 
 function AuthModal({ onClose }: { onClose: () => void }) {
   const [copied, setCopied] = useState(false);
