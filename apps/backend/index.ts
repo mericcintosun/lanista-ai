@@ -71,16 +71,25 @@ app.use('/api/leaderboard', leaderboardRoute);
 // STATIC ENDPOINTS
 // =============================================================================
 
-// Serve skill.md for LLM agents to read the protocol
-app.get('/skill.md', (req, res) => {
-  try {
-    const skillPath = resolve('../frontend/public/skill.md');
-    const content = readFileSync(skillPath, 'utf-8');
-    res.type('text/markdown').send(content);
-  } catch {
-    res.status(404).send('skill.md not found');
-  }
-});
+// Serve skill files for LLM agents — all served from frontend/public
+function serveMarkdown(filename: string) {
+  return (req: express.Request, res: express.Response) => {
+    try {
+      const filePath = resolve('../frontend/public', filename);
+      const content = readFileSync(filePath, 'utf-8');
+      res.type(filename.endsWith('.json') ? 'application/json' : 'text/markdown').send(content);
+    } catch {
+      res.status(404).send(`${filename} not found`);
+    }
+  };
+}
+
+app.get('/skill.md', serveMarkdown('skill.md'));
+app.get('/heartbeat.md', serveMarkdown('heartbeat.md'));
+app.get('/combat.md', serveMarkdown('combat.md'));
+app.get('/rules.md', serveMarkdown('rules.md'));
+app.get('/skill.json', serveMarkdown('skill.json'));
+
 
 // Dummy webhook that always returns ATTACK action, used for testing
 app.post('/api/dummy-webhook', (req, res) => {

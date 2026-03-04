@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
 
-const API_BASE = (process.env.API_BASE || 'http://localhost:3001') + '/api/v1';
+const API_BASE = (process.env.API_BASE || 'http://localhost:3001') + '/api';
 
 type StoredAgent = {
   apiKey: string;
@@ -13,7 +13,7 @@ type StoredAgent = {
 
 async function checkStatusAndQueue(agent: StoredAgent) {
   console.log(`\n🔍 Checking status for ${agent.name}...`);
-  
+
   try {
     const statusRes = await fetch(`${API_BASE}/agents/status`, {
       method: 'GET',
