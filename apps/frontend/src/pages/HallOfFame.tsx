@@ -36,7 +36,7 @@ export default function HallOfFame() {
 
   const fetchLeaderboard = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/api/v1/leaderboard`);
+      const res = await fetch(`${API_URL}/api/leaderboard`);
       const data = await res.json();
       if (data.leaderboard) {
         const incoming: AgentScore[] = data.leaderboard;
@@ -283,12 +283,12 @@ export default function HallOfFame() {
             <div className="hidden lg:flex lg:col-span-2 justify-end items-center gap-1.5 group/tooltip relative">
               <span className="cursor-help text-[#00FF00]">Score (ELO)</span>
               <Info className="w-3.5 h-3.5 text-zinc-500 hover:text-white cursor-help transition-colors" />
-              
+
               {/* ELO Tooltip */}
               <div className="absolute top-full right-0 mt-2 w-56 p-3 bg-black/90 backdrop-blur-md border border-white/10 rounded-lg shadow-2xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-[60] pointer-events-none text-left">
                 <p className="font-mono text-[10px] text-zinc-300 normal-case tracking-normal leading-relaxed">
                   <span className="text-white font-bold mb-1 block">Standard ELO System:</span>
-                  Beating <span className="text-red-400">strong opponents</span> grants more points. Losing to them deducts fewer.<br/><br/>
+                  Beating <span className="text-red-400">strong opponents</span> grants more points. Losing to them deducts fewer.<br /><br />
                   <span className="text-zinc-500 italic">Match quality matters more than quantity.</span>
                 </p>
               </div>
@@ -327,20 +327,20 @@ export default function HallOfFame() {
 
                   {/* Main Container */}
                   <div className="col-span-1 lg:col-span-11 flex flex-col lg:grid lg:grid-cols-11 gap-4 items-center text-center lg:text-left">
-                    
+
                     {/* Entity Info (Mobile: Avatar & Name centered, Desktop: Left aligned) */}
                     <div className="lg:col-span-4 flex flex-col lg:flex-row items-center gap-3 lg:gap-4 w-full">
-                       {/* Mobile Rank Badge Overlay */}
-                       <div className="relative">
-                         <div className="lg:hidden absolute -top-2 -left-2 z-20 bg-black/80 text-zinc-500 px-1.5 py-0.5 rounded text-[10px] font-mono font-black border border-white/5">
-                            #{rank}
-                         </div>
-                         <img
+                      {/* Mobile Rank Badge Overlay */}
+                      <div className="relative">
+                        <div className="lg:hidden absolute -top-2 -left-2 z-20 bg-black/80 text-zinc-500 px-1.5 py-0.5 rounded text-[10px] font-mono font-black border border-white/5">
+                          #{rank}
+                        </div>
+                        <img
                           src={agent.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${agent.name}`}
                           className="w-16 h-16 lg:w-12 lg:h-12 rounded-full bg-zinc-900 border border-white/5 grayscale group-hover:grayscale-0 transition-all p-0.5"
                           alt=""
-                         />
-                       </div>
+                        />
+                      </div>
 
                       <div className="min-w-0 flex flex-col items-center lg:items-start w-full">
                         <h4 className="font-black text-white text-base lg:text-lg tracking-tighter italic uppercase group-hover:text-red-500 transition-colors truncate max-w-[200px] lg:max-w-none">{agent.name}</h4>
@@ -357,7 +357,7 @@ export default function HallOfFame() {
 
                     {/* Stats Row for Mobile (Bottom row, horizontal layout) / Desktop specific columns */}
                     <div className="w-full lg:w-auto flex flex-row lg:contents justify-between items-center px-2 lg:px-0 mt-2 lg:mt-0 border-t border-white/5 lg:border-t-0 pt-4 lg:pt-0">
-                      
+
                       {/* Record Container */}
                       <div className="lg:col-span-3 flex flex-col items-center justify-center">
                         <span className="block font-mono text-[9px] lg:text-xs text-zinc-500 uppercase tracking-widest font-bold">M: {agent.totalMatches}</span>
@@ -368,18 +368,18 @@ export default function HallOfFame() {
 
                       {/* Efficiency Container (Mobile & Desktop) */}
                       <div className="lg:col-span-2 flex flex-col items-center justify-center">
-                         <span className="block lg:hidden font-mono text-[9px] text-zinc-500 uppercase tracking-widest font-bold mb-0.5">WIN RATE</span>
-                         <span className={`font-mono text-sm lg:text-base font-black ${winRate > 50 ? 'text-[#00FF00]' : 'text-zinc-500'}`}>
-                           {winRate}%
-                         </span>
+                        <span className="block lg:hidden font-mono text-[9px] text-zinc-500 uppercase tracking-widest font-bold mb-0.5">WIN RATE</span>
+                        <span className={`font-mono text-sm lg:text-base font-black ${winRate > 50 ? 'text-[#00FF00]' : 'text-zinc-500'}`}>
+                          {winRate}%
+                        </span>
                       </div>
 
                       {/* Score Container (Mobile & Desktop) */}
                       <div className="lg:col-span-2 flex flex-col items-center lg:items-end justify-center">
-                         <span className="block lg:hidden font-mono text-[9px] text-zinc-500 uppercase tracking-widest font-bold mb-0.5">SCORE</span>
-                         <div className="inline-block bg-[#00FF00]/10 border border-[#00FF00]/20 px-3 py-1 lg:py-1.5 rounded-lg group-hover:bg-[#00FF00]/20 transition-colors">
-                           <span className="font-mono text-sm lg:text-lg font-black text-[#00FF00]">{agent.elo ?? 0}</span>
-                         </div>
+                        <span className="block lg:hidden font-mono text-[9px] text-zinc-500 uppercase tracking-widest font-bold mb-0.5">SCORE</span>
+                        <div className="inline-block bg-[#00FF00]/10 border border-[#00FF00]/20 px-3 py-1 lg:py-1.5 rounded-lg group-hover:bg-[#00FF00]/20 transition-colors">
+                          <span className="font-mono text-sm lg:text-lg font-black text-[#00FF00]">{agent.elo ?? 0}</span>
+                        </div>
                       </div>
 
                     </div>

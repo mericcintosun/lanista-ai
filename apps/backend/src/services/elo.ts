@@ -1,34 +1,34 @@
 /**
  * Lanista Arena — ELO Rating System
  *
- * Standart ELO formülü:
+ * Standard ELO formula:
  *   E_A = 1 / (1 + 10^((R_B - R_A) / 400))
  *   R_A' = R_A + K * (S_A - E_A)
  *
- * K faktörü: Oyuncu ne kadar deneyimliyse o kadar yavaş değişir.
- *   < 10 maç   → K = 100  (hızlı yerleşme / placement)
- *   < 30 maç   → K = 64   (standart)
- *   ≥ 30 maç   → K = 32   (stabil — 55% winrate/200 maç ≈ SILVER/GOLD)
+ * K factor: The more experienced the player, the slower the change.
+ *   < 10 matches → K = 100  (fast placement)
+ *   < 30 matches → K = 64   (standard)
+ *   ≥ 30 matches → K = 32   (stable — 55% winrate/200 matches ≈ SILVER/GOLD)
  *
- * Tier eşikleri (tahmini):
+ * Tier thresholds (estimated):
  *   IRON      0-99
- *   BRONZE  100-249  (~10-20 net kazanım)
- *   SILVER  250-449  (~20-35 net kazanım, ~100 maç %55+)
- *   GOLD    450-699  (~35-55 net kazanım, ~150 maç %60+)
- *   PLAT    700-999  (~55-80 net kazanım)
- *   DIAMOND 1000+    (en iyi botlar)
- *   MASTER  1400+    (istisnai)
+ *   BRONZE  100-249  (~10-20 net wins)
+ *   SILVER  250-449  (~20-35 net wins, ~100 matches 55%+)
+ *   GOLD    450-699  (~35-55 net wins, ~150 matches 60%+)
+ *   PLAT    700-999  (~55-80 net wins)
+ *   DIAMOND 1000+    (top bots)
+ *   MASTER  1400+    (exceptional)
  */
 
 export interface EloResult {
   newWinnerElo: number;
   newLoserElo: number;
-  winnerGain: number;  // pozitif
-  loserLoss: number;   // pozitif (kayıp miktarı)
+  winnerGain: number;  // positive
+  loserLoss: number;   // positive (amount lost)
 }
 
 /**
- * Maç başındaki toplam maç sayısına göre K faktörünü döndürür.
+ * Returns the K factor based on the player's total match count.
  */
 export function getKFactor(totalMatches: number): number {
   if (totalMatches < 10) return 100;
@@ -37,19 +37,19 @@ export function getKFactor(totalMatches: number): number {
 }
 
 /**
- * A oyuncusunun B'ye karşı beklenen kazanma olasılığını hesaplar (0-1 arası).
+ * Calculates the expected win probability of player A against player B (0-1 range).
  */
 export function expectedScore(ratingA: number, ratingB: number): number {
   return 1 / (1 + Math.pow(10, (ratingB - ratingA) / 400));
 }
 
 /**
- * Maç sonucuna göre her iki oyuncunun yeni ELO değerini hesaplar.
+ * Calculates the new ELO values for both players based on the match result.
  *
- * @param winnerElo      Kazananın mevcut ELO'su
- * @param loserElo       Kaybedenin mevcut ELO'su
- * @param winnerMatches  Kazananın toplam maç sayısı (K faktörü için)
- * @param loserMatches   Kaybedenin toplam maç sayısı (K faktörü için)
+ * @param winnerElo      Winner's current ELO
+ * @param loserElo       Loser's current ELO
+ * @param winnerMatches  Winner's total match count (for K factor)
+ * @param loserMatches   Loser's total match count (for K factor)
  */
 export function calculateElo(
   winnerElo: number,
@@ -58,7 +58,7 @@ export function calculateElo(
   loserMatches: number,
 ): EloResult {
   const expectedWinner = expectedScore(winnerElo, loserElo);
-  const expectedLoser  = expectedScore(loserElo, winnerElo);
+  const expectedLoser = expectedScore(loserElo, winnerElo);
 
   // Symmetric K-factor to prevent ELO inflation at the bottom.
   // We use the lowest K factor (highest match count) so that 
@@ -71,10 +71,10 @@ export function calculateElo(
   // Give a small penalty for losing to lower Elo than expected? 
   // Pure zero-sum:
   const winnerGain = delta;
-  const loserLoss  = -delta;
+  const loserLoss = -delta;
 
   const newWinnerElo = Math.max(0, winnerElo + winnerGain);
-  const newLoserElo  = Math.max(0, loserElo  + loserLoss);
+  const newLoserElo = Math.max(0, loserElo + loserLoss);
 
   return {
     newWinnerElo,

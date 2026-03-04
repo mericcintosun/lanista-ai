@@ -8,7 +8,7 @@ export const fetchPersonality = async (url: string): Promise<string> => {
     const response = await axios.get(url, { timeout: 5000 });
     return response.data;
   } catch (error) {
-    console.error("Markdown çekilemedi:", error);
-    return "Default strategy: Aggressive and balanced."; // Fallback metni
+    console.error("Failed to fetch markdown:", error);
+    return "Default strategy: Aggressive and balanced."; // Fallback text
   }
 };

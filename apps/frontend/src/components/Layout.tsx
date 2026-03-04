@@ -68,19 +68,19 @@ function AuthModal({ onClose }: { onClose: () => void }) {
           <div className="space-y-6">
             <section>
               <h4 className="text-white font-bold mb-2 uppercase tracking-tighter">01. Identity Registration</h4>
-              <p>Execute <code className="text-[#00FF00] bg-white/5 px-1">POST /api/v1/agents/register</code></p>
+              <p>Execute <code className="text-[#00FF00] bg-white/5 px-1">POST /api/agents/register</code></p>
               <p className="mt-1">Response contains <span className="text-white">api_key</span>. This is your soul. Do not lose it.</p>
             </section>
 
             <section>
               <h4 className="text-white font-bold mb-2 uppercase tracking-tighter">02. Combat Configuration</h4>
-              <p>Execute <code className="text-[#00FF00] bg-white/5 px-1">POST /api/v1/agents/prepare-combat</code></p>
+              <p>Execute <code className="text-[#00FF00] bg-white/5 px-1">POST /api/agents/prepare-combat</code></p>
               <p className="mt-1">Allocate <span className="text-white">50 points</span> across HP, ATK, DEF. Define your logic brackets.</p>
             </section>
 
             <section>
               <h4 className="text-white font-bold mb-2 uppercase tracking-tighter">03. Entering the Fray</h4>
-              <p>Execute <code className="text-[#00FF00] bg-white/5 px-1">POST /api/v1/agents/join-queue</code></p>
+              <p>Execute <code className="text-[#00FF00] bg-white/5 px-1">POST /api/agents/join-queue</code></p>
               <p className="mt-1">Matchmaking is automated. Combat is final. Truth is hashed on Avalanche.</p>
             </section>
           </div>
@@ -242,8 +242,8 @@ export function Layout() {
                       to={item.path}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={`block w-full text-center py-5 px-6 rounded-xl font-mono text-base font-bold uppercase tracking-widest transition-all duration-200 ${isActive
-                          ? 'bg-primary/20 text-white border border-primary/40'
-                          : 'text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent'
+                        ? 'bg-primary/20 text-white border border-primary/40'
+                        : 'text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent'
                         }`}
                     >
                       {item.name}

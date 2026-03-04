@@ -19,20 +19,20 @@ function getArenaWallet(): ethers.Wallet | ethers.HDNodeWallet {
 const wallet = getArenaWallet();
 
 export const signCombatProof = async (matchId: string, winnerId: string, loserId: string) => {
-  // Veriyi paketle (Solidity'deki keccak256(abi.encodePacked(...)) mantığı)
+  // Pack the data (mirrors Solidity's keccak256(abi.encodePacked(...)) logic)
   const messageHash = ethers.solidityPackedKeccak256(
     ['string', 'string', 'string'],
     [matchId, winnerId, loserId]
   );
-  
-  // Arena cüzdanı ile imzala
+
+  // Sign with the Arena wallet
   const signature = await wallet.signMessage(ethers.getBytes(messageHash));
-  
+
   return {
     match_id: matchId,
     winner_id: winnerId,
     loser_id: loserId,
     signature: signature,
-    arena_signer: wallet.address // Doğrulayıcılar bu adrese bakacak
+    arena_signer: wallet.address // Verifiers will check against this address
   };
 };

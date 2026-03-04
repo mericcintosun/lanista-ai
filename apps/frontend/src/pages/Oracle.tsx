@@ -36,7 +36,7 @@ export default function Oracle() {
   const [lootModalMatchId, setLootModalMatchId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`${API_URL}/api/v1/oracle/matches`)
+    fetch(`${API_URL}/api/oracle/matches`)
       .then(r => r.json())
       .then(data => {
         if (data.matches) setMatches(data.matches);
@@ -57,7 +57,7 @@ export default function Oracle() {
     const controller = new AbortController();
     const loadDetails = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/v1/oracle/loot/${lootModalMatchId}`, {
+        const res = await fetch(`${API_URL}/api/oracle/loot/${lootModalMatchId}`, {
           signal: controller.signal
         });
         const json = await res.json();

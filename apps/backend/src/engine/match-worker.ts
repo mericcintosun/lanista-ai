@@ -4,7 +4,6 @@ import { signCombatProof } from '../services/webhook.js';
 import { evaluateStrategy, resolveAction, DEFAULT_STRATEGY } from './strategy.js';
 import type { Strategy, GameState } from './strategy.js';
 import { calculateElo } from '../services/elo.js';
-
 import Redis from 'ioredis';
 
 // Use REDIS_URL directly if provided, important for BullMQ
@@ -174,7 +173,7 @@ export const matchWorker = new Worker('match-queue', async (job) => {
   const winnerId = p1_hp > 0 ? p1.id : p2.id;
   const loserId = p1_hp > 0 ? p2.id : p1.id;
 
-  // 1. ELO güncelleme — blockchain'den bağımsız, önce yap
+  // 1. ELO update — independent of blockchain, do first
   let winnerEloBefore = 1200;
   let loserEloBefore = 1200;
   let winnerEloGain = 0;
@@ -188,17 +187,17 @@ export const matchWorker = new Worker('match-queue', async (job) => {
       ]);
 
       winnerEloBefore = winnerData?.elo ?? 0;
-      loserEloBefore  = loserData?.elo  ?? 0;
+      loserEloBefore = loserData?.elo ?? 0;
 
       const eloResult = calculateElo(
         winnerEloBefore,
         loserEloBefore,
         winnerData?.total_matches ?? 0,
-        loserData?.total_matches  ?? 0
+        loserData?.total_matches ?? 0
       );
 
       winnerEloGain = eloResult.winnerGain;
-      loserEloLoss  = eloResult.loserLoss;
+      loserEloLoss = eloResult.loserLoss;
 
       await Promise.all([
         supabase.from('bots').update({
@@ -218,7 +217,7 @@ export const matchWorker = new Worker('match-queue', async (job) => {
     console.error('[Worker] ELO update error:', err);
   }
 
-  // 2. DB'ye maç sonucunu yaz (off-chain proof + ELO snapshot ile)
+  // 2. Write match result to DB (with off-chain proof + ELO snapshot)
   try {
     const proof = await signCombatProof(matchId, winnerId, loserId);
     if (process.env.SUPABASE_URL) {
@@ -227,9 +226,9 @@ export const matchWorker = new Worker('match-queue', async (job) => {
         winner_id: winnerId,
         tx_hash: JSON.stringify(proof),
         winner_elo_before: winnerEloBefore,
-        loser_elo_before:  loserEloBefore,
-        winner_elo_gain:   winnerEloGain,
-        loser_elo_loss:    loserEloLoss
+        loser_elo_before: loserEloBefore,
+        winner_elo_gain: winnerEloGain,
+        loser_elo_loss: loserEloLoss
       }).eq('id', matchId);
 
       // Reset bot statuses back to active so they can compete again
@@ -239,16 +238,16 @@ export const matchWorker = new Worker('match-queue', async (job) => {
     }
   } catch (err) {
     console.error('[Worker] Finalize DB error:', err);
-    // DB hatası olsa bile devam et — blockchain job yine de kuyruğa girmeli
+    // Continue even on DB error — blockchain job should still be queued
     try {
       await supabase.from('matches').update({
         status: 'finished',
         winner_id: winnerId
       }).eq('id', matchId);
-    } catch { /* yut */ }
+    } catch { /* swallow */ }
   }
 
-  // 3. Blockchain job — her zaman çalışır, DB hatasından bağımsız
+  // 3. Blockchain job — always runs, independent of DB errors
   try {
     if (process.env.SUPABASE_URL) {
       const [{ data: winnerBot }, { data: loserBot }] = await Promise.all([

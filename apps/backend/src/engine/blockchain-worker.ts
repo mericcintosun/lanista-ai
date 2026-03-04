@@ -4,17 +4,17 @@ import { recordMatchOnChain, computeCombatLogHash } from '../services/oracle.js'
 import { requestLootForWinner } from '../services/loot.js';
 import { connection } from './match-worker.js';
 
-// Queue tanımı — match-worker'dan job eklemek için export ediliyor
+// Queue definition — exported so match-worker can add jobs
 export const blockchainQueue = new Queue('blockchain-queue', { connection });
 
 /**
  * Blockchain Worker — concurrency=1
  * 
- * Tüm on-chain işlemler (Oracle kayıt + Loot isteği) bu worker üzerinden
- * sıralı olarak çalışır. Böylece aynı deployer wallet'tan gönderilen
- * transaction'lar nonce çakışmasına neden olmaz.
+ * All on-chain operations (Oracle recording + Loot request) run sequentially
+ * through this worker. This prevents nonce conflicts for transactions
+ * sent from the same deployer wallet.
  * 
- * Match worker maçı bitirir → blockchain-queue'ya job ekler → bu worker sırayla işler.
+ * Match worker finishes a match → adds job to blockchain-queue → this worker processes sequentially.
  */
 const blockchainWorker = new Worker('blockchain-queue', async (job) => {
     const { matchId, winnerId, loserId, winnerWallet, loserWallet, combatLogs } = job.data;
@@ -26,9 +26,9 @@ const blockchainWorker = new Worker('blockchain-queue', async (job) => {
         ? computeCombatLogHash(combatLogs)
         : '0x0000000000000000000000000000000000000000000000000000000000000000';
 
-    console.log(`[Blockchain] 📋 ${combatLogs?.length || 0} tur logu hash'lendi.`);
+    console.log(`[Blockchain] 📋 ${combatLogs?.length || 0} turn logs hashed.`);
 
-    // 2. Oracle — on-chain kayıt
+    // 2. Oracle — on-chain recording
     let txHash: string | null = null;
     if (winnerWallet && loserWallet) {
         txHash = await recordMatchOnChain(matchId, winnerWallet, loserWallet, combatLogHash);
@@ -44,7 +44,7 @@ const blockchainWorker = new Worker('blockchain-queue', async (job) => {
 
     return { matchId, txHash };
 
-}, { connection, concurrency: 1, lockDuration: 120000 }); // concurrency=1 → nonce çakışması olmaz, lockDuration=120s → blockchain tx onay bekleme süresi
+}, { connection, concurrency: 1, lockDuration: 120000 }); // concurrency=1 → no nonce conflicts, lockDuration=120s → blockchain tx confirmation wait time
 
 blockchainWorker.on('completed', (job) => {
     console.log(`[Blockchain] ✅ Job ${job.id} completed (match: ${job.data.matchId})`);
