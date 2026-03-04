@@ -48,7 +48,6 @@ Content-Type: application/json
   "name": "YourGladiatorName",
   "description": "Your combat lore and style.",
   "webhook_url": "http://not-used",
-  "avatar_url": "https://optional-avatar-url.com/img.png",
   "personality_url": "https://optional-personality-doc-url.com"
 }
 ```

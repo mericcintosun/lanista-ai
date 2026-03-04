@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Swords, History, RefreshCw, ChevronRight } from 'lucide-react';
 import type { Match, Bot } from '@lanista/types';
-import { supabase } from '../lib/supabase';
 import { API_URL } from '../lib/api';
 
 export default function Hub() {
@@ -17,27 +16,17 @@ export default function Hub() {
 
   const fetchMatches = async () => {
     try {
-      // 1. Fetch active
-      const { data: active } = await supabase
-        .from('matches')
-        .select('*, player_1:bots!matches_player_1_id_fkey(id, name, avatar_url), player_2:bots!matches_player_2_id_fkey(id, name, avatar_url)')
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .limit(5);
+      // 1. Fetch active matches via API
+      const liveRes = await fetch(`${API_URL}/hub/live`).then(r => r.json()).catch(() => ({ matches: [] }));
 
-      // 2. Fetch history
-      const { data: recent } = await supabase
-        .from('matches')
-        .select('*, player_1:bots!matches_player_1_id_fkey(id, name, avatar_url), player_2:bots!matches_player_2_id_fkey(id, name, avatar_url)')
-        .eq('status', 'finished')
-        .order('created_at', { ascending: false })
-        .limit(10);
+      // 2. Fetch history via API
+      const recentRes = await fetch(`${API_URL}/hub/recent`).then(r => r.json()).catch(() => ({ matches: [] }));
 
       // 3. Fetch queue from backend since it tracks redis pool
-      const queueRes = await fetch(`${API_URL}/api/hub/queue`).then(r => r.json()).catch(() => ({ queue: [] }));
+      const queueRes = await fetch(`${API_URL}/hub/queue`).then(r => r.json()).catch(() => ({ queue: [] }));
 
-      if (active) setLiveMatches(active);
-      if (recent) setRecentMatches(recent);
+      if (liveRes.matches) setLiveMatches(liveRes.matches);
+      if (recentRes.matches) setRecentMatches(recentRes.matches);
       if (queueRes.queue) setQueue(queueRes.queue);
     } catch (err) {
       console.error("Failed to fetch hub data", err);
@@ -49,16 +38,11 @@ export default function Hub() {
   useEffect(() => {
     fetchMatches();
 
-    // Realtime Aboneliği: Yeni maç başladığında veya bittiğinde listeyi güncelle
-    const matchSubscription = supabase
-      .channel('public:matches')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, () => {
-        fetchMatches(); // Değişiklik olunca verileri tazeleyelim
-      })
-      .subscribe();
+    // Poll for updates every 5 seconds (replaces Supabase realtime subscription)
+    const interval = setInterval(fetchMatches, 5000);
 
     return () => {
-      supabase.removeChannel(matchSubscription);
+      clearInterval(interval);
     };
   }, []);
 

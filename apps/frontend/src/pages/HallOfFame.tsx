@@ -36,7 +36,7 @@ export default function HallOfFame() {
 
   const fetchLeaderboard = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/api/leaderboard`);
+      const res = await fetch(`${API_URL}/leaderboard`);
       const data = await res.json();
       if (data.leaderboard) {
         const incoming: AgentScore[] = data.leaderboard;

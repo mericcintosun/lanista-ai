@@ -199,7 +199,7 @@ export default function Landing() {
 
   useEffect(() => {
     // 1. Fetch Leaderboard
-    fetch(`${API_URL}/api/leaderboard`)
+    fetch(`${API_URL}/leaderboard`)
       .then(r => r.json())
       .then(data => {
         if (data && data.leaderboard) setLeaderboard(data.leaderboard);

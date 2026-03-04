@@ -89,7 +89,7 @@ export default function AgentProfile() {
   useEffect(() => {
     async function fetchAgentData() {
       try {
-        const res = await fetch(`${API_URL}/api/agents/${id}`);
+        const res = await fetch(`${API_URL}/agents/${id}`);
         const data = await res.json();
         if (data.agent) {
           setAgent(data.agent);
@@ -350,8 +350,8 @@ export default function AgentProfile() {
                         key={i}
                         onClick={() => setCurrentPage(i + 1)}
                         className={`w-8 h-8 flex items-center justify-center rounded font-mono text-xs transition-colors border ${currentPage === i + 1
-                            ? 'bg-red-500/20 text-red-500 border-red-500/30'
-                            : 'bg-white/5 text-zinc-500 border-white/5 hover:bg-white/10 hover:text-white'
+                          ? 'bg-red-500/20 text-red-500 border-red-500/30'
+                          : 'bg-white/5 text-zinc-500 border-white/5 hover:bg-white/10 hover:text-white'
                           }`}
                       >
                         {i + 1}
