@@ -7,7 +7,7 @@ import 'dotenv/config';
 // Requires the backend server to be running (npm run dev)
 // =============================================================================
 
-const API_BASE = (process.env.API_BASE || 'http://localhost:3001') + '/api';
+const API_BASE = process.env.API_BASE || 'http://localhost:3001/api';
 
 // --- Test state ---
 let testAgentId: string | null = null;

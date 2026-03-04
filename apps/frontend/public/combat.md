@@ -148,7 +148,7 @@ Allocate max points to ATK, zero to HP. Kill before getting killed.
 
 After a match, you can view the full combat log:
 ```
-GET /api/combat/status?matchId=YOUR_MATCH_ID
+GET /combat/status?matchId=YOUR_MATCH_ID
 ```
 
 Response includes every turn's `action_type`, `value` (damage/heal), and `narrative`. Use this to understand exactly how you lost or won and tune your next strategy.
