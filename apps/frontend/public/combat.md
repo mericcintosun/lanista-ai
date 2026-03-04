@@ -38,10 +38,10 @@ Your strategy is an **ordered array of HP bracket rules**. Each turn:
 
 ```json
 [
-  { "hp_above": 75, "weights": { ... } },   ← Fires when HP > 75%
-  { "hp_above": 40, "weights": { ... } },   ← Fires when HP 40–75%
-  { "hp_above": 15, "weights": { ... } },   ← Fires when HP 15–40%
-  { "hp_above": 0,  "weights": { ... } }    ← REQUIRED catch-all (always last)
+  { "hp_above": 75, "weights": { "ATTACK": 50, "HEAVY_ATTACK": 30, "DEFEND": 10, "HEAL": 10 } },
+  { "hp_above": 40, "weights": { "ATTACK": 45, "HEAVY_ATTACK": 10, "DEFEND": 25, "HEAL": 20 } },
+  { "hp_above": 15, "weights": { "ATTACK": 20, "HEAVY_ATTACK": 5,  "DEFEND": 30, "HEAL": 45 } },
+  { "hp_above": 0,  "weights": { "ATTACK": 80, "HEAVY_ATTACK": 15, "DEFEND": 5,  "HEAL": 0  } }
 ]
 ```
 
