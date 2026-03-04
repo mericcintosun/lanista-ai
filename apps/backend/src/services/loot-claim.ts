@@ -9,10 +9,10 @@ const LOOT_ABI = [
 ];
 
 /**
- * Ajanın kendi cüzdanı ve gas'ı ile ganimet talebi (Claim) yapması için servis taslağı.
+ * Service for agents to claim loot using their own wallet and gas.
  * 
- * @param botId     Talep eden botun UUID'si
- * @param lootId    Talep edilecek Loot'un kontrat üzerindeki ID'si
+ * @param botId     UUID of the claiming bot
+ * @param lootId    On-chain ID of the loot to claim
  */
 export async function claimLootWithWDK(botId: string, lootId: string) {
   const rpcUrl = process.env.AVALANCHE_RPC_URL;
@@ -24,7 +24,7 @@ export async function claimLootWithWDK(botId: string, lootId: string) {
   }
 
   try {
-    // 1. Botun şifrelenmiş tohum kelimesini çek
+    // 1. Fetch the bot's encrypted seed phrase
     const { data: bot, error: botErr } = await supabase
       .from('bots')
       .select('encrypted_private_key')
@@ -35,40 +35,40 @@ export async function claimLootWithWDK(botId: string, lootId: string) {
       throw new Error('Bot seed phrase not found.');
     }
 
-    // 2. Tohum kelimeyi çöz (decrypt)
+    // 2. Decrypt the seed phrase
     const seedPhrase = decrypt(bot.encrypted_private_key);
 
-    // 3. WDK ve WalletManagerEvm instance'larını kur
+    // 3. Initialize WDK and WalletManagerEvm instances
     const wdk = new WDK(seedPhrase);
-    wdk.registerWallet('evm', WalletManagerEvm as any, { 
-      rpcUrl: rpcUrl, 
-      chainId: 43114 
+    wdk.registerWallet('evm', WalletManagerEvm as any, {
+      rpcUrl: rpcUrl,
+      chainId: 43114
     } as any);
 
-    // 4. Ajanın cüzdanını al ve provider'a bağla
+    // 4. Get the agent's wallet and connect to provider
     const evmAccount = await wdk.getAccount('evm');
     const provider = new ethers.JsonRpcProvider(rpcUrl);
-    
-    // NOT: WDK public Signer API'si henüz sınırlı olduğu için internal _account kullanılıyor.
-    // Gelecekteki WDK sürümlerinde getSigner() metodu kontrol edilmelidir.
+
+    // NOTE: Using internal _account since WDK public Signer API is still limited.
+    // Future WDK versions should be checked for a getSigner() method.
     const agentWallet = (evmAccount as any)._account.connect(provider);
 
-    // UX: İşlem öncesi bakiye kontrolü
+    // UX: Pre-transaction balance check
     const balance = await provider.getBalance(agentWallet.address);
     if (balance === 0n) {
-      throw new Error(`Yetersiz bakiye: Ajanın (${agentWallet.address}) gas ödeyecek AVAX'ı yok.`);
+      throw new Error(`Insufficient balance: Agent (${agentWallet.address}) has no AVAX to pay for gas.`);
     }
 
-    // 5. Akıllı sözleşme işlemini gönder
+    // 5. Send the smart contract transaction
     const lootContract = new ethers.Contract(contractAddress, LOOT_ABI, agentWallet);
-    
+
     console.log(`[LootClaim] 🎒 Claiming loot ${lootId} for bot ${botId}...`);
     const tx = await lootContract.claimLoot(lootId);
     console.log(`[LootClaim] ⏳ Transaction sent: ${tx.hash}`);
 
     const receipt = await tx.wait();
     console.log(`[LootClaim] ✅ Loot claimed successfully! TX: ${tx.hash}`);
-    
+
     return tx.hash;
   } catch (err: any) {
     console.error('[LootClaim] ❌ Failed to claim loot:', err.message);

@@ -48,7 +48,7 @@ export function encrypt(text: string): string {
     const key = deriveKey(salt);
 
     const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
-    
+
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
 

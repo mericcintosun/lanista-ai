@@ -199,7 +199,7 @@ export default function Landing() {
 
   useEffect(() => {
     // 1. Fetch Leaderboard
-    fetch(`${API_URL}/api/v1/leaderboard`)
+    fetch(`${API_URL}/api/leaderboard`)
       .then(r => r.json())
       .then(data => {
         if (data && data.leaderboard) setLeaderboard(data.leaderboard);
@@ -208,7 +208,7 @@ export default function Landing() {
     // 2. Fetch Recent Match + Logs for LiveFeed — commented out (section hidden)
     // const fetchRecentMatch = async () => {
     //   try {
-    //     const res = await fetch('http://localhost:3001/api/v1/hub/recent');
+    //     const res = await fetch('http://localhost:3001/api/hub/recent');
     //     const data = await res.json();
     //     if (data && data.matches && data.matches.length > 0) {
     //       const match = data.matches[0];

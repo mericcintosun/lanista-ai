@@ -11,7 +11,7 @@ function getLootContract() {
   const contractAddress = process.env.LOOT_CHEST_CONTRACT_ADDRESS;
 
   if (!rpcUrl || !privateKey || !contractAddress) {
-    console.warn('[Loot] ⚠️ Env değişkenleri eksik, loot entegrasyonu pasif.');
+    console.warn('[Loot] ⚠️ Env variables missing, loot integration disabled.');
     return null;
   }
 
@@ -25,23 +25,23 @@ export async function requestLootForWinner(matchId: string, winnerWallet: string
   if (!contract) return null;
 
   if (!winnerWallet || !ethers.isAddress(winnerWallet)) {
-    console.warn(`[Loot] ⚠️ Geçersiz winner address: ${winnerWallet}`);
+    console.warn(`[Loot] ⚠️ Invalid winner address: ${winnerWallet}`);
     return null;
   }
 
   try {
-    console.log(`[Loot] 🎲 Loot isteği gönderiliyor. Match=${matchId}, winner=${winnerWallet}`);
-    // Bazı Fuji RPC node'ları subscription / consumer durumunda geriden gelebiliyor.
-    // estimateGas sırasında InvalidConsumer revert'i almamak için manuel gasLimit veriyoruz.
+    console.log(`[Loot] 🎲 Sending loot request. Match=${matchId}, winner=${winnerWallet}`);
+    // Some Fuji RPC nodes can lag behind on subscription/consumer state.
+    // We set manual gasLimit to avoid InvalidConsumer reverts during estimateGas.
     const tx = await contract.requestLoot(matchId, winnerWallet, {
       gasLimit: 500_000
     });
-    console.log(`[Loot] ⏳ TX gönderildi: ${tx.hash}`);
+    console.log(`[Loot] ⏳ TX sent: ${tx.hash}`);
     const receipt = await tx.wait();
-    console.log(`[Loot] ✅ Loot isteği on-chain kaydedildi. Blok #${receipt.blockNumber}`);
+    console.log(`[Loot] ✅ Loot request recorded on-chain. Block #${receipt.blockNumber}`);
     return tx.hash as string;
   } catch (err: any) {
-    console.error('[Loot] ❌ Loot isteği hatası:', err?.message || err);
+    console.error('[Loot] ❌ Loot request error:', err?.message || err);
     return null;
   }
 }
@@ -62,7 +62,7 @@ export async function getLootForMatch(matchId: string) {
       requestId: String(requestId)
     };
   } catch (err: any) {
-    console.error('[Loot] ❌ Loot sorgu hatası:', err?.message || err);
+    console.error('[Loot] ❌ Loot query error:', err?.message || err);
     return null;
   }
 }

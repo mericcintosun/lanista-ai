@@ -34,7 +34,7 @@ export default function Hub() {
         .limit(10);
 
       // 3. Fetch queue from backend since it tracks redis pool
-      const queueRes = await fetch(`${API_URL}/api/v1/hub/queue`).then(r => r.json()).catch(() => ({ queue: [] }));
+      const queueRes = await fetch(`${API_URL}/api/hub/queue`).then(r => r.json()).catch(() => ({ queue: [] }));
 
       if (active) setLiveMatches(active);
       if (recent) setRecentMatches(recent);

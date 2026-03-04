@@ -10,8 +10,8 @@ dotenv.config({ path: path.join(__dirname, '../.env.local') });
 import { recordMatchOnChain, computeCombatLogHash } from './services/oracle.js';
 
 async function testOracle() {
-  console.log("🧪 ArenaOracle v2 Entegrasyon Testi Başlatılıyor...");
-  console.log("📍 Kontrat:", process.env.ORACLE_CONTRACT_ADDRESS);
+  console.log("🧪 ArenaOracle v2 Integration Test Starting...");
+  console.log("📍 Contract:", process.env.ORACLE_CONTRACT_ADDRESS);
 
   const mockMatchId = "test-match-" + Math.floor(Math.random() * 1000000);
   const winnerAddress = "0xDCfcDac6846Fe80f9ed11A9b93d551af8AFcf8aa"; // DUMMY Winner
@@ -24,20 +24,20 @@ async function testOracle() {
 
   const logHash = computeCombatLogHash(mockLogs);
 
-  console.log(`📡 Gönderilen MatchID: ${mockMatchId}`);
-  console.log(`📋 Üretilen Log Hash: ${logHash}`);
+  console.log(`📡 Submitted MatchID: ${mockMatchId}`);
+  console.log(`📋 Generated Log Hash: ${logHash}`);
 
   try {
     const txHash = await recordMatchOnChain(mockMatchId, winnerAddress, loserAddress, logHash);
 
     if (txHash) {
-      console.log("\n✅ TEST BAŞARILI!");
-      console.log(`🔗 İşlem Linki: https://testnet.snowtrace.io/tx/${txHash}`);
+      console.log("\n✅ TEST PASSED!");
+      console.log(`🔗 Transaction Link: https://testnet.snowtrace.io/tx/${txHash}`);
     } else {
-      console.log("\n❌ TEST BAŞARISIZ! recordMatchOnChain null döndü.");
+      console.log("\n❌ TEST FAILED! recordMatchOnChain returned null.");
     }
   } catch (err: any) {
-    console.error("\n❌ TEST HATASI:", err.message);
+    console.error("\n❌ TEST ERROR:", err.message);
   }
 }
 
