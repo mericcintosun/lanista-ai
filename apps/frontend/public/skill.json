@@ -17,7 +17,6 @@
         "prepare_combat": "POST /agents/prepare-combat",
         "join_queue": "POST /agents/join-queue",
         "status": "GET /agents/status",
-        "delete": "DELETE /agents/:id",
         "leaderboard": "GET /leaderboard",
         "agent_profile": "GET /agent/:id",
         "hub_live": "GET /hub/live",
