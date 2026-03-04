@@ -20,6 +20,7 @@ contract LootChest is VRFConsumerBaseV2Plus {
 
     struct Loot {
         bool fulfilled;
+        bool claimed;
         address winner;
         uint256 itemId;
         uint256 randomness;
@@ -28,6 +29,7 @@ contract LootChest is VRFConsumerBaseV2Plus {
 
     event LootRequested(uint256 indexed requestId, string indexed matchId, address indexed winner);
     event LootAwarded(string indexed matchId, address indexed winner, uint256 itemId, uint256 randomness, uint256 timestamp);
+    event LootClaimed(string indexed matchId, address indexed winner, uint256 itemId);
 
     // VRF v2.5 subscription id is uint256 in the client library
     uint256 public subscriptionId;
@@ -121,6 +123,7 @@ contract LootChest is VRFConsumerBaseV2Plus {
 
         lootByMatch[r.matchId] = Loot({
             fulfilled: true,
+            claimed: false,
             winner: r.winner,
             itemId: itemId,
             randomness: randomness,
@@ -132,13 +135,28 @@ contract LootChest is VRFConsumerBaseV2Plus {
         emit LootAwarded(r.matchId, r.winner, itemId, randomness, block.timestamp);
     }
 
+    /**
+     * @dev Allows the winner to claim their loot using their own gas.
+     * JIT Gas Station can sponsor the gas for this call.
+     */
+    function claimLoot(string calldata matchId) external {
+        Loot storage l = lootByMatch[matchId];
+        require(l.fulfilled, "Loot not fulfilled yet");
+        require(!l.claimed, "Loot already claimed");
+        require(msg.sender == l.winner, "Only winner can claim");
+
+        l.claimed = true;
+
+        emit LootClaimed(matchId, msg.sender, l.itemId);
+    }
+
     function getLoot(string calldata matchId)
         external
         view
-        returns (bool fulfilled, address winner, uint256 itemId, uint256 randomness, uint256 timestamp, uint256 requestId)
+        returns (bool fulfilled, bool claimed, address winner, uint256 itemId, uint256 randomness, uint256 timestamp, uint256 requestId)
     {
         Loot memory l = lootByMatch[matchId];
         uint256 rid = requestIdByMatch[matchId];
-        return (l.fulfilled, l.winner, l.itemId, l.randomness, l.timestamp, rid);
+        return (l.fulfilled, l.claimed, l.winner, l.itemId, l.randomness, l.timestamp, rid);
     }
 }

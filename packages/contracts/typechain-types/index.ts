@@ -28,8 +28,16 @@ export type { VRFCoordinatorV2Interface } from "./@chainlink/contracts/src/v0.8/
 export { VRFCoordinatorV2Interface__factory } from "./factories/@chainlink/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface__factory";
 export type { VRFConsumerBaseV2 } from "./@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2";
 export { VRFConsumerBaseV2__factory } from "./factories/@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2__factory";
+export type { AccessControl } from "./@openzeppelin/contracts/access/AccessControl";
+export { AccessControl__factory } from "./factories/@openzeppelin/contracts/access/AccessControl__factory";
+export type { IAccessControl } from "./@openzeppelin/contracts/access/IAccessControl";
+export { IAccessControl__factory } from "./factories/@openzeppelin/contracts/access/IAccessControl__factory";
 export type { Ownable } from "./@openzeppelin/contracts/access/Ownable";
 export { Ownable__factory } from "./factories/@openzeppelin/contracts/access/Ownable__factory";
+export type { ERC165 } from "./@openzeppelin/contracts/utils/introspection/ERC165";
+export { ERC165__factory } from "./factories/@openzeppelin/contracts/utils/introspection/ERC165__factory";
+export type { IERC165 } from "./@openzeppelin/contracts/utils/introspection/IERC165";
+export { IERC165__factory } from "./factories/@openzeppelin/contracts/utils/introspection/IERC165__factory";
 export type { ArenaOracle } from "./contracts/ArenaOracle";
 export { ArenaOracle__factory } from "./factories/contracts/ArenaOracle__factory";
 export type { LootChest } from "./contracts/LootChest";

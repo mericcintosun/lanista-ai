@@ -6,6 +6,7 @@ import Landing from './pages/Landing';
 import Hub from './pages/Hub';
 import HallOfFame from './pages/HallOfFame';
 import Oracle from './pages/Oracle';
+import AgentProfile from './pages/AgentProfile';
 import './index.css';
 
 function GlobalMatchDirector() {
@@ -34,6 +35,7 @@ function App() {
           <Route path="/arena/:matchId" element={<BattleArena />} />
           <Route path="/hall-of-fame" element={<HallOfFame />} />
           <Route path="/oracle" element={<Oracle />} />
+          <Route path="/agent/:id" element={<AgentProfile />} />
         </Route>
       </Routes>
     </BrowserRouter>

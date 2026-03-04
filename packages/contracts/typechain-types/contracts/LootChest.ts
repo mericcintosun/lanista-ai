@@ -28,6 +28,7 @@ export interface LootChestInterface extends Interface {
     nameOrSignature:
       | "acceptOwnership"
       | "callbackGasLimit"
+      | "claimLoot"
       | "getLoot"
       | "keyHash"
       | "numWords"
@@ -48,6 +49,7 @@ export interface LootChestInterface extends Interface {
     nameOrSignatureOrTopic:
       | "CoordinatorSet"
       | "LootAwarded"
+      | "LootClaimed"
       | "LootRequested"
       | "OwnershipTransferRequested"
       | "OwnershipTransferred"
@@ -61,6 +63,7 @@ export interface LootChestInterface extends Interface {
     functionFragment: "callbackGasLimit",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "claimLoot", values: [string]): string;
   encodeFunctionData(functionFragment: "getLoot", values: [string]): string;
   encodeFunctionData(functionFragment: "keyHash", values?: undefined): string;
   encodeFunctionData(functionFragment: "numWords", values?: undefined): string;
@@ -114,6 +117,7 @@ export interface LootChestInterface extends Interface {
     functionFragment: "callbackGasLimit",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "claimLoot", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getLoot", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "keyHash", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "numWords", data: BytesLike): Result;
@@ -190,6 +194,24 @@ export namespace LootAwardedEvent {
     itemId: bigint;
     randomness: bigint;
     timestamp: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace LootClaimedEvent {
+  export type InputTuple = [
+    matchId: string,
+    winner: AddressLike,
+    itemId: BigNumberish
+  ];
+  export type OutputTuple = [matchId: string, winner: string, itemId: bigint];
+  export interface OutputObject {
+    matchId: string;
+    winner: string;
+    itemId: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -292,11 +314,14 @@ export interface LootChest extends BaseContract {
 
   callbackGasLimit: TypedContractMethod<[], [bigint], "view">;
 
+  claimLoot: TypedContractMethod<[matchId: string], [void], "nonpayable">;
+
   getLoot: TypedContractMethod<
     [matchId: string],
     [
-      [boolean, string, bigint, bigint, bigint, bigint] & {
+      [boolean, boolean, string, bigint, bigint, bigint, bigint] & {
         fulfilled: boolean;
+        claimed: boolean;
         winner: string;
         itemId: bigint;
         randomness: bigint;
@@ -380,12 +405,16 @@ export interface LootChest extends BaseContract {
     nameOrSignature: "callbackGasLimit"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
+    nameOrSignature: "claimLoot"
+  ): TypedContractMethod<[matchId: string], [void], "nonpayable">;
+  getFunction(
     nameOrSignature: "getLoot"
   ): TypedContractMethod<
     [matchId: string],
     [
-      [boolean, string, bigint, bigint, bigint, bigint] & {
+      [boolean, boolean, string, bigint, bigint, bigint, bigint] & {
         fulfilled: boolean;
+        claimed: boolean;
         winner: string;
         itemId: bigint;
         randomness: bigint;
@@ -478,6 +507,13 @@ export interface LootChest extends BaseContract {
     LootAwardedEvent.OutputObject
   >;
   getEvent(
+    key: "LootClaimed"
+  ): TypedContractEvent<
+    LootClaimedEvent.InputTuple,
+    LootClaimedEvent.OutputTuple,
+    LootClaimedEvent.OutputObject
+  >;
+  getEvent(
     key: "LootRequested"
   ): TypedContractEvent<
     LootRequestedEvent.InputTuple,
@@ -520,6 +556,17 @@ export interface LootChest extends BaseContract {
       LootAwardedEvent.InputTuple,
       LootAwardedEvent.OutputTuple,
       LootAwardedEvent.OutputObject
+    >;
+
+    "LootClaimed(string,address,uint256)": TypedContractEvent<
+      LootClaimedEvent.InputTuple,
+      LootClaimedEvent.OutputTuple,
+      LootClaimedEvent.OutputObject
+    >;
+    LootClaimed: TypedContractEvent<
+      LootClaimedEvent.InputTuple,
+      LootClaimedEvent.OutputTuple,
+      LootClaimedEvent.OutputObject
     >;
 
     "LootRequested(uint256,string,address)": TypedContractEvent<

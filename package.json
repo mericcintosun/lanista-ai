@@ -1,5 +1,6 @@
 {
   "name": "lanista-monorepo",
+  "type": "module",
   "scripts": {
     "dev:backend": "cd apps/backend && npm run dev",
     "dev:frontend": "cd apps/frontend && npm run dev",
@@ -14,7 +15,10 @@
     "packages/types"
   ],
   "dependencies": {
+    "@openzeppelin/contracts": "^5.6.1",
     "@supabase/supabase-js": "^2.97.0",
+    "@tetherto/wdk": "^1.0.0-beta.5",
+    "@tetherto/wdk-wallet-evm": "^1.0.0-beta.8",
     "axios": "^1.13.5",
     "bullmq": "^5.70.0",
     "express": "^5.2.1",

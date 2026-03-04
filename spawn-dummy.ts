@@ -320,7 +320,7 @@ async function spawnDummy(name: string) {
 }
 
 async function main() {
-  const TOTAL = 10;
+  const TOTAL = 4;
   for (let i = 0; i < TOTAL; i++) {
     const name = nextBotName();
     console.log(`\n--- Spawning Bot ${i + 1} of ${TOTAL} :: ${name} ---`);

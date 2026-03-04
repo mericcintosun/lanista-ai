@@ -26,68 +26,105 @@ import type {
 export interface ArenaOracleInterface extends Interface {
   getFunction(
     nameOrSignature:
+      | "DEFAULT_ADMIN_ROLE"
+      | "ORACLE_ROLE"
       | "getMatchRecord"
-      | "isMatchRecorded"
+      | "getRoleAdmin"
+      | "grantRole"
+      | "hasRole"
       | "matchRecords"
-      | "owner"
       | "recordMatchResult"
-      | "renounceOwnership"
-      | "transferOwnership"
+      | "renounceRole"
+      | "revokeRole"
+      | "supportsInterface"
   ): FunctionFragment;
 
   getEvent(
-    nameOrSignatureOrTopic: "MatchRecorded" | "OwnershipTransferred"
+    nameOrSignatureOrTopic:
+      | "MatchRecorded"
+      | "RoleAdminChanged"
+      | "RoleGranted"
+      | "RoleRevoked"
   ): EventFragment;
 
+  encodeFunctionData(
+    functionFragment: "DEFAULT_ADMIN_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "ORACLE_ROLE",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "getMatchRecord",
     values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "isMatchRecorded",
-    values: [string]
+    functionFragment: "getRoleAdmin",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "grantRole",
+    values: [BytesLike, AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "hasRole",
+    values: [BytesLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "matchRecords",
     values: [string]
   ): string;
-  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "recordMatchResult",
     values: [string, AddressLike, AddressLike, BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "renounceOwnership",
-    values?: undefined
+    functionFragment: "renounceRole",
+    values: [BytesLike, AddressLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [AddressLike]
+    functionFragment: "revokeRole",
+    values: [BytesLike, AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "supportsInterface",
+    values: [BytesLike]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "DEFAULT_ADMIN_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "ORACLE_ROLE",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getMatchRecord",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "isMatchRecorded",
+    functionFragment: "getRoleAdmin",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "matchRecords",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "recordMatchResult",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "renounceOwnership",
+    functionFragment: "renounceRole",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "transferOwnership",
+    functionFragment: "supportsInterface",
     data: BytesLike
   ): Result;
 }
@@ -120,12 +157,57 @@ export namespace MatchRecordedEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
-export namespace OwnershipTransferredEvent {
-  export type InputTuple = [previousOwner: AddressLike, newOwner: AddressLike];
-  export type OutputTuple = [previousOwner: string, newOwner: string];
+export namespace RoleAdminChangedEvent {
+  export type InputTuple = [
+    role: BytesLike,
+    previousAdminRole: BytesLike,
+    newAdminRole: BytesLike
+  ];
+  export type OutputTuple = [
+    role: string,
+    previousAdminRole: string,
+    newAdminRole: string
+  ];
   export interface OutputObject {
-    previousOwner: string;
-    newOwner: string;
+    role: string;
+    previousAdminRole: string;
+    newAdminRole: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace RoleGrantedEvent {
+  export type InputTuple = [
+    role: BytesLike,
+    account: AddressLike,
+    sender: AddressLike
+  ];
+  export type OutputTuple = [role: string, account: string, sender: string];
+  export interface OutputObject {
+    role: string;
+    account: string;
+    sender: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace RoleRevokedEvent {
+  export type InputTuple = [
+    role: BytesLike,
+    account: AddressLike,
+    sender: AddressLike
+  ];
+  export type OutputTuple = [role: string, account: string, sender: string];
+  export interface OutputObject {
+    role: string;
+    account: string;
+    sender: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -176,6 +258,10 @@ export interface ArenaOracle extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  DEFAULT_ADMIN_ROLE: TypedContractMethod<[], [string], "view">;
+
+  ORACLE_ROLE: TypedContractMethod<[], [string], "view">;
+
   getMatchRecord: TypedContractMethod<
     [matchId: string],
     [
@@ -189,7 +275,19 @@ export interface ArenaOracle extends BaseContract {
     "view"
   >;
 
-  isMatchRecorded: TypedContractMethod<[arg0: string], [boolean], "view">;
+  getRoleAdmin: TypedContractMethod<[role: BytesLike], [string], "view">;
+
+  grantRole: TypedContractMethod<
+    [role: BytesLike, account: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  hasRole: TypedContractMethod<
+    [role: BytesLike, account: AddressLike],
+    [boolean],
+    "view"
+  >;
 
   matchRecords: TypedContractMethod<
     [arg0: string],
@@ -204,8 +302,6 @@ export interface ArenaOracle extends BaseContract {
     "view"
   >;
 
-  owner: TypedContractMethod<[], [string], "view">;
-
   recordMatchResult: TypedContractMethod<
     [
       matchId: string,
@@ -217,18 +313,34 @@ export interface ArenaOracle extends BaseContract {
     "nonpayable"
   >;
 
-  renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
-
-  transferOwnership: TypedContractMethod<
-    [newOwner: AddressLike],
+  renounceRole: TypedContractMethod<
+    [role: BytesLike, callerConfirmation: AddressLike],
     [void],
     "nonpayable"
+  >;
+
+  revokeRole: TypedContractMethod<
+    [role: BytesLike, account: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  supportsInterface: TypedContractMethod<
+    [interfaceId: BytesLike],
+    [boolean],
+    "view"
   >;
 
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
 
+  getFunction(
+    nameOrSignature: "DEFAULT_ADMIN_ROLE"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "ORACLE_ROLE"
+  ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "getMatchRecord"
   ): TypedContractMethod<
@@ -244,8 +356,22 @@ export interface ArenaOracle extends BaseContract {
     "view"
   >;
   getFunction(
-    nameOrSignature: "isMatchRecorded"
-  ): TypedContractMethod<[arg0: string], [boolean], "view">;
+    nameOrSignature: "getRoleAdmin"
+  ): TypedContractMethod<[role: BytesLike], [string], "view">;
+  getFunction(
+    nameOrSignature: "grantRole"
+  ): TypedContractMethod<
+    [role: BytesLike, account: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "hasRole"
+  ): TypedContractMethod<
+    [role: BytesLike, account: AddressLike],
+    [boolean],
+    "view"
+  >;
   getFunction(
     nameOrSignature: "matchRecords"
   ): TypedContractMethod<
@@ -261,9 +387,6 @@ export interface ArenaOracle extends BaseContract {
     "view"
   >;
   getFunction(
-    nameOrSignature: "owner"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
     nameOrSignature: "recordMatchResult"
   ): TypedContractMethod<
     [
@@ -276,11 +399,22 @@ export interface ArenaOracle extends BaseContract {
     "nonpayable"
   >;
   getFunction(
-    nameOrSignature: "renounceOwnership"
-  ): TypedContractMethod<[], [void], "nonpayable">;
+    nameOrSignature: "renounceRole"
+  ): TypedContractMethod<
+    [role: BytesLike, callerConfirmation: AddressLike],
+    [void],
+    "nonpayable"
+  >;
   getFunction(
-    nameOrSignature: "transferOwnership"
-  ): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;
+    nameOrSignature: "revokeRole"
+  ): TypedContractMethod<
+    [role: BytesLike, account: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "supportsInterface"
+  ): TypedContractMethod<[interfaceId: BytesLike], [boolean], "view">;
 
   getEvent(
     key: "MatchRecorded"
@@ -290,11 +424,25 @@ export interface ArenaOracle extends BaseContract {
     MatchRecordedEvent.OutputObject
   >;
   getEvent(
-    key: "OwnershipTransferred"
+    key: "RoleAdminChanged"
   ): TypedContractEvent<
-    OwnershipTransferredEvent.InputTuple,
-    OwnershipTransferredEvent.OutputTuple,
-    OwnershipTransferredEvent.OutputObject
+    RoleAdminChangedEvent.InputTuple,
+    RoleAdminChangedEvent.OutputTuple,
+    RoleAdminChangedEvent.OutputObject
+  >;
+  getEvent(
+    key: "RoleGranted"
+  ): TypedContractEvent<
+    RoleGrantedEvent.InputTuple,
+    RoleGrantedEvent.OutputTuple,
+    RoleGrantedEvent.OutputObject
+  >;
+  getEvent(
+    key: "RoleRevoked"
+  ): TypedContractEvent<
+    RoleRevokedEvent.InputTuple,
+    RoleRevokedEvent.OutputTuple,
+    RoleRevokedEvent.OutputObject
   >;
 
   filters: {
@@ -309,15 +457,37 @@ export interface ArenaOracle extends BaseContract {
       MatchRecordedEvent.OutputObject
     >;
 
-    "OwnershipTransferred(address,address)": TypedContractEvent<
-      OwnershipTransferredEvent.InputTuple,
-      OwnershipTransferredEvent.OutputTuple,
-      OwnershipTransferredEvent.OutputObject
+    "RoleAdminChanged(bytes32,bytes32,bytes32)": TypedContractEvent<
+      RoleAdminChangedEvent.InputTuple,
+      RoleAdminChangedEvent.OutputTuple,
+      RoleAdminChangedEvent.OutputObject
     >;
-    OwnershipTransferred: TypedContractEvent<
-      OwnershipTransferredEvent.InputTuple,
-      OwnershipTransferredEvent.OutputTuple,
-      OwnershipTransferredEvent.OutputObject
+    RoleAdminChanged: TypedContractEvent<
+      RoleAdminChangedEvent.InputTuple,
+      RoleAdminChangedEvent.OutputTuple,
+      RoleAdminChangedEvent.OutputObject
+    >;
+
+    "RoleGranted(bytes32,address,address)": TypedContractEvent<
+      RoleGrantedEvent.InputTuple,
+      RoleGrantedEvent.OutputTuple,
+      RoleGrantedEvent.OutputObject
+    >;
+    RoleGranted: TypedContractEvent<
+      RoleGrantedEvent.InputTuple,
+      RoleGrantedEvent.OutputTuple,
+      RoleGrantedEvent.OutputObject
+    >;
+
+    "RoleRevoked(bytes32,address,address)": TypedContractEvent<
+      RoleRevokedEvent.InputTuple,
+      RoleRevokedEvent.OutputTuple,
+      RoleRevokedEvent.OutputObject
+    >;
+    RoleRevoked: TypedContractEvent<
+      RoleRevokedEvent.InputTuple,
+      RoleRevokedEvent.OutputTuple,
+      RoleRevokedEvent.OutputObject
     >;
   };
 }

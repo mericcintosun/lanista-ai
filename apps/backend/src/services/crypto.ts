@@ -1,49 +1,94 @@
 import crypto from 'crypto';
 
-const ALGORITHM = 'aes-256-cbc';
+/**
+ * Lanista Advanced Crypto Service
+ * Standards: AES-256-GCM, PBKDF2 Key Derivation, Authenticated Encryption.
+ */
 
-const DEV_FALLBACK_KEY = 'default_secret_key_32_bytes_long_';
+const ALGORITHM = 'aes-256-gcm';
+const PBKDF2_ITERATIONS = 100000;
+const KEY_LENGTH = 32; // 256 bits for AES-256
+const IV_LENGTH = 12;  // Recommended for GCM
+const SALT_LENGTH = 16;
+const AUTH_TAG_LENGTH = 16;
 
-function getEncryptionKey(): string {
+/**
+ * Retrieves the master encryption key from environment variables.
+ * @throws Error if ENCRYPTION_KEY is missing in production.
+ */
+function getMasterKey(): string {
   const key = process.env.ENCRYPTION_KEY;
-  if (key && key.length >= 16) {
-    return key;
+  if (!key || key.length < 32) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('CRITICAL: ENCRYPTION_KEY must be at least 32 characters in production.');
+    }
+    console.warn('[crypto] Using insecure or missing ENCRYPTION_KEY. Set a 32+ char secret in .env');
+    return key || 'dev_fallback_secret_key_32_chars_long';
   }
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error(
-      'ENCRYPTION_KEY is required in production. Set a secure 32+ character secret in your environment.'
-    );
-  }
-  console.warn(
-    '[crypto] ENCRYPTION_KEY not set; using dev-only fallback. Never use this in production.'
-  );
-  return DEV_FALLBACK_KEY;
+  return key;
 }
 
-const ENCRYPTION_KEY = getEncryptionKey();
+const MASTER_KEY = getMasterKey();
 
-function getKey(): Buffer {
-  return Buffer.from(
-    crypto.createHash('sha256').update(ENCRYPTION_KEY).digest('base64').substring(0, 32),
-    'utf-8'
-  );
+/**
+ * Derives a cryptographic key from the master secret and a unique salt using PBKDF2.
+ */
+function deriveKey(salt: Buffer): Buffer {
+  return crypto.pbkdf2Sync(MASTER_KEY, salt, PBKDF2_ITERATIONS, KEY_LENGTH, 'sha256');
 }
 
+/**
+ * Encrypts a string using AES-256-GCM.
+ * Output Format: salt:iv:authTag:ciphertext (all hex)
+ */
 export function encrypt(text: string): string {
-    const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipheriv(ALGORITHM, getKey(), iv);
-    let encrypted = cipher.update(text);
-    encrypted = Buffer.concat([encrypted, cipher.final()]);
-    // Format: iv:encrypted_data
-    return iv.toString('hex') + ':' + encrypted.toString('hex');
+  try {
+    const salt = crypto.randomBytes(SALT_LENGTH);
+    const iv = crypto.randomBytes(IV_LENGTH);
+    const key = deriveKey(salt);
+
+    const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
+    
+    let encrypted = cipher.update(text, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+
+    const authTag = cipher.getAuthTag().toString('hex');
+
+    // Combine into a single string for storage: salt:iv:authTag:ciphertext
+    return `${salt.toString('hex')}:${iv.toString('hex')}:${authTag}:${encrypted}`;
+  } catch (err) {
+    console.error('[crypto] Encryption failed:', err);
+    throw new Error('Encryption process failed due to internal cryptographic error.');
+  }
 }
 
-export function decrypt(text: string): string {
-    const textParts = text.split(':');
-    const iv = Buffer.from(textParts.shift()!, 'hex');
-    const encryptedText = Buffer.from(textParts.join(':'), 'hex');
-    const decipher = crypto.createDecipheriv(ALGORITHM, getKey(), iv);
-    let decrypted = decipher.update(encryptedText);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
-    return decrypted.toString();
+/**
+ * Decrypts a string formatted as salt:iv:authTag:ciphertext using AES-256-GCM.
+ * @throws Error if verification or authentication fails.
+ */
+export function decrypt(encryptedData: string): string {
+  try {
+    const parts = encryptedData.split(':');
+    if (parts.length !== 4) {
+      throw new Error('Invalid encrypted data format. Expected 4 parts (salt:iv:authTag:ciphertext).');
+    }
+
+    const [saltHex, ivHex, authTagHex, ciphertextHex] = parts;
+    const salt = Buffer.from(saltHex, 'hex');
+    const iv = Buffer.from(ivHex, 'hex');
+    const authTag = Buffer.from(authTagHex, 'hex');
+    const key = deriveKey(salt);
+
+    const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
+    decipher.setAuthTag(authTag);
+
+    let decrypted = decipher.update(ciphertextHex, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+
+    return decrypted;
+  } catch (err: any) {
+    // If authTag check fails, createDecipheriv/final will throw
+    console.error('[crypto] Decryption failed (potential data tampering):', err.message);
+    throw new Error('Decryption failed. Data might be corrupted or encryption key is incorrect.');
+  }
 }
