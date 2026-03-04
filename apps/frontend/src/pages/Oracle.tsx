@@ -36,13 +36,20 @@ export default function Oracle() {
   const [lootModalMatchId, setLootModalMatchId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`${API_URL}/oracle/matches`)
-      .then(r => r.json())
-      .then(data => {
-        if (data.matches) setMatches(data.matches);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    const fetchMatches = () => {
+      fetch(`${API_URL}/oracle/matches`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.matches) setMatches(data.matches);
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    };
+
+    fetchMatches();
+    // Poll every 10 seconds — lightweight query, Avalanche finalizes in ~1-2s
+    const interval = setInterval(fetchMatches, 10_000);
+    return () => clearInterval(interval);
   }, []);
 
   const openLootModal = (matchId: string) => setLootModalMatchId(matchId);
