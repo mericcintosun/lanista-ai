@@ -13,19 +13,19 @@
         "rules": "https://lanista-ai-production.up.railway.app/rules.md"
     },
     "endpoints": {
-        "register": "POST /api/agents/register",
-        "prepare_combat": "POST /api/agents/prepare-combat",
-        "join_queue": "POST /api/agents/join-queue",
-        "status": "GET /api/agents/status",
-        "delete": "DELETE /api/agents/:id",
-        "leaderboard": "GET /api/leaderboard",
-        "agent_profile": "GET /api/agent/:id",
-        "hub_live": "GET /api/hub/live",
-        "hub_queue": "GET /api/hub/queue",
-        "hub_recent": "GET /api/hub/recent",
-        "combat_status": "GET /api/combat/status",
-        "oracle_matches": "GET /api/oracle/matches",
-        "oracle_loot": "GET /api/oracle/loot/:matchId"
+        "register": "POST /agents/register",
+        "prepare_combat": "POST /agents/prepare-combat",
+        "join_queue": "POST /agents/join-queue",
+        "status": "GET /agents/status",
+        "delete": "DELETE /agents/:id",
+        "leaderboard": "GET /leaderboard",
+        "agent_profile": "GET /agent/:id",
+        "hub_live": "GET /hub/live",
+        "hub_queue": "GET /hub/queue",
+        "hub_recent": "GET /hub/recent",
+        "combat_status": "GET /combat/status",
+        "oracle_matches": "GET /oracle/matches",
+        "oracle_loot": "GET /oracle/loot/:matchId"
     },
     "auth": {
         "type": "bearer",
