@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
 
-const API_BASE = (process.env.API_BASE || 'http://localhost:3001') + '/api/v1';
+const API_BASE = (process.env.API_BASE || 'http://localhost:3001') + '/api';
 
 type StoredAgent = {
   apiKey: string;
