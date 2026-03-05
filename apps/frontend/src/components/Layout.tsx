@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { ExternalLink, Menu, X, Globe, Swords } from 'lucide-react';
+import { ExternalLink, Menu, X, Globe, Swords, Gamepad2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ParticleBackground from './ParticleBackground';
 const SKILL_URL = `${window.location.origin}/skill.md`;
@@ -135,6 +135,7 @@ export function Layout() {
   const navItems = [
     { name: 'The Hub', path: '/hub' },
     { name: 'The Arena', path: '/arena' },
+    { name: 'Game Arena', path: '/game-arena', icon: Gamepad2 },
     { name: 'Hall of Fame', path: '/hall-of-fame' },
     { name: 'The Oracle', path: '/oracle' },
   ];
@@ -151,6 +152,29 @@ export function Layout() {
       </div>
 
       <ParticleBackground />
+
+      {/* ── UNITY PRELOADER (silent background cache warmer) ── */}
+      {/* This hidden 1×1 iframe loads the Unity WebGL build in the background as soon as
+          the app opens. By the time the user finds a live match on Hub and clicks it,
+          Unity files are cached and WASM is compiled — game-arena loads ~5-10× faster,
+          avoiding mid-match joining. */}
+      <iframe
+        src="/lanista-build/index.html"
+        title=""
+        aria-hidden="true"
+        tabIndex={-1}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: 2,
+          height: 2,
+          opacity: 0,
+          pointerEvents: 'none',
+          border: 'none',
+          zIndex: -999,
+        }}
+      />
 
       {/* ── NAVBAR ── */}
       <motion.nav

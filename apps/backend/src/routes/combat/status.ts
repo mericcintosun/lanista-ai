@@ -28,11 +28,17 @@ router.get('/', async (req, res) => {
             .eq('match_id', matchId)
             .order('created_at', { ascending: true });
 
+        // Use explicit != null instead of ?? so that 0 (match just initialized,
+        // worker hasn't run yet) doesn't fall back to the bot's raw base hp stat.
         if (match.player_1) {
-            match.player_1.current_hp = match.p1_current_hp ?? match.player_1.hp;
+            match.player_1.current_hp = (match.p1_current_hp != null)
+                ? match.p1_current_hp
+                : match.player_1.hp;
         }
         if (match.player_2) {
-            match.player_2.current_hp = match.p2_current_hp ?? match.player_2.hp;
+            match.player_2.current_hp = (match.p2_current_hp != null)
+                ? match.p2_current_hp
+                : match.player_2.hp;
         }
 
         res.json({ match, logs: logs || [] });

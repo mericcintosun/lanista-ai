@@ -55,6 +55,37 @@ export const matchWorker = new Worker('match-queue', async (job) => {
     console.error('[Worker] Initial state update error', err);
   }
 
+  // ── Viewer-ready gate ──────────────────────────────────────────────────
+  // Wait for a viewer (Unity) to signal readiness before starting combat.
+  // This prevents the match from running while WebGL is still loading.
+  // Max wait: 25 seconds — if no viewer connects, start anyway.
+  const VIEWER_READY_KEY = `match:${matchId}:viewer-ready`;
+  const MAX_WAIT_MS = 25_000;
+  const POLL_INTERVAL_MS = 500;
+
+  const startWait = Date.now();
+  let viewerReady = false;
+
+  console.log(`[Worker] Match ${matchId}: Waiting for viewer-ready signal (max ${MAX_WAIT_MS / 1000}s)...`);
+
+  while (Date.now() - startWait < MAX_WAIT_MS) {
+    const signal = await connection.get(VIEWER_READY_KEY);
+    if (signal) {
+      viewerReady = true;
+      break;
+    }
+    await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
+  }
+
+  // Clean up the Redis key
+  await connection.del(VIEWER_READY_KEY).catch(() => {});
+
+  if (viewerReady) {
+    console.log(`[Worker] Match ${matchId}: Viewer ready! Starting combat.`);
+  } else {
+    console.log(`[Worker] Match ${matchId}: No viewer after ${MAX_WAIT_MS / 1000}s — starting anyway.`);
+  }
+
   // Combat Loop — fully automatic, no waiting
   while (p1_hp > 0 && p2_hp > 0) {
     const activeAgent = isP1Turn ? p1 : p2;

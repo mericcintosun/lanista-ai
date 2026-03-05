@@ -26,6 +26,7 @@ import claimLootRoute from './src/routes/agents/claim-loot.js';
 import deleteAgentRoute from './src/routes/agents/delete.js';
 import combatStartRoute from './src/routes/combat/start.js';
 import combatStatusRoute from './src/routes/combat/status.js';
+import combatViewerReadyRoute from './src/routes/combat/viewer-ready.js';
 import hubQueueRoute from './src/routes/hub/queue.js';
 import hubLiveRoute from './src/routes/hub/live.js';
 import hubRecentRoute from './src/routes/hub/recent.js';
@@ -54,6 +55,7 @@ app.use('/api/agents', agentProfileRoute); // handles GET /:id (must be last to 
 // Combat endpoints
 app.use('/api/combat/start', combatStartRoute);
 app.use('/api/combat/status', combatStatusRoute);
+app.use('/api/combat/viewer-ready', combatViewerReadyRoute);
 
 // Hub endpoints
 app.use('/api/hub/queue', hubQueueRoute);
