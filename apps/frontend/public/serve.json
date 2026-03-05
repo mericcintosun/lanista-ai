@@ -1,4 +1,11 @@
 {
+    "cleanUrls": false,
+    "rewrites": [
+        {
+            "source": "/lanista-build/game",
+            "destination": "/lanista-build/game.html"
+        }
+    ],
     "headers": [
         {
             "source": "**/*.wasm.br",
