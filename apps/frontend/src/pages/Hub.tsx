@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Swords, History, RefreshCw, ChevronRight } from 'lucide-react';
+import { Swords, History, RefreshCw, ChevronRight, Gamepad2 } from 'lucide-react';
 import type { Match, Bot } from '@lanista/types';
 import { API_URL } from '../lib/api';
 
@@ -222,7 +222,7 @@ export default function Hub() {
             <div className="space-y-4">
               {liveMatches.length > 0 ? (
                 liveMatches.map((match) => (
-                  <Link key={match.id} to={`/arena/${match.id}`} className="block group/item">
+                  <Link key={match.id} to={`/game-arena/${match.id}`} className="block group/item">
                     <motion.div
                       whileHover={{ scale: 1.01 }}
                       className="flex items-center justify-between p-6 bg-black/40 border border-white/5 group-hover/item:border-[#E84142]/30 transition-all relative overflow-hidden text-white"
@@ -259,8 +259,18 @@ export default function Hub() {
                         </div>
                       </div>
 
-                      <div className="absolute bottom-3 right-4 flex items-center gap-1.5 text-xs font-mono text-[#E84142] uppercase tracking-[0.1em] opacity-0 group-hover/item:opacity-100 transition-opacity">
-                        <Swords className="w-3.5 h-3.5" /> Broadcast Live
+                      <div className="absolute bottom-3 right-4 flex items-center gap-3 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                        <Link
+                          to={`/game-arena/${match.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex items-center gap-1.5 text-[10px] font-mono text-cyan-400 uppercase tracking-[0.1em] hover:text-cyan-300 transition-colors"
+                        >
+                          <Gamepad2 className="w-3.5 h-3.5" /> Watch in Game
+                        </Link>
+                        <span className="text-zinc-700">|</span>
+                        <span className="flex items-center gap-1.5 text-xs font-mono text-[#E84142] uppercase tracking-[0.1em]">
+                          <Swords className="w-3.5 h-3.5" /> Broadcast Live
+                        </span>
                       </div>
                     </motion.div>
                   </Link>
@@ -295,7 +305,7 @@ export default function Hub() {
                   <div
                     key={match.id}
                     className="flex flex-col sm:flex-row sm:items-center justify-between py-6 gap-6 transition-all hover:bg-white/[0.02] px-4 -mx-4 cursor-pointer group/row border-b border-white/5 last:border-0"
-                    onClick={() => navigate(`/arena/${match.id}`)}
+                    onClick={() => navigate(`/game-arena/${match.id}`)}
                   >
                     {/* Meta info (Date, Status, ID) */}
                     <div className="flex flex-row sm:flex-row items-center justify-between sm:justify-start gap-4 sm:gap-8 sm:flex-1">

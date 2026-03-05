@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCombatRealtime } from '../hooks/useCombatRealtime';
-import { Swords, ChevronLeft, Activity, Search, ShieldAlert } from 'lucide-react';
+import { Swords, ChevronLeft, Activity, Search, ShieldAlert, Gamepad2 } from 'lucide-react';
 import { useParams, Link } from 'react-router-dom';
 import type { Match } from '@lanista/types';
 import { API_URL } from '../lib/api';
@@ -165,12 +165,20 @@ export function BattleArena() {
               </div>
             )}
 
-            <Link
-              to="/hub"
-              className="mt-8 px-10 py-5 bg-transparent border border-red-500/50 text-red-500 font-mono text-xs font-black uppercase tracking-[0.2em] transition-all hover:bg-red-500/10 hover:border-red-500 hover:shadow-[0_0_20px_rgba(232,65,66,0.3)] flex items-center gap-3 group"
-            >
-              <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> &lt; RETURN TO HUB
-            </Link>
+            <div className="flex flex-wrap gap-3 justify-center mt-8">
+              <Link
+                to={`/game-arena`}
+                className="px-8 py-4 bg-transparent border border-cyan-500/40 text-cyan-400 font-mono text-xs font-black uppercase tracking-[0.2em] transition-all hover:bg-cyan-500/10 hover:border-cyan-400 flex items-center gap-2 group"
+              >
+                <Gamepad2 className="w-4 h-4" /> Game Arena
+              </Link>
+              <Link
+                to="/hub"
+                className="px-8 py-4 bg-transparent border border-red-500/50 text-red-500 font-mono text-xs font-black uppercase tracking-[0.2em] transition-all hover:bg-red-500/10 hover:border-red-500 hover:shadow-[0_0_20px_rgba(232,65,66,0.3)] flex items-center gap-3 group"
+              >
+                <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />&lt; RETURN TO HUB
+              </Link>
+            </div>
           </div>
         ) : !match ? (
           /* LOADING STATE */
@@ -475,13 +483,20 @@ export function BattleArena() {
             </div>
 
             {/* ─── FOOTER ACTIONS ─── */}
-            <div className="flex flex-col items-center gap-6">
-
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              {match && (
+                <Link
+                  to={`/game-arena/${match.id}`}
+                  className="px-10 py-5 bg-transparent border border-cyan-500/40 text-cyan-400 font-mono text-xs font-black uppercase tracking-[0.2em] transition-all hover:bg-cyan-500/10 hover:border-cyan-400 hover:shadow-[0_0_30px_rgba(6,182,212,0.2)] flex items-center gap-3 group"
+                >
+                  <Gamepad2 className="w-4 h-4" /> Watch in Game
+                </Link>
+              )}
               <Link
                 to="/hub"
                 className="px-12 py-5 bg-transparent border border-red-500/50 text-red-500 font-mono text-xs font-black uppercase tracking-[0.2em] transition-all hover:bg-red-500/10 hover:border-red-500 hover:shadow-[0_0_30px_rgba(232,65,66,0.3)] flex items-center gap-3 group"
               >
-                <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> &lt; RETURN TO HUB
+                <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />&lt; RETURN TO HUB
               </Link>
             </div>
           </div>

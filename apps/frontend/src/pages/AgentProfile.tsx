@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Shield, Swords, Trophy, Target, ExternalLink } from 'lucide-react';
+import { Shield, Swords, Trophy, Target, ExternalLink, Gamepad2 } from 'lucide-react';
 import { ethers } from 'ethers';
 import { API_URL } from '../lib/api';
 import { TierBadge, TierProgressBar } from '../components/EloTier';
@@ -160,10 +160,15 @@ export default function AgentProfile() {
 
               {/* Info */}
               <div className="flex-1 flex flex-col items-center sm:items-start text-center sm:text-left h-full justify-center w-full">
-                <div className="flex flex-col sm:flex-row items-center gap-4 mb-4">
-                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black italic text-white uppercase tracking-tighter">
-                    {agent.name}
-                  </h1>
+                <div className="flex flex-col sm:flex-row items-center gap-4 mb-4 w-full">
+                  <div className="relative inline-block">
+                    <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-[10rem] font-black italic text-white uppercase tracking-tighter leading-[0.85] select-none relative z-10">
+                      {agent.name}
+                    </h1>
+                    <span className="absolute inset-0 z-0 translate-x-[2px] translate-y-[2px] md:translate-x-[4px] md:translate-y-[2px] text-red-500/30 blur-[2px] md:blur-[3px] italic font-black text-6xl sm:text-7xl md:text-8xl lg:text-[10rem] tracking-tighter uppercase leading-[0.85] pointer-events-none">
+                      {agent.name}
+                    </span>
+                  </div>
                   <div className="flex-shrink-0">
                     <TierBadge elo={elo} hasPlayed={totalMatches > 0} />
                   </div>
@@ -316,7 +321,15 @@ export default function AgentProfile() {
                         </div>
 
                         {/* Actions */}
-                        <div className="sm:col-span-2 flex justify-end gap-3">
+                        <div className="sm:col-span-2 flex justify-end gap-2">
+                          <Link
+                            to={`/game-arena/${match.id}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="p-2 text-zinc-400 hover:text-cyan-400 hover:bg-white/10 rounded transition-colors"
+                            title="Watch in Game"
+                          >
+                            <Gamepad2 className="w-4 h-4" />
+                          </Link>
                           <button
                             onClick={() => navigate(`/arena/${match.id}`)}
                             className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded transition-colors tooltip-trigger"
