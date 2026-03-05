@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ExternalLink, ChevronLeft, RefreshCw, Maximize2 } from 'lucide-react';
+import { ExternalLink, ChevronLeft, RefreshCw, Maximize2, Trophy, Swords, Activity } from 'lucide-react';
+import confetti from 'canvas-confetti';
 import { API_URL } from '../lib/api';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -97,9 +98,11 @@ export default function GameArena() {
   // ── Timer cleanup ──────────────────────────────────────────────────────────
   const clearAll = useCallback(() => {
     if (intervalRef.current) {
-      // @ts-expect-error type hack
-      if (typeof intervalRef.current.unref === 'function') intervalRef.current.unref();
-      else clearInterval(intervalRef.current as any);
+      if (typeof (intervalRef.current as unknown as { unref: () => void }).unref === 'function') {
+        (intervalRef.current as unknown as { unref: () => void }).unref();
+      } else {
+        clearInterval(intervalRef.current as unknown as ReturnType<typeof setInterval>);
+      }
     }
     if (readyPollRef.current) clearInterval(readyPollRef.current);
   }, []);
@@ -307,6 +310,35 @@ export default function GameArena() {
           : matchInfo.p2)
     : null;
 
+  useEffect(() => {
+    if (isFinished && winnerName) {
+      const duration = 3000;
+      const end = Date.now() + duration;
+
+      const frame = () => {
+        confetti({
+          particleCount: 5,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+          colors: ['#ef4444', '#dc2626', '#b91c1c', '#ffffff']
+        });
+        confetti({
+          particleCount: 5,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+          colors: ['#ef4444', '#dc2626', '#b91c1c', '#ffffff']
+        });
+
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      };
+      frame();
+    }
+  }, [isFinished, winnerName]);
+
   // ─── No matchId splash ─────────────────────────────────────────────────────
   if (!routeMatchId) {
     return (
@@ -352,70 +384,88 @@ export default function GameArena() {
 
   // ─── Match viewer ──────────────────────────────────────────────────────────
   return (
-    <div className="w-full max-w-[1400px] mx-auto pb-12 space-y-3">
+    <div className="w-full max-w-5xl mx-auto pb-12 px-4 space-y-6">
 
       {/* ── Top bar ─────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between pt-4 px-1">
-        <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between glass px-6 py-4 rounded-2xl border border-white/5 shadow-xl relative overflow-hidden">
+        <div className="absolute inset-0 noise pointer-events-none opacity-20" />
+        
+        <div className="flex items-center gap-6 relative z-10">
           <button
             onClick={() => navigate('/hub')}
-            className="flex items-center gap-1.5 font-mono text-[10px] text-zinc-500 hover:text-white uppercase tracking-widest transition-colors"
+            className="flex items-center gap-2 font-mono text-xs text-zinc-400 hover:text-white uppercase tracking-widest transition-colors group"
           >
-            <ChevronLeft className="w-3.5 h-3.5" /> Hub
+            <span className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-red-500/20 group-hover:border-red-500/50 group-hover:text-red-500 transition-all">
+              <ChevronLeft className="w-4 h-4" />
+            </span>
+            <span className="hidden sm:inline">The Hub</span>
           </button>
 
-          {/* Status dot + label */}
-          <div className="flex items-center gap-2">
-            <div className={`w-1.5 h-1.5 rounded-full ${
-              isUnityReady
-                ? isFinished
-                  ? 'bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.7)]'
-                  : 'bg-[#00FF00] shadow-[0_0_6px_rgba(0,255,0,0.7)]'
-                : 'bg-zinc-700 animate-pulse'
-            }`} />
-            <span className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest">
+          <div className="h-4 w-px bg-white/10 hidden sm:block" />
+
+          {/* Status Badge */}
+          <div className="flex items-center gap-3">
+            <div className="relative flex items-center justify-center">
+              {isUnityReady && !isFinished && (
+                <div className="absolute inset-0 bg-green-500/50 rounded-full animate-ping" />
+              )}
+              <div className={`w-2.5 h-2.5 rounded-full relative z-10 ${
+                isUnityReady
+                  ? isFinished
+                    ? 'bg-zinc-500 shadow-[0_0_10px_rgba(113,113,122,0.7)]'
+                    : 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.7)]'
+                  : 'bg-orange-500 animate-pulse shadow-[0_0_10px_rgba(249,115,22,0.7)]'
+              }`} />
+            </div>
+            <span className="font-mono text-[10px] md:text-xs font-bold text-white uppercase tracking-widest">
               {!isUnityReady
-                ? (iframeLoaded ? 'Starting...' : 'Loading...')
+                ? (iframeLoaded ? 'Initializing' : 'Loading Engine')
                 : isFinished
-                  ? 'Finished'
+                  ? 'Combat Concluded'
                   : progress
                     ? `Turn ${progress.cur} / ${progress.total}`
-                    : 'Live'}
+                    : 'System Live'}
             </span>
           </div>
-
-          {matchInfo && (
-            <span className="font-mono text-[10px] text-zinc-400 uppercase tracking-wider hidden sm:block">
-              {matchInfo.p1} <span className="text-red-500/60">vs</span> {matchInfo.p2}
-            </span>
-          )}
         </div>
 
-        <div className="flex items-center gap-2">
-          {isFinished && (
-            <span className="px-2 py-0.5 rounded font-mono text-[9px] font-black uppercase tracking-widest border border-green-500/30 bg-green-500/10 text-green-400">
-              Finished
-            </span>
-          )}
+        <div className="flex items-center gap-3 relative z-10">
           <Link
             to={`/arena/${routeMatchId}`}
-            className="font-mono text-[9px] text-zinc-600 hover:text-white uppercase tracking-widest transition-colors flex items-center gap-1"
+            className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 bg-white/5 
+                       font-mono text-[10px] text-zinc-300 hover:text-white hover:bg-white/10 hover:border-white/20 uppercase tracking-widest transition-all"
           >
-            Classic <ExternalLink className="w-2.5 h-2.5" />
+            Classic View <ExternalLink className="w-3 h-3" />
           </Link>
-          <button onClick={handleRefresh} className="p-2 text-zinc-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
-            <RefreshCw className="w-3.5 h-3.5" />
+          <button onClick={handleRefresh} className="w-10 h-10 flex items-center justify-center bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 rounded-xl transition-all">
+            <RefreshCw className="w-4 h-4" />
           </button>
-          <button onClick={toggleFullscreen} className="p-2 text-zinc-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
-            <Maximize2 className="w-3.5 h-3.5" />
+          <button onClick={toggleFullscreen} className="w-10 h-10 hidden sm:flex items-center justify-center bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 rounded-xl transition-all">
+            <Maximize2 className="w-4 h-4" />
           </button>
         </div>
       </div>
 
+      {/* ── Match Info ─────────────────────────────────────────────────── */}
+      {matchInfo && (
+        <div className="flex items-center justify-center gap-6 px-4 py-2">
+          <div className="text-right">
+            <p className="font-black text-xl text-white uppercase tracking-widest">{matchInfo.p1}</p>
+          </div>
+          <div className="flex items-center justify-center px-4 py-1.5 bg-red-500/10 border border-red-500/20 rounded-lg">
+            <Swords className="w-4 h-4 text-red-500 mr-2" />
+            <span className="font-mono text-xs text-red-500 font-bold uppercase tracking-widest">VS</span>
+          </div>
+          <div className="text-left">
+            <p className="font-black text-xl text-white uppercase tracking-widest">{matchInfo.p2}</p>
+          </div>
+        </div>
+      )}
+
       {/* ── Game viewport ────────────────────────────────────────────────── */}
       <div
         ref={containerRef}
-        className="relative w-full rounded-2xl overflow-hidden border border-white/10 bg-black shadow-2xl"
+        className="relative w-full rounded-2xl overflow-hidden border border-white/10 bg-zinc-950 shadow-2xl group"
         style={{ aspectRatio: '16 / 9' }}
       >
         {/* Loading overlay */}
@@ -423,25 +473,27 @@ export default function GameArena() {
           {!isUnityReady && (
             <motion.div
               initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }}
-              className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-8 bg-black"
+              className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-8 bg-zinc-950"
             >
-              <div className="w-16 h-16 rounded-full border border-white/5 flex items-center justify-center">
-                <div className="w-8 h-8 border-2 border-zinc-800 border-t-red-500 rounded-full animate-spin" />
+              <div className="absolute inset-0 noise pointer-events-none opacity-30" />
+              <div className="w-20 h-20 rounded-full border-2 border-white/5 flex items-center justify-center relative shadow-[0_0_30px_rgba(239,68,68,0.1)]">
+                <div className="w-12 h-12 border-4 border-zinc-800 border-t-red-500 rounded-full animate-spin" />
+                <Activity className="w-4 h-4 text-red-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-50" />
               </div>
-              <div className="text-center space-y-2">
-                <p className="font-mono text-[10px] text-red-500 uppercase tracking-[0.4em]">
-                  {iframeLoaded ? 'Initializing Engine' : 'Loading WebGL Build'}
+              <div className="text-center space-y-3 relative z-10 w-full max-w-sm px-4">
+                <p className="font-mono text-xs text-red-500 font-bold uppercase tracking-[0.4em]">
+                  {iframeLoaded ? 'Initializing Neural Engine' : 'Loading Simulation Environment'}
                 </p>
-                <p className="font-mono text-[9px] text-zinc-600 uppercase tracking-widest">
-                  {iframeLoaded ? 'Unity runtime starting...' : '~17MB brotli — may use cache'}
+                <div className="w-full h-1 bg-zinc-900 overflow-hidden rounded-full">
+                  <motion.div
+                    className="h-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]"
+                    animate={{ width: iframeLoaded ? '85%' : '15%' }}
+                    transition={{ duration: 2, ease: 'easeOut' }}
+                  />
+                </div>
+                <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest">
+                  {iframeLoaded ? 'Connecting to Runtime...' : 'Establishing Secure Connection...'}
                 </p>
-              </div>
-              <div className="w-48 h-px bg-zinc-900 relative overflow-hidden rounded-full">
-                <motion.div
-                  className="absolute inset-y-0 left-0 bg-red-500"
-                  animate={{ width: iframeLoaded ? '75%' : '25%' }}
-                  transition={{ duration: 2, ease: 'easeInOut' }}
-                />
               </div>
             </motion.div>
           )}
@@ -451,15 +503,21 @@ export default function GameArena() {
         <AnimatePresence>
           {isUnityReady && isFinished && winnerName && (
             <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, scale: 0.9, y: -20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="absolute top-4 left-1/2 -translate-x-1/2 z-10 px-6 py-3 rounded-2xl
-                         bg-black/70 border border-green-500/40 backdrop-blur-sm text-center"
+              transition={{ duration: 0.6, type: 'spring', bounce: 0.4 }}
+              className="absolute inset-x-0 top-6 z-10 flex justify-center pointer-events-none"
             >
-              <p className="font-mono text-[9px] text-green-400 uppercase tracking-[0.4em] mb-0.5">Winner</p>
-              <p className="font-black text-white text-xl italic uppercase tracking-tight">{winnerName}</p>
+              <div className="glass px-6 py-3 rounded-2xl border-t border-white/20 border-b border-black shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex items-center gap-4 mx-4 pointer-events-auto">
+                <Trophy className="w-5 h-5 text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.5)]" />
+                <div className="flex flex-col items-start leading-tight">
+                  <p className="font-mono text-[7px] text-zinc-400 uppercase tracking-[0.3em] opacity-80">Simulation Concluded</p>
+                  <p className="font-black text-lg text-white uppercase tracking-tight">
+                    {winnerName} <span className="text-red-500">Wins</span>
+                  </p>
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -470,18 +528,32 @@ export default function GameArena() {
           title="Lanista Game Arena"
           onLoad={handleIframeLoad}
           allow="fullscreen"
-          style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+          className="w-full h-full border-none block"
         />
       </div>
 
-      {/* ── Footer ───────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between px-1">
-        <span className="font-mono text-[9px] text-zinc-700 uppercase tracking-widest">
-          Unity WebGL · iFrame Mode · Avalanche Fuji
+      {/* ── Footer / CTAs ───────────────────────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row items-center justify-between px-2 gap-4 pt-2">
+        <span className="font-mono text-[10px] text-zinc-600 uppercase tracking-[0.2em]">
+          Protocol ID: {routeMatchId.substring(0, 12)}
         </span>
-        <span className="font-mono text-[9px] text-zinc-700 uppercase tracking-widest">
-          {routeMatchId.substring(0, 8)}...
-        </span>
+        
+        {isFinished && (
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <button 
+              onClick={handleRefresh}
+              className="flex-1 sm:flex-none px-6 py-3 bg-white/5 border border-white/10 text-white font-mono text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-white/10 transition-all text-center"
+            >
+              Watch Replay
+            </button>
+            <button 
+              onClick={() => navigate('/hub')}
+              className="flex-1 sm:flex-none px-6 py-3 bg-red-500 text-white font-mono text-xs font-black uppercase tracking-widest rounded-xl hover:bg-red-600 shadow-[0_0_20px_rgba(239,68,68,0.3)] transition-all text-center"
+            >
+              Return to Hub
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
