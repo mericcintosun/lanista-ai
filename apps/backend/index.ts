@@ -35,7 +35,17 @@ import oracleLootRoute from './src/routes/oracle/loot.js';
 import leaderboardRoute from './src/routes/leaderboard.js';
 
 const app = express();
-app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
+const corsOrigin = process.env.CORS_ORIGIN || '*';
+const allowedOrigins = corsOrigin === '*'
+  ? '*'
+  : corsOrigin.split(',').map(s => s.trim());
+
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: corsOrigin !== '*' // Wildcard origins don't allow credentials
+}));
 app.use(express.json());
 
 // =============================================================================
