@@ -102,11 +102,17 @@ export function Layout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const [prevPathname, setPrevPathname] = useState(location.pathname);
 
-  // Close mobile menu on route change
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [location.pathname]);
+  // Close mobile menu on route change - handled during render to avoid cascading renders
+  if (location.pathname !== prevPathname) {
+    setPrevPathname(location.pathname);
+    if (isMobileMenuOpen) {
+      setIsMobileMenuOpen(false);
+    }
+  }
+
+
 
   // Dynamic navbar height on scroll
   useEffect(() => {
@@ -134,8 +140,8 @@ export function Layout() {
 
   const navItems = [
     { name: 'The Hub', path: '/hub' },
-    { name: 'The Arena', path: '/arena' },
-    { name: 'Game Arena', path: '/game-arena', icon: Gamepad2 },
+    // { name: 'The Arena', path: '/arena' },
+    { name: 'The Arena', path: '/game-arena', icon: Gamepad2 },
     { name: 'Hall of Fame', path: '/hall-of-fame' },
     { name: 'The Oracle', path: '/oracle' },
   ];
@@ -184,7 +190,11 @@ export function Layout() {
       >
         <div className="max-w-[1400px] w-full mx-auto px-4 sm:px-8 flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 group">
+          <Link 
+            to="/" 
+            className="flex items-center gap-3 group"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
             <div className="relative shrink-0">
               <img
                 src="/logo-remove-bg.png"
@@ -200,7 +210,7 @@ export function Layout() {
           {/* Desktop Nav */}
           <div className="hidden lg:flex items-center gap-10 font-mono text-xs uppercase tracking-[0.35em]">
             {navItems.map((item) => {
-              const isActive = location.pathname === item.path || (item.path === '/arena' && location.pathname.startsWith('/arena/'));
+              const isActive = location.pathname === item.path || (item.path === '/game-arena' && location.pathname.startsWith('/game-arena/'));
               return (
                 <Link
                   key={item.path}
@@ -251,7 +261,7 @@ export function Layout() {
           >
             <div className="flex flex-col items-center justify-center min-h-full gap-4 py-12 px-6">
               {navItems.map((item, idx) => {
-                const isActive = location.pathname === item.path || (item.path === '/arena' && location.pathname.startsWith('/arena/'));
+                const isActive = location.pathname === item.path || (item.path === '/game-arena' && location.pathname.startsWith('/game-arena/'));
                 return (
                   <motion.div
                     key={item.path}

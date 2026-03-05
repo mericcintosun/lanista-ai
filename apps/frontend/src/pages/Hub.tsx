@@ -305,7 +305,7 @@ export default function Hub() {
                   <div
                     key={match.id}
                     className="flex flex-col sm:flex-row sm:items-center justify-between py-6 gap-6 transition-all hover:bg-white/[0.02] px-4 -mx-4 cursor-pointer group/row border-b border-white/5 last:border-0"
-                    onClick={() => navigate(`/arena/${match.id}`)}
+                    onClick={() => navigate(`/game-arena/${match.id}`)}
                   >
                     {/* Meta info (Date, Status, ID) */}
                     <div className="flex flex-row sm:flex-row items-center justify-between sm:justify-start gap-4 sm:gap-8 sm:flex-1">
