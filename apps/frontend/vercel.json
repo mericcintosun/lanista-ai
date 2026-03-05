@@ -1,5 +1,11 @@
 {
   "cleanUrls": false,
+  "rewrites": [
+    {
+      "source": "/lanista-build/game",
+      "destination": "/lanista-build/game.html"
+    }
+  ],
   "headers": [
     {
       "source": "/lanista-build/Build/(.*).wasm.br",
@@ -11,6 +17,7 @@
     {
       "source": "/lanista-build/Build/(.*).data.br",
       "headers": [
+        { "key": "Content-Type", "value": "application/octet-stream" },
         { "key": "Content-Encoding", "value": "br" }
       ]
     },
