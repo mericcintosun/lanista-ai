@@ -5,8 +5,9 @@ import { respondError } from '../shared.js';
 const router = Router();
 
 // Returns full match state + combat logs (main endpoint for Unity integration)
-router.get('/', async (req, res) => {
-    const { matchId } = req.query;
+const handleStatus = async (req: any, res: any) => {
+    // Access using bracket notation to avoid TS issues with the optional param suffix in the type
+    const matchId = req.params.matchId || req.query.matchId;
 
     if (!matchId || typeof matchId !== 'string') {
         return res.status(400).json({ error: "matchId is required" });
@@ -45,6 +46,9 @@ router.get('/', async (req, res) => {
     } catch (error: any) {
         respondError(res, 500, "Failed to fetch match status.", error);
     }
-});
+};
+
+router.get('/:matchId', handleStatus);
+router.get('/', handleStatus);
 
 export default router;

@@ -15,6 +15,11 @@ export const connection: any = process.env.REDIS_URL
     maxRetriesPerRequest: null
   });
 
+// Dedicated client for manual signaling/polling to avoid blocking main worker connection
+const signalClient = process.env.REDIS_URL
+  ? new Redis(process.env.REDIS_URL)
+  : new Redis({ host: '127.0.0.1', port: parseInt(process.env.REDIS_PORT || '6379') });
+
 // Allow multiple matches to be processed concurrently for true \"live\" behavior.
 // Configurable via MATCH_WORKER_CONCURRENCY env; defaults to 5.
 const WORKER_CONCURRENCY = parseInt(process.env.MATCH_WORKER_CONCURRENCY || '5', 10);
@@ -61,7 +66,7 @@ export const matchWorker = new Worker('match-queue', async (job) => {
   // Max wait: 25 seconds — if no viewer connects, start anyway.
   const VIEWER_READY_KEY = `match:${matchId}:viewer-ready`;
   const MAX_WAIT_MS = 25_000;
-  const POLL_INTERVAL_MS = 500;
+  const POLL_INTERVAL_MS = 100; // Faster polling for tighter sync
 
   const startWait = Date.now();
   let viewerReady = false;
@@ -69,7 +74,7 @@ export const matchWorker = new Worker('match-queue', async (job) => {
   console.log(`[Worker] Match ${matchId}: Waiting for viewer-ready signal (max ${MAX_WAIT_MS / 1000}s)...`);
 
   while (Date.now() - startWait < MAX_WAIT_MS) {
-    const signal = await connection.get(VIEWER_READY_KEY);
+    const signal = await signalClient.get(VIEWER_READY_KEY);
     if (signal) {
       viewerReady = true;
       break;
@@ -78,7 +83,7 @@ export const matchWorker = new Worker('match-queue', async (job) => {
   }
 
   // Clean up the Redis key
-  await connection.del(VIEWER_READY_KEY).catch(() => {});
+  await signalClient.del(VIEWER_READY_KEY).catch(() => {});
 
   if (viewerReady) {
     console.log(`[Worker] Match ${matchId}: Viewer ready! Starting combat.`);
@@ -195,8 +200,10 @@ export const matchWorker = new Worker('match-queue', async (job) => {
     isP1Turn = !isP1Turn;
     currentTurn++;
 
-    // Synthetic delay for live viewing
-    await new Promise(r => setTimeout(r, 1000));
+    // Synthetic delay for live viewing (Longer for first turn to allow Unity intros)
+    // Note: currentTurn has been incremented, so turn 1 finish check is currentTurn === 2
+    const turnDelay = currentTurn === 2 ? 4000 : 2500;
+    await new Promise(r => setTimeout(r, turnDelay));
 
     if (p1_hp <= 0 || p2_hp <= 0) break;
   }
