@@ -13,7 +13,7 @@ export const UnityFrame = forwardRef<HTMLIFrameElement, UnityFrameProps>(
       <div className="relative group aspect-video lg:aspect-[16/9] w-full bg-black rounded-2xl overflow-hidden border border-white/5 shadow-2xl">
         <iframe
           ref={ref}
-          src="/lanista-build/index.html"
+          src="/lanista-build/game.html"
           className="w-full h-full border-none shadow-inner"
           title="Lanista AI Arena"
           allow="autoplay; fullscreen"

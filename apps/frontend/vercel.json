@@ -1,20 +1,21 @@
 {
+  "cleanUrls": false,
   "headers": [
     {
-      "source": "/Build/(.*).wasm.br",
+      "source": "/lanista-build/Build/(.*).wasm.br",
       "headers": [
         { "key": "Content-Type", "value": "application/wasm" },
         { "key": "Content-Encoding", "value": "br" }
       ]
     },
     {
-      "source": "/Build/(.*).data.br",
+      "source": "/lanista-build/Build/(.*).data.br",
       "headers": [
         { "key": "Content-Encoding", "value": "br" }
       ]
     },
     {
-      "source": "/Build/(.*).js.br",
+      "source": "/lanista-build/Build/(.*).js.br",
       "headers": [
         { "key": "Content-Type", "value": "application/javascript" },
         { "key": "Content-Encoding", "value": "br" }

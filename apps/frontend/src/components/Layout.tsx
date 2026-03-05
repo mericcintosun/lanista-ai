@@ -75,7 +75,7 @@ export function Layout() {
 
       {/* ── UNITY PRELOADER (silent background cache warmer) ── */}
       <iframe
-        src="/lanista-build/index.html"
+        src="/lanista-build/game.html"
         title=""
         aria-hidden="true"
         tabIndex={-1}

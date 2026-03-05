@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import confetti from 'canvas-confetti';
-import { sendToUnity } from '../lib/unity';
+import { sendToUnity, setUnityMode } from '../lib/unity';
 import { useCombatRealtime } from '../hooks/useCombatRealtime';
 import { useHubData } from '../hooks/useHubData';
 import { LiveMatchList } from '../components/battle-arena/LiveMatchList';
@@ -22,7 +22,8 @@ export default function GameArena() {
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'unity-ready') {
-        console.log('[Arena] Unity signaled readiness. Syncing in 3000ms...');
+        console.log('[Arena] Unity signaled readiness. Setting mode 1 and syncing in 3000ms...');
+        setUnityMode(iframeRef.current, 1);
         setTimeout(() => {
           signalReady?.();
         }, 3000);

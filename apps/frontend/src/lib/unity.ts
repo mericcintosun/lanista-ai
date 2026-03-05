@@ -38,3 +38,12 @@ export function sendToUnity(
   console.log(`[UnityBridge] → Unity: status=${payload.match.status} logs=${data.logs.length}`);
   callUnity(iframe, 'LoadJsonGameData', json);
 }
+
+/** 
+ * Set the operation mode of the Unity instance 
+ * 0 = External API, 1 = iFrame, 2 = Simulation
+ */
+export function setUnityMode(iframe: HTMLIFrameElement | null, mode: number) {
+  console.log(`[UnityBridge] Setting mode: ${mode}`);
+  callUnity(iframe, 'SetMode', mode);
+}
