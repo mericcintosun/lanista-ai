@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 import { writeFileSync } from 'fs';
 import { resolve } from 'path';
 
-const API_BASE = process.env.API_BASE || 'http://localhost:3001/api';
+const API_BASE = process.env.API_BASE || 'https://backend-production-9598.up.railway.app/api';
 
 type RegisteredAgent = {
   apiKey: string;
