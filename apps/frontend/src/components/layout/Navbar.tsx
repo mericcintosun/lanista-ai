@@ -140,17 +140,19 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
           <div className="h-6 w-[1px] bg-white/5 mx-2" />
 
           <div className="flex items-center gap-3">
-            {!session ? (
+            {!session && (
               <button
-                 onClick={openAuthModal}
-                 className="flex items-center gap-2 px-5 py-2 bg-primary/10 border border-primary/20 text-primary font-black rounded-lg transition-all hover:bg-primary hover:text-white hover:border-primary active:scale-95 text-xs uppercase tracking-wider italic"
+                onClick={openAuthModal}
+                className="flex items-center gap-2 px-5 py-2 bg-primary/10 border border-primary/20 text-primary font-black rounded-lg transition-all hover:bg-primary hover:text-white hover:border-primary active:scale-95 text-xs uppercase tracking-wider italic"
               >
                 <UserCircle className="w-3.5 h-3.5" /> Login_
               </button>
-            ) : (
-              <div className="flex items-center gap-3">
-                <SparkBalance onOpenStore={() => setShowSparkStore(true)} />
-                
+            )}
+            <div className={session ? '' : 'hidden'}>
+              <SparkBalance onOpenStore={() => setShowSparkStore(true)} />
+            </div>
+            {session && (
+              <>
                 {myAgentId && (
                   <Link
                     to={`/agent/${myAgentId}`}
@@ -176,7 +178,7 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
-              </div>
+              </>
             )}
           </div>
 

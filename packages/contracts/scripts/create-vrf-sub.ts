@@ -40,16 +40,33 @@ async function main() {
   const receipt = await tx.wait();
   console.log("✅ TX mined in block:", receipt.blockNumber);
 
-  // The subId is returned as an event output; but ethers v6 surfaces return value directly.
-  const subId = (await coordinator.getTransactionResult?.(tx.hash)) ?? null;
+  // Parse SubscriptionCreated event (VRF v2.5 uses uint256 for subId)
+  const iface = new ethers.Interface([
+    "event SubscriptionCreated(uint256 indexed subId, address indexed owner)",
+  ]);
+  let subId: string | null = null;
+  for (const log of receipt?.logs ?? []) {
+    try {
+      const parsed = iface.parseLog({ topics: log.topics as string[], data: log.data });
+      if (parsed?.name === "SubscriptionCreated") {
+        subId = String(parsed.args.subId);
+        break;
+      }
+    } catch {
+      /* skip non-matching logs */
+    }
+  }
 
-  console.log("\nIf your ethers version does not support getTransactionResult,");
-  console.log("please read the 'SubscriptionCreated' event on Snowtrace to confirm the ID.\n");
-
-  console.log("🔢 Returned subId (if available):", subId);
-  console.log(
-    "\n👉 Add this to packages/contracts/.env as:\nVRF_SUBSCRIPTION_ID=21598168196920553558148664578015566321841392228107135145955950423307242910180\n"
-  );
+  if (subId) {
+    console.log("🔢 Subscription ID:", subId);
+    console.log("\n👉 Add to packages/contracts/.env:\nVRF_SUBSCRIPTION_ID=" + subId + "\n");
+  } else {
+    console.log(
+      "\n⚠️  Could not parse SubscriptionCreated event. Check Snowtrace for the event and copy the subId:\n" +
+        `   https://testnet.snowtrace.io/tx/${tx.hash}\n` +
+        "   Subscription IDs are typically small numbers (e.g. 1, 2, 3). Do NOT use placeholder values.\n"
+    );
+  }
 }
 
 main().catch((err) => {

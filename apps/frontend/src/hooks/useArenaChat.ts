@@ -96,6 +96,7 @@ export function useArenaChat(
       const p = payload as ArenaChatMessage;
       if (p?.id && p?.userId != null && p?.text != null && p?.type && p?.timestamp != null) {
         setMessages((prev) => {
+          if (prev.some((m) => m.id === p.id)) return prev;
           const next = [...prev, { ...p, username: p.username || 'Anonymous' }];
           return next.slice(-MAX_MESSAGES);
         });
@@ -112,7 +113,10 @@ export function useArenaChat(
     channel.on('broadcast', { event: 'emoji' }, ({ payload }) => {
       const p = payload as EmojiPayload;
       if (p?.id && typeof p?.emoji === 'string' && typeof p?.offsetX === 'number') {
-        setFloatingEmojis((prev) => [...prev.slice(-(MAX_FLOATING_EMOJIS - 1)), { ...p, origin: p.origin || 'left' }]);
+        setFloatingEmojis((prev) => {
+          if (prev.some((e) => e.id === p.id)) return prev;
+          return [...prev.slice(-(MAX_FLOATING_EMOJIS - 1)), { ...p, origin: p.origin || 'left' }];
+        });
       }
     });
 

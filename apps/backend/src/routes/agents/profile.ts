@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { supabase } from '../../lib/supabase.js';
 import { getPassportByBotWallet } from '../../services/passport.js';
+import { getInventoryBalances } from '../../services/rankUpLoot.js';
 import { respondError } from '../shared.js';
 
 const router = Router();
@@ -49,16 +50,20 @@ router.get('/:id', async (req, res) => {
         bot.true_wins = wins;
         bot.true_total_matches = totalMatches;
 
-        const { data: matches, error: matchErr } = await supabase
-            .from('matches')
-            .select('*, player_1:bots!matches_player_1_id_fkey(name, avatar_url), player_2:bots!matches_player_2_id_fkey(name, avatar_url)')
-            .or(`player_1_id.eq.${bot.id},player_2_id.eq.${bot.id}`)
-            .order('created_at', { ascending: false })
-            .limit(50);
+        const [matchResult, inventory] = await Promise.all([
+            supabase
+                .from('matches')
+                .select('*, player_1:bots!matches_player_1_id_fkey(name, avatar_url), player_2:bots!matches_player_2_id_fkey(name, avatar_url)')
+                .or(`player_1_id.eq.${bot.id},player_2_id.eq.${bot.id}`)
+                .order('created_at', { ascending: false })
+                .limit(50),
+            bot.wallet_address ? getInventoryBalances(bot.wallet_address) : Promise.resolve([]),
+        ]);
 
+        const { data: matches, error: matchErr } = matchResult;
         if (matchErr) throw matchErr;
 
-        res.json({ agent: bot, history: matches || [] });
+        res.json({ agent: bot, history: matches || [], inventory: inventory || [] });
     } catch (error: any) {
         respondError(res, 500, "Failed to fetch agent.", error);
     }

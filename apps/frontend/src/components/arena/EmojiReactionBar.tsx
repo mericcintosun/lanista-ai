@@ -78,9 +78,9 @@ export function EmojiReactionBar({ onEmoji, origin, disabled = false, className 
               <div className="mb-1.5 pb-1.5 border-b border-zinc-700/50 shrink-0">
                 <p className="text-[8px] font-mono text-zinc-500 uppercase tracking-widest mb-1">Recent</p>
                 <div className="flex flex-wrap gap-0.5">
-                  {recent.map((e) => (
+                  {recent.map((e, idx) => (
                     <button
-                      key={e}
+                      key={`recent-${idx}-${e}`}
                       type="button"
                       onClick={() => handlePick(e)}
                       className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-zinc-700/80 text-lg transition-colors"
@@ -93,9 +93,9 @@ export function EmojiReactionBar({ onEmoji, origin, disabled = false, className 
             )}
             <p className="text-[8px] font-mono text-zinc-500 uppercase tracking-widest mb-1 shrink-0">Emojis</p>
             <div className="flex flex-wrap gap-0.5 overflow-y-auto custom-scrollbar flex-1 min-h-0">
-              {ARENA_EMOJIS.map((e) => (
+              {ARENA_EMOJIS.map((e, idx) => (
                 <button
-                  key={e}
+                  key={`emoji-${idx}-${e}`}
                   type="button"
                   onClick={() => handlePick(e)}
                   className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-zinc-700/80 text-lg transition-colors"

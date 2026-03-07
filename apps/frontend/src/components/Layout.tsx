@@ -17,7 +17,8 @@ const NAV_H_LARGE = 80; // px — default
 const NAV_H_SMALL = 56; // px — after scroll
 
 export function Layout() {
-  const { showAuthModal, closeAuthModal } = useUIStore();
+  const showAuthModal = useUIStore((s) => s.showAuthModal);
+  const closeAuthModal = useUIStore((s) => s.closeAuthModal);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();

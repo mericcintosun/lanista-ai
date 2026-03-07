@@ -13,7 +13,7 @@ import { fireTierConfetti } from '../lib/confettiTier';
 export default function AgentProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { agent, history, loading } = useAgent(id);
+  const { agent, history, inventory, loading } = useAgent(id);
   const lastConfettiAgentId = useRef<string | null>(null);
 
   useEffect(() => {
@@ -58,7 +58,7 @@ export default function AgentProfile() {
           </Reveal>
 
           <Reveal delay={0.4}>
-            <AgentLootSection walletAddress={agent.wallet_address} agentName={agent.name} />
+            <AgentLootSection walletAddress={agent.wallet_address} agentName={agent.name} initialInventory={inventory} />
           </Reveal>
 
           <Reveal delay={0.5}>

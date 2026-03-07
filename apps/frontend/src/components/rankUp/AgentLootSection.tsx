@@ -16,6 +16,8 @@ interface InventoryItem {
 interface AgentLootSectionProps {
   walletAddress: string | null | undefined;
   agentName?: string;
+  /** Pre-fetched inventory from agent API; avoids separate fetch and loading state */
+  initialInventory?: { tokenId: number; balance: number }[];
 }
 
 function LootCard({
@@ -36,9 +38,9 @@ function LootCard({
 
   return (
     <motion.button
-      initial={{ opacity: 0, scale: 0.96 }}
+      initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: idx * 0.04 }}
+      transition={{ duration: 0.2 }}
       whileHover={{ scale: 1.02, y: -2 }}
       whileTap={{ scale: 0.98 }}
       onClick={onSelect}
@@ -53,7 +55,9 @@ function LootCard({
         <img
           src={src}
           alt={name}
-          className={`w-full h-full object-contain transition-all duration-300 group-hover:scale-105 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+          loading="eager"
+          fetchPriority={idx < 4 ? 'high' : undefined}
+          className={`w-full h-full object-contain transition-opacity duration-200 group-hover:scale-105 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
           onLoad={() => setImgLoaded(true)}
           onError={(e) => {
             (e.target as HTMLImageElement).style.display = 'none';
@@ -74,14 +78,21 @@ function LootCard({
   );
 }
 
-export function AgentLootSection({ walletAddress, agentName }: AgentLootSectionProps) {
+export function AgentLootSection({ walletAddress, agentName, initialInventory }: AgentLootSectionProps) {
   const hasValidWallet = Boolean(walletAddress && walletAddress.length >= 40);
-  const [items, setItems] = useState<InventoryItem[]>([]);
-  const [loading, setLoading] = useState(hasValidWallet);
+  const [items, setItems] = useState<InventoryItem[]>(() =>
+    Array.isArray(initialInventory) ? initialInventory : []
+  );
+  const [loading, setLoading] = useState(hasValidWallet && !initialInventory);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const effectiveItems = hasValidWallet ? items : [];
 
   useEffect(() => {
+    if (Array.isArray(initialInventory)) {
+      setItems(initialInventory);
+      setLoading(false);
+      return;
+    }
     if (!hasValidWallet) return;
     setLoading(true);
     const ac = new AbortController();
@@ -93,7 +104,7 @@ export function AgentLootSection({ walletAddress, agentName }: AgentLootSectionP
       .catch(() => setItems([]))
       .finally(() => setLoading(false));
     return () => ac.abort();
-  }, [walletAddress, hasValidWallet]);
+  }, [walletAddress, hasValidWallet, initialInventory]);
 
   if (!walletAddress) return null;
 

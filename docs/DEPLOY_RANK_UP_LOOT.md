@@ -38,8 +38,11 @@ Chainlink VRF requires a subscription and LINK.
 
 1. [vrf.chain.link](https://vrf.chain.link/) → Select Avalanche Fuji.
 2. "Create subscription" → Create subscription on Fuji.
-3. Fund subscription with **LINK** (Fuji testnet LINK; available from faucet).
+3. Fund subscription with **LINK** (Fuji testnet LINK; available from [faucets.chain.link/fuji](https://faucets.chain.link/fuji)).
 4. Copy subscription ID → set as `VRF_SUBSCRIPTION_ID` in `.env`.
+5. **Keep LINK balance topped up** — if the subscription runs out of LINK, VRF requests will fail.
+
+**Alternative (programmatic):** Run `npx tsx scripts/create-vrf-sub.ts` from `packages/contracts` to create a subscription on-chain. The script parses the `SubscriptionCreated` event and prints the correct subId (do not use placeholder values).
 
 ---
 
@@ -77,7 +80,7 @@ npx tsx scripts/deploy.ts
 1. **Contract address** is printed in terminal. Copy it.
 2. **Backend:** `RANK_UP_LOOT_NFT_ADDRESS=<address>` (root or `apps/backend/.env`).
 3. **Frontend (build):** `VITE_RANK_UP_LOOT_NFT_ADDRESS=<address>` (Railway/Vercel env or `.env.production`).
-4. **Chainlink:** Add this contract address as **consumer** to the subscription in VRF dashboard.
+4. **Chainlink:** Add this contract address as **consumer** to the subscription in [vrf.chain.link](https://vrf.chain.link/) → Subscription → Add Consumer. Without this, VRF requests will be rejected.
 
 ---
 
@@ -90,7 +93,19 @@ If metadata URL will change (e.g. domain changed):
 
 ---
 
-## 6. Backfill: Missing rank-up loot (no NFT in Silver)
+## 6. Updating VRF config (subscription ID, key hash)
+
+If you need to change VRF parameters (e.g. new subscription, different key hash):
+
+```bash
+cd packages/contracts
+# Set RANK_UP_LOOT_NFT_ADDRESS in .env, then:
+npx hardhat run scripts/update-vrf-config.ts --network fuji
+```
+
+---
+
+## 7. Backfill: Missing rank-up loot (no NFT in Silver)
 
 The blockchain job needs `winnerRep`/`loserRep` to run when a match ends. These were buggy for a while, so **during that period** VRF was never requested for bots that ranked up; Silver (or other rank) may show but no NFT in inventory.
 
@@ -113,7 +128,7 @@ Required env: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `AVALANCHE_RPC_URL`, 
 
 - [ ] `packages/contracts/.env` filled (DEPLOYER_PRIVATE_KEY, VRF_*, RANK_UP_LOOT_BASE_URI)
 - [ ] Deployer wallet has AVAX on Fuji (for gas)
-- [ ] VRF subscription created, LINK funded
+- [ ] VRF subscription created, LINK funded (monitor balance at vrf.chain.link)
 - [ ] `npx tsx scripts/deploy-rank-up-only.ts` run
 - [ ] Backend and frontend env have address set
 - [ ] Contract added as consumer in Chainlink

@@ -151,14 +151,16 @@ setInterval(async () => {
 }, 30 * 1000);
 
 // --- RANK-UP NFT POLLER (RankUpLootNFT / new Chainlink contract) ---
-// Syncs winner_loot_item_id from rank_up_loot_requests when VRF is fulfilled
+// Syncs winner_loot_item_id from rank_up_loot_requests when VRF is fulfilled.
+// Only polls pending requests (fulfilled_at IS NULL) to avoid redundant RPC calls.
 setInterval(async () => {
   if (!process.env.SUPABASE_URL) return;
   try {
     const { data: requests } = await supabase
       .from('rank_up_loot_requests')
-      .select('match_id, request_id')
-      .not('request_id', 'is', null);
+      .select('id, match_id, request_id')
+      .not('request_id', 'is', null)
+      .is('fulfilled_at', null);
 
     if (!requests || requests.length === 0) return;
 
@@ -166,13 +168,21 @@ setInterval(async () => {
       try {
         const result = await getRankUpLootResult(row.request_id);
         if (result?.fulfilled && Number.isFinite(result.itemId) && result.itemId > 0) {
-          const { error } = await supabase
+          const { error: matchError } = await supabase
             .from('matches')
             .update({ winner_loot_item_id: result.itemId })
             .eq('id', row.match_id);
 
-          if (!error) {
+          const { error: reqError } = await supabase
+            .from('rank_up_loot_requests')
+            .update({ fulfilled_at: new Date().toISOString(), item_id: result.itemId })
+            .eq('id', row.id);
+
+          if (!matchError) {
             console.log(`[RankUpLootPoller] ✅ Match ${row.match_id} → Item #${result.itemId}`);
+          }
+          if (reqError) {
+            console.warn('[RankUpLootPoller] Failed to update rank_up_loot_requests:', reqError.message);
           }
         }
       } catch { /* swallow single-request errors */ }

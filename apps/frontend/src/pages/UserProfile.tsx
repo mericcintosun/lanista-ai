@@ -23,6 +23,7 @@ export default function UserProfile() {
   const [profileData, setProfileData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   // Binding states
   const [bindAgentIdentifier, setBindAgentIdentifier] = useState('');
@@ -35,9 +36,6 @@ export default function UserProfile() {
   const [bindSuccess, setBindSuccess] = useState<string | null>(null);
   const [uuidCopied, setUuidCopied] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-
-  const navigate = useNavigate();
-  const { balance: sparkBalance, loading: sparkLoading } = useSparkBalance();
 
   const fetchProfileData = useCallback(async (token: string) => {
     try {
@@ -64,6 +62,8 @@ export default function UserProfile() {
       setLoading(false);
     }
   }, [navigate, searchParams, setSearchParams]);
+
+  const { balance: sparkBalance, loading: sparkLoading } = useSparkBalance();
 
   useEffect(() => {
     if (!isReady) return;

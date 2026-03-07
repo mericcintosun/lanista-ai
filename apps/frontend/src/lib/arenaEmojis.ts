@@ -17,7 +17,6 @@ export const ARENA_EMOJIS = [
   '🤯',
   '😱',
   '🎉',
-  '🔥',
   '❤️',
   '💙',
   '🧡',

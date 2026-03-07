@@ -4,6 +4,7 @@ const RANK_UP_LOOT_ABI = [
   'function requestRankUpLoot(address botWallet, uint8 rankIndex) external returns (uint256 requestId)',
   'function getRankUpLootResult(uint256 requestId) external view returns (address botWallet, uint8 rankIndex, uint256 itemId, bool fulfilled)',
   'function balanceOf(address account, uint256 id) external view returns (uint256)',
+  'function balanceOfBatch(address[] accounts, uint256[] ids) external view returns (uint256[])',
   'event RankUpLootRequested(uint256 indexed requestId, address indexed botWallet, uint8 rankIndex)',
 ];
 
@@ -104,6 +105,7 @@ export async function getRankUpLootResult(requestId: string): Promise<{
 
 /**
  * Get ERC-1155 balances for a wallet for all 35 token IDs (1..35).
+ * Uses balanceOfBatch for a single RPC call instead of 35 sequential calls.
  */
 export async function getInventoryBalances(wallet: string): Promise<{ tokenId: number; balance: number }[]> {
   const rpcUrl = process.env.AVALANCHE_RPC_URL;
@@ -119,15 +121,19 @@ export async function getInventoryBalances(wallet: string): Promise<{ tokenId: n
   const provider = new ethers.JsonRpcProvider(rpcUrl);
   const contract = new ethers.Contract(contractAddress, RANK_UP_LOOT_ABI, provider);
 
-  const results: { tokenId: number; balance: number }[] = [];
-  for (let id = 1; id <= TOTAL_TOKEN_IDS; id++) {
-    try {
-      const balance = await contract.balanceOf(wallet, id);
-      const b = Number(balance);
-      if (b > 0) results.push({ tokenId: id, balance: b });
-    } catch {
-      // skip failed id
+  const accounts = Array(TOTAL_TOKEN_IDS).fill(wallet) as string[];
+  const ids = Array.from({ length: TOTAL_TOKEN_IDS }, (_, i) => i + 1);
+
+  try {
+    const balances = await contract.balanceOfBatch(accounts, ids);
+    const results: { tokenId: number; balance: number }[] = [];
+    for (let i = 0; i < TOTAL_TOKEN_IDS; i++) {
+      const b = Number(balances[i] ?? 0);
+      if (b > 0) results.push({ tokenId: ids[i], balance: b });
     }
+    return results;
+  } catch (err) {
+    console.error('[RankUpLoot] getInventoryBalances balanceOfBatch failed:', err instanceof Error ? err.message : err);
+    return [];
   }
-  return results;
 }
