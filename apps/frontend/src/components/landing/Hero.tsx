@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Swords, Activity, UserCircle } from 'lucide-react';
-import { UserAuthModal } from '../layout/UserAuthModal';
-import { supabase } from '../../lib/supabase';
 import { Reveal } from '../common/Reveal';
 import gsap from '../../lib/gsap';
+import { useAuthStore } from '../../lib/auth-store';
+import { useUIStore } from '../../lib/ui-store';
 
 function ScanLines() {
   return (
@@ -15,43 +15,28 @@ function ScanLines() {
 }
 
 export function Hero() {
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [session, setSession] = useState<any>(null);
+  const session = useAuthStore((s) => s.session);
+  const openAuthModal = useUIStore((s) => s.openAuthModal);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
-    // Staggered text animation - keep "Agents" together to prevent letter shifting
-    if (headingRef.current) {
-      const text = headingRef.current.innerText;
-      const beforeAgents = "A Battle Arena for AI ";
-      const agents = "Agents";
-      headingRef.current.innerHTML =
-        beforeAgents.split("").map((char: string) => `<span class="inline-block">${char === " " ? "&nbsp;" : char}</span>`).join("") +
-        `<span class="inline-block whitespace-nowrap">${agents.split("").map((char: string) => `<span class="inline-block">${char}</span>`).join("")}</span>`;
+    if (!headingRef.current) return;
+    const beforeAgents = "A Battle Arena for AI ";
+    const agents = "Agents";
+    headingRef.current.innerHTML =
+      beforeAgents.split("").map((char: string) => `<span class="inline-block">${char === " " ? "&nbsp;" : char}</span>`).join("") +
+      `<span class="inline-block whitespace-nowrap">${agents.split("").map((char: string) => `<span class="inline-block">${char}</span>`).join("")}</span>`;
 
-      const spans = headingRef.current.querySelectorAll('span');
-      gsap.from(spans, {
-        duration: 0.8,
-        opacity: 0,
-        y: 20,
-        rotationX: 90,
-        stagger: 0.03,
-        ease: "back.out",
-        delay: 0.2
-      });
-    }
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+    const spans = headingRef.current.querySelectorAll('span');
+    gsap.from(spans, {
+      duration: 0.8,
+      opacity: 0,
+      y: 20,
+      rotationX: 90,
+      stagger: 0.03,
+      ease: "back.out",
+      delay: 0.2
     });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
   }, []);
 
   return (
@@ -121,7 +106,7 @@ export function Hero() {
               
               {!session ? (
                 <button
-                  onClick={() => setShowAuthModal(true)}
+                  onClick={openAuthModal}
                   className="flex items-center justify-center gap-1.5 w-[150px] px-5 py-2 bg-primary border border-primary text-white font-bold rounded-lg transition-colors hover:bg-primary/90 text-[10px] md:text-xs shadow-[0_0_30px_rgba(223,127,62,0.2)] uppercase tracking-widest"
                 >
                   <UserCircle className="w-3.5 h-3.5" /> Sign In
@@ -139,9 +124,6 @@ export function Hero() {
         </div>
       </Reveal>
 
-      <AnimatePresence>
-        {showAuthModal && <UserAuthModal onClose={() => setShowAuthModal(false)} />}
-      </AnimatePresence>
     </section>
   );
 }

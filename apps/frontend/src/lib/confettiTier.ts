@@ -16,20 +16,20 @@ export function fireTierConfetti(elo: number, hasPlayed: boolean) {
       angle: 60,
       spread: 55,
       origin: { x: 0.2, y: 0.6 },
-      colors,
+      colors: [...colors],
     });
     confetti({
       particleCount: 8,
       angle: 120,
       spread: 55,
       origin: { x: 0.8, y: 0.6 },
-      colors,
+      colors: [...colors],
     });
     confetti({
       particleCount: 6,
       spread: 100,
       origin: { y: 0.7 },
-      colors,
+      colors: [...colors],
     });
 
     if (Date.now() < end) {

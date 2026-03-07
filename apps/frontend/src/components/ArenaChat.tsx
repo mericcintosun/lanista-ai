@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Sparkles, Megaphone, Users, Flame, Maximize2, Minimize2 } from 'lucide-react';
 import { useArenaChat, type ArenaChatMessage } from '../hooks/useArenaChat';
 import { useSparkBalance } from '../hooks/useSparkBalance';
+import { useAuthStore } from '../lib/auth-store';
 import { sendThrowableToUnity } from '../lib/unity';
 import { InteractionBar } from './arena/InteractionBar';
 import { EmojiReactionBar } from './arena/EmojiReactionBar';
@@ -66,10 +67,6 @@ function MegaphoneBanner({ message }: { message: ArenaChatMessage }) {
 
 interface ArenaChatProps {
   matchId: string | null;
-  session: {
-    access_token: string;
-    user: { id: string; user_metadata?: { full_name?: string; name?: string; email?: string } };
-  } | null;
   match?: Match | null;
   unityIframeRef?: React.RefObject<HTMLIFrameElement | null>;
   className?: string;
@@ -102,7 +99,8 @@ function MessageRow({ msg }: { msg: ArenaChatMessage }) {
   );
 }
 
-export function ArenaChat({ matchId, session, match, unityIframeRef, className = '' }: ArenaChatProps) {
+export function ArenaChat({ matchId, match, unityIframeRef, className = '' }: ArenaChatProps) {
+  const session = useAuthStore((s) => s.session);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [bannerMegaphone, setBannerMegaphone] = useState<ArenaChatMessage | null>(null);
 
@@ -113,7 +111,7 @@ export function ArenaChat({ matchId, session, match, unityIframeRef, className =
     [unityIframeRef]
   );
 
-  const { balance: sparkBalance, loading: sparkLoading, setBalance: setSparkBalance } = useSparkBalance(session);
+  const { balance: sparkBalance, loading: sparkLoading, setBalance: setSparkBalance } = useSparkBalance();
 
   const {
     messages,
@@ -126,7 +124,7 @@ export function ArenaChat({ matchId, session, match, unityIframeRef, className =
     throwTomato,
     sending,
     error,
-  } = useArenaChat(matchId, session, { 
+  } = useArenaChat(matchId, { 
     onThrowable,
     onSpend: (newBalance) => setSparkBalance(newBalance)
   });

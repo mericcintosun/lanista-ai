@@ -2,12 +2,11 @@ import { Zap } from 'lucide-react';
 import { useSparkBalance } from '../../hooks/useSparkBalance';
 
 interface SparkBalanceProps {
-  session: { access_token: string; user: { id: string } } | null;
   onOpenStore: () => void;
 }
 
-export function SparkBalance({ session, onOpenStore }: SparkBalanceProps) {
-  const { balance, loading } = useSparkBalance(session);
+export function SparkBalance({ onOpenStore }: SparkBalanceProps) {
+  const { balance, loading } = useSparkBalance();
 
   return (
     <button

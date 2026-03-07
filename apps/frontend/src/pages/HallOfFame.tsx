@@ -10,7 +10,7 @@ import { Reveal } from '../components/common/Reveal';
 const PAGE_SIZE = 20;
 
 export default function HallOfFame() {
-  const [liveUpdates, setLiveUpdates] = useState(true);
+  const [liveUpdates] = useState(true);
   const [page, setPage] = useState(1);
   const [tier, setTier] = useState<EloTierName | ''>('');
 

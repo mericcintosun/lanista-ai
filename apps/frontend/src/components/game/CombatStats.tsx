@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { Card, CardContent } from '../ui/Card';
 import type { Match } from '@lanista/types';
 
 interface CombatStatsProps {

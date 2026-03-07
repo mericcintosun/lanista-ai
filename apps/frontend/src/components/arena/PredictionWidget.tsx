@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Flame } from 'lucide-react';
 import { API_URL } from '../../lib/api';
 import { useSparkBalance } from '../../hooks/useSparkBalance';
+import { useAuthStore } from '../../lib/auth-store';
 import type { Match } from '@lanista/types';
 
 const BET_CLOSE_SEC = 30;
@@ -11,7 +12,6 @@ const MIN_BET = 100;
 interface PredictionWidgetProps {
   match: Match;
   matchId: string;
-  session: { access_token: string; user: { id: string } } | null;
   onBetPlaced?: () => void;
 }
 
@@ -23,9 +23,9 @@ interface PoolData {
 export function PredictionWidget({
   match,
   matchId,
-  session,
   onBetPlaced,
 }: PredictionWidgetProps) {
+  const session = useAuthStore((s) => s.session);
   const [secondsLeft, setSecondsLeft] = useState(BET_CLOSE_SEC);
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
   const [amount, setAmount] = useState('');
@@ -33,7 +33,7 @@ export function PredictionWidget({
   const [error, setError] = useState<string | null>(null);
   const [poolData, setPoolData] = useState<PoolData | null>(null);
 
-  const { balance: sparkBalance, loading: balanceLoading } = useSparkBalance(session);
+  const { balance: sparkBalance, loading: balanceLoading } = useSparkBalance();
 
   useEffect(() => {
     if (!matchId || !session) return;

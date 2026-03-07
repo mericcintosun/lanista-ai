@@ -1,20 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 import OnboardingFlow from '../components/profile/OnboardingFlow';
 import { API_URL } from '../lib/api';
+import { useAuthStore } from '../lib/auth-store';
 
 export default function Onboarding() {
-  const [session, setSession] = useState<any>(null);
+  const session = useAuthStore((s) => s.session);
+  const isReady = useAuthStore((s) => s.isReady);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const checkOnboardingStatus = useCallback(async (currentSession: any) => {
+  const checkOnboardingStatus = useCallback(async (accessToken: string) => {
     try {
       const res = await fetch(`${API_URL}/user/profile`, {
-        headers: {
-          'Authorization': `Bearer ${currentSession.access_token}`
-        }
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
       const data = await res.json();
       if (data.profile?.onboardingCompleted) {
@@ -29,15 +28,13 @@ export default function Onboarding() {
   }, [navigate]);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        navigate('/');
-        return;
-      }
-      setSession(session);
-      checkOnboardingStatus(session);
-    });
-  }, [navigate, checkOnboardingStatus]);
+    if (!isReady) return;
+    if (!session) {
+      navigate('/');
+      return;
+    }
+    checkOnboardingStatus(session.access_token);
+  }, [isReady, session, navigate, checkOnboardingStatus]);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-background">

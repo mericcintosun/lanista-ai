@@ -19,7 +19,7 @@ interface DigitalPassportCardProps {
   avatarUrl?: string | null;
 }
 
-export function DigitalPassportCard({ agentId, agentName, walletAddress, avatarUrl }: DigitalPassportCardProps) {
+export function DigitalPassportCard({ agentId, agentName, walletAddress: _walletAddress, avatarUrl }: DigitalPassportCardProps) {
   const [passport, setPassport] = useState<PassportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [found, setFound] = useState(false);

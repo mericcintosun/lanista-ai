@@ -1,5 +1,4 @@
-import { ReactNode } from 'react';
-import { Reveal } from './Reveal';
+import type { ReactNode } from 'react';
 
 interface PageHeaderProps {
   title: string;

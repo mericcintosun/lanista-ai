@@ -1,6 +1,7 @@
 import { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom';
 import { Layout } from './components/Layout';
+import { AuthProvider } from './components/AuthProvider';
 // import { BattleArena } from './components/BattleArena';
 import Landing from './pages/Landing';
 import Hub from './pages/Hub';
@@ -45,6 +46,7 @@ function GlobalMatchDirector() {
 function App() {
   return (
     <BrowserRouter>
+      <AuthProvider>
       <SmoothScroll />
       <Toaster 
         position="bottom-right" 
@@ -82,6 +84,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

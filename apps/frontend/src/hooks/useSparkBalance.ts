@@ -2,13 +2,15 @@ import { useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { API_URL } from '../lib/api';
 import { useSparkStore } from '../lib/spark-store';
+import { useAuthStore } from '../lib/auth-store';
 
 /**
  * useSparkBalance: Hook to fetch and sync global Spark balance.
- * Uses a Zustand store for UI-wide synchronization, plus Supabase 
+ * Uses Zustand stores (auth + spark) for UI-wide synchronization, plus Supabase
  * PostGres Realtime to keep it up to date.
  */
-export function useSparkBalance(session: { access_token: string; user: { id: string } } | null) {
+export function useSparkBalance() {
+  const session = useAuthStore((s) => s.session);
   const { balance, setBalance, isLoading, setIsLoading } = useSparkStore();
 
   const fetchBalance = useCallback(async () => {

@@ -3,9 +3,8 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { Gamepad2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ParticleBackground from './ParticleBackground';
-import { supabase } from '../lib/supabase';
-import { API_URL } from '../lib/api';
 import { getLenis } from '../lib/smoothScroll';
+import { useUIStore } from '../lib/ui-store';
 
 // Sub-components
 import { Navbar } from './layout/Navbar';
@@ -18,38 +17,11 @@ const NAV_H_LARGE = 80; // px — default
 const NAV_H_SMALL = 56; // px — after scroll
 
 export function Layout() {
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const { showAuthModal, closeAuthModal } = useUIStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [myAgentId, setMyAgentId] = useState<string | null>(null);
   const location = useLocation();
   const [prevPathname, setPrevPathname] = useState(location.pathname);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.access_token) {
-        fetch(`${API_URL}/user/profile`, { headers: { Authorization: `Bearer ${session.access_token}` } })
-          .then((r) => r.json())
-          .then((data) => {
-            const first = data?.profile?.agents?.[0];
-            setMyAgentId(first?.id ?? null);
-          })
-          .catch(() => setMyAgentId(null));
-      } else setMyAgentId(null);
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session?.access_token) {
-        fetch(`${API_URL}/user/profile`, { headers: { Authorization: `Bearer ${session.access_token}` } })
-          .then((r) => r.json())
-          .then((data) => {
-            const first = data?.profile?.agents?.[0];
-            setMyAgentId(first?.id ?? null);
-          })
-          .catch(() => setMyAgentId(null));
-      } else setMyAgentId(null);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
 
   // Close mobile menu on route change - handled during render to avoid cascading renders
   if (location.pathname !== prevPathname) {
@@ -138,7 +110,6 @@ export function Layout() {
         isMobileMenuOpen={isMobileMenuOpen} 
         setIsMobileMenuOpen={setIsMobileMenuOpen} 
         navItems={navItems}
-        myAgentId={myAgentId}
       />
 
       {/* ── MOBILE MENU ── */}
@@ -148,7 +119,6 @@ export function Layout() {
             navH={navH} 
             setIsMobileMenuOpen={setIsMobileMenuOpen} 
             navItems={navItems}
-            myAgentId={myAgentId}
           />
         )}
       </AnimatePresence>
@@ -160,7 +130,7 @@ export function Layout() {
         className="relative z-20 flex flex-col items-center w-full min-h-screen"
       >
         <div className={`w-full ${location.pathname === '/' ? 'max-w-none px-0' : 'max-w-[1400px] px-4 sm:px-6 md:px-10'}`}>
-          <Outlet context={{ openAuth: () => setShowAuthModal(true) }} />
+          <Outlet />
         </div>
       </motion.main>
 
@@ -168,7 +138,7 @@ export function Layout() {
       <Footer navItems={navItems} />
 
       <AnimatePresence>
-        {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
+        {showAuthModal && <AuthModal onClose={closeAuthModal} />}
       </AnimatePresence>
     </div>
   );

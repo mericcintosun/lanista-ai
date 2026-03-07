@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { API_URL } from '../lib/api';
+import { useAuthStore } from '../lib/auth-store';
 
 const MAX_MESSAGES = 100;
 
@@ -60,12 +61,12 @@ async function spendSpark(
 
 export function useArenaChat(
   matchId: string | null,
-  session: { access_token: string; user: { id: string; user_metadata?: { full_name?: string; name?: string; email?: string } } } | null,
   options?: { 
     onThrowable?: (payload: ThrowablePayload) => void;
     onSpend?: (newBalance: number) => void;
   }
 ) {
+  const session = useAuthStore((s) => s.session);
   const [messages, setMessages] = useState<ArenaChatMessage[]>([]);
   const [floatingEmojis, setFloatingEmojis] = useState<EmojiPayload[]>([]);
   const [sending, setSending] = useState<'normal' | 'highlight' | 'megaphone' | 'tomato' | null>(null);
@@ -115,7 +116,7 @@ export function useArenaChat(
       }
     });
 
-    channel.subscribe((status, err) => {
+    channel.subscribe((_status, err) => {
       if (err) setError(err.message);
     });
     channelRef.current = channel;

@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { Shield, Fingerprint, Check } from 'lucide-react';
 import { TierBadge } from '../EloTier';
 import { AgentBalance } from './AgentBalance';

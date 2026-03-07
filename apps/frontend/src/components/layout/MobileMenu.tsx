@@ -1,10 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { prefetchGameHtml } from '../../lib/prefetchGame';
-import { UserCircle, Bot, LogOut, Flame, Shield, Swords, LayoutGrid, Terminal } from 'lucide-react';
+import { UserCircle, Bot, LogOut, Terminal } from 'lucide-react';
 import gsap from 'gsap';
 import { supabase } from '../../lib/supabase';
 import { SparkBalance } from '../spark/SparkBalance';
+import { useAuthStore } from '../../lib/auth-store';
+import { useUserStore } from '../../lib/user-store';
+import { useUIStore } from '../../lib/ui-store';
 
 interface NavItem {
   name: string;
@@ -15,20 +18,15 @@ interface MobileMenuProps {
   navH: number;
   setIsMobileMenuOpen: (open: boolean) => void;
   navItems: NavItem[];
-  myAgentId?: string | null;
 }
 
-export function MobileMenu({ navH, setIsMobileMenuOpen, navItems, myAgentId = null }: MobileMenuProps) {
+export function MobileMenu({ navH, setIsMobileMenuOpen, navItems }: MobileMenuProps) {
   const location = useLocation();
+  const session = useAuthStore((s) => s.session);
+  const myAgentId = useUserStore((s) => s.myAgentId);
+  const openAuthModal = useUIStore((s) => s.openAuthModal);
   const menuRef = useRef<HTMLDivElement>(null);
   const itemsRef = useRef<(HTMLDivElement | null)[]>([]);
-  const [session, setSession] = useState<any>(null);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => setSession(session));
-    return () => subscription.unsubscribe();
-  }, []);
 
   useEffect(() => {
     if (!menuRef.current) return;
@@ -67,7 +65,7 @@ export function MobileMenu({ navH, setIsMobileMenuOpen, navItems, myAgentId = nu
         
         {/* Account Header Section */}
         {session && (
-          <div ref={el => itemsRef.current[0] = el} className="space-y-4">
+          <div ref={el => { itemsRef.current[0] = el; }} className="space-y-4">
             <p className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest pl-2">Account Control</p>
             <div className="grid grid-cols-1 gap-2">
                <Link
@@ -102,7 +100,7 @@ export function MobileMenu({ navH, setIsMobileMenuOpen, navItems, myAgentId = nu
             </div>
             
             <div className="py-2 px-2">
-               <SparkBalance session={session} onOpenStore={() => {}} />
+               <SparkBalance onOpenStore={() => {}} />
             </div>
           </div>
         )}
@@ -114,7 +112,7 @@ export function MobileMenu({ navH, setIsMobileMenuOpen, navItems, myAgentId = nu
             {navItems.map((item, idx) => {
               const isActive = location.pathname === item.path || (item.path === '/game-arena' && location.pathname.startsWith('/game-arena/'));
               return (
-                <div key={item.path} ref={el => itemsRef.current[idx + 5] = el}>
+                <div key={item.path} ref={el => { itemsRef.current[idx + 5] = el; }}>
                   <Link
                     to={item.path}
                     onClick={() => setIsMobileMenuOpen(false)}
@@ -134,7 +132,7 @@ export function MobileMenu({ navH, setIsMobileMenuOpen, navItems, myAgentId = nu
         </div>
 
         {/* Auth Actions */}
-        <div className="pt-4 border-t border-white/5" ref={el => itemsRef.current[20] = el}>
+        <div className="pt-4 border-t border-white/5" ref={el => { itemsRef.current[20] = el; }}>
           {session ? (
             <button
               type="button"
@@ -145,7 +143,7 @@ export function MobileMenu({ navH, setIsMobileMenuOpen, navItems, myAgentId = nu
             </button>
           ) : (
             <button
-              onClick={() => { setIsMobileMenuOpen(false); /* logic for opening auth modal should be here if needed */ }}
+              onClick={() => { setIsMobileMenuOpen(false); openAuthModal(); }}
               className="flex items-center justify-center gap-3 w-full p-5 rounded-2xl bg-primary border border-primary text-white font-black uppercase tracking-widest italic text-sm"
             >
               <UserCircle className="w-5 h-5" /> Access Terminal

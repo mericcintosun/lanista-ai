@@ -7,6 +7,7 @@ import { API_URL } from '../lib/api';
 import { toast } from 'react-hot-toast';
 import { getEloTier, ELO_TIERS } from '../lib/elo';
 import { useSparkBalance } from '../hooks/useSparkBalance';
+import { useAuthStore } from '../lib/auth-store';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '../components/common/PageHeader';
 import { Reveal } from '../components/common/Reveal';
@@ -17,7 +18,8 @@ const XIcon = ({ className }: { className?: string }) => (
 );
 
 export default function UserProfile() {
-  const [session, setSession] = useState<any>(null);
+  const session = useAuthStore((s) => s.session);
+  const isReady = useAuthStore((s) => s.isReady);
   const [profileData, setProfileData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -35,32 +37,7 @@ export default function UserProfile() {
   const [showEditModal, setShowEditModal] = useState(false);
 
   const navigate = useNavigate();
-  const { balance: sparkBalance, loading: sparkLoading } = useSparkBalance(session);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        navigate('/');
-      } else {
-        setSession(session);
-        fetchProfileData(session.access_token);
-      }
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        navigate('/');
-        return;
-      }
-      setSession(session);
-      fetchProfileData(session.access_token);
-    });
-
-    return () => subscription.unsubscribe();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigate]);
+  const { balance: sparkBalance, loading: sparkLoading } = useSparkBalance();
 
   const fetchProfileData = useCallback(async (token: string) => {
     try {
@@ -88,7 +65,17 @@ export default function UserProfile() {
     }
   }, [navigate, searchParams, setSearchParams]);
 
+  useEffect(() => {
+    if (!isReady) return;
+    if (!session) {
+      navigate('/');
+      return;
+    }
+    fetchProfileData(session.access_token);
+  }, [isReady, session, navigate, fetchProfileData]);
+
   const handleGenerateBindCode = async () => {
+    if (!session) return;
     if (!bindAgentIdentifier.trim() || !bindApiKey.trim()) {
       setBindError("Lany identifier and API Key are required.");
       return;
@@ -118,6 +105,7 @@ export default function UserProfile() {
   };
 
   const handleVerifyBindCode = async () => {
+    if (!session) return;
     if (!bindTwitterHandle.trim() || !bindTweetUrl.trim()) {
       setBindError("Please enter your X handle and the post URL.");
       return;

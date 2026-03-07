@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { prefetchGameHtml } from '../lib/prefetchGame';
 import { Swords } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { supabase } from '../lib/supabase';
 import { sendToUnity, setUnityMode } from '../lib/unity';
 import { useCombatRealtime } from '../hooks/useCombatRealtime';
 import { useHubData } from '../hooks/useHubData';
@@ -19,13 +18,6 @@ import { UnityFrame, CombatStats, CombatLogs } from '../components/game';
 export default function GameArena() {
   const { matchId } = useParams<{ matchId: string }>();
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [session, setSession] = useState<Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['session']>(null);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session: s } }) => setSession(s));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => subscription.unsubscribe();
-  }, []);
 
   const { match, logs, signalReady } = useCombatRealtime(matchId || null);
   const { liveMatches } = useHubData();
@@ -116,7 +108,6 @@ export default function GameArena() {
         <PredictionWidget
           match={match}
           matchId={matchId}
-          session={session}
         />
       </Reveal>
       
@@ -172,7 +163,6 @@ export default function GameArena() {
           <div className="lg:sticky lg:top-24 flex flex-col gap-4 sm:gap-6">
             <ArenaChat
               matchId={matchId}
-              session={session}
               match={match}
               unityIframeRef={iframeRef}
             />

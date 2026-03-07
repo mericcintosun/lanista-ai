@@ -6,9 +6,12 @@ import { Menu, X, UserCircle, LogOut, Bot } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import gsap from 'gsap';
 import { supabase } from '../../lib/supabase';
-import { UserAuthModal } from './UserAuthModal';
 import { SparkBalance } from '../spark/SparkBalance';
 import { SparkStoreModal } from '../spark/SparkStoreModal';
+import { useAuthStore } from '../../lib/auth-store';
+import { useUserStore } from '../../lib/user-store';
+import { useUIStore } from '../../lib/ui-store';
+
 interface NavItem {
   name: string;
   path: string;
@@ -21,24 +24,18 @@ interface NavbarProps {
   isMobileMenuOpen: boolean;
   setIsMobileMenuOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
   navItems: NavItem[];
-  myAgentId?: string | null;
 }
 
-export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, navItems, myAgentId = null }: NavbarProps) {
+export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, navItems }: NavbarProps) {
   const location = useLocation();
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const session = useAuthStore((s) => s.session);
+  const myAgentId = useUserStore((s) => s.myAgentId);
+  const openAuthModal = useUIStore((s) => s.openAuthModal);
   const [showSparkStore, setShowSparkStore] = useState(false);
-  const [session, setSession] = useState<any>(null);
   
   const navRef = useRef<HTMLElement>(null);
   const underlineRef = useRef<HTMLDivElement>(null);
   const linksRef = useRef<(HTMLAnchorElement | null)[]>([]);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => setSession(session));
-    return () => subscription.unsubscribe();
-  }, []);
 
   // GSAP: Smooth Navbar Height
   useEffect(() => {
@@ -145,14 +142,14 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
           <div className="flex items-center gap-3">
             {!session ? (
               <button
-                 onClick={() => setShowAuthModal(true)}
+                 onClick={openAuthModal}
                  className="flex items-center gap-2 px-5 py-2 bg-primary/10 border border-primary/20 text-primary font-black rounded-lg transition-all hover:bg-primary hover:text-white hover:border-primary active:scale-95 text-xs uppercase tracking-wider italic"
               >
                 <UserCircle className="w-3.5 h-3.5" /> Login_
               </button>
             ) : (
               <div className="flex items-center gap-3">
-                <SparkBalance session={session} onOpenStore={() => setShowSparkStore(true)} />
+                <SparkBalance onOpenStore={() => setShowSparkStore(true)} />
                 
                 {myAgentId && (
                   <Link
@@ -184,7 +181,6 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
           </div>
 
           <AnimatePresence>
-            {showAuthModal && <UserAuthModal onClose={() => setShowAuthModal(false)} />}
             {showSparkStore && (
               <SparkStoreModal
                 onClose={() => setShowSparkStore(false)}
