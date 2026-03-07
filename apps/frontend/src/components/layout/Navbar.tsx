@@ -1,7 +1,10 @@
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, UserCircle } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
+import { UserAuthModal } from './UserAuthModal';
 
 interface NavItem {
   name: string;
@@ -19,6 +22,22 @@ interface NavbarProps {
 
 export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, navItems }: NavbarProps) {
   const location = useLocation();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [session, setSession] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <motion.nav
@@ -62,6 +81,26 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
               </Link>
             );
           })}
+          
+          {!session ? (
+            <button
+               onClick={() => setShowAuthModal(true)}
+               className="ml-4 truncate flex items-center justify-center gap-2 px-6 py-2 bg-primary border border-primary text-white font-bold rounded-lg transition-all hover:bg-primary/90 hover:border-primary active:scale-95 normal-case tracking-normal"
+            >
+              <UserCircle className="w-4 h-4" /> Login
+            </button>
+          ) : (
+            <Link
+              to="/profile"
+              className="ml-4 truncate flex items-center justify-center gap-2 px-6 py-2 bg-zinc-800 border border-white/10 text-white font-bold rounded-lg transition-all hover:bg-zinc-700 active:scale-95 normal-case tracking-normal"
+            >
+              <UserCircle className="w-4 h-4 text-primary" /> Profile
+            </Link>
+          )}
+
+          <AnimatePresence>
+            {showAuthModal && <UserAuthModal onClose={() => setShowAuthModal(false)} />}
+          </AnimatePresence>
         </div>
 
         {/* Mobile Hamburger */}

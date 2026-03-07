@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Swords, ExternalLink, Gamepad2 } from 'lucide-react';
+import { ExternalLink, Gamepad2 } from 'lucide-react';
 import type { MatchData, BotData } from '../../types';
 
 interface MatchHistoryProps {
@@ -91,12 +91,6 @@ export function MatchHistory({ history, agent }: MatchHistoryProps) {
                   >
                     <Gamepad2 className="w-4 h-4" />
                   </Link>
-                  <button
-                    onClick={() => navigate(`/arena/${match.id}`)}
-                    className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded transition-colors"
-                  >
-                    <Swords className="w-4 h-4" />
-                  </button>
                   {match.tx_hash && (
                     <a
                       href={`https://testnet.snowtrace.io/tx/${match.tx_hash}`}

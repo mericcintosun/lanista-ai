@@ -33,6 +33,8 @@ import hubRecentRoute from './src/routes/hub/recent.js';
 import oracleMatchesRoute from './src/routes/oracle/matches.js';
 import oracleLootRoute from './src/routes/oracle/loot.js';
 import leaderboardRoute from './src/routes/leaderboard.js';
+import userProfileRoute from './src/routes/user-profile.js';
+import userBindRoute from './src/routes/user-bind.js';
 
 const app = express();
 const corsOrigin = process.env.CORS_ORIGIN || '*';
@@ -78,6 +80,10 @@ app.use('/api/oracle/loot', oracleLootRoute);
 
 // Leaderboard
 app.use('/api/leaderboard', leaderboardRoute);
+
+// User Profile
+app.use('/api/user/profile', userProfileRoute);
+app.use('/api/user/bind', userBindRoute);
 
 // =============================================================================
 // STATIC ENDPOINTS

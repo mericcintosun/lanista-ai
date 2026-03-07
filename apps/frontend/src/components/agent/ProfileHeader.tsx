@@ -1,7 +1,8 @@
-import { Shield } from 'lucide-react';
+import { Shield, Fingerprint, Check } from 'lucide-react';
 import { TierBadge } from '../EloTier';
 import { AgentBalance } from './AgentBalance';
 import type { BotData } from '../../types';
+import { useState } from 'react';
 
 interface ProfileHeaderProps {
   agent: BotData;
@@ -10,10 +11,22 @@ interface ProfileHeaderProps {
 
 export function ProfileHeader({ agent, totalMatches }: ProfileHeaderProps) {
   const elo = agent.elo ?? 0;
+  const [copiedId, setCopiedId] = useState(false);
+  const [copiedWallet, setCopiedWallet] = useState(false);
 
   const handleCopyAddress = () => {
     if (agent.wallet_address) {
       navigator.clipboard.writeText(agent.wallet_address);
+      setCopiedWallet(true);
+      setTimeout(() => setCopiedWallet(false), 2000);
+    }
+  };
+
+  const handleCopyId = () => {
+    if (agent.id) {
+      navigator.clipboard.writeText(agent.id);
+      setCopiedId(true);
+      setTimeout(() => setCopiedId(false), 2000);
     }
   };
 
@@ -48,6 +61,24 @@ export function ProfileHeader({ agent, totalMatches }: ProfileHeaderProps) {
           </div>
 
           <div className="flex flex-wrap flex-col sm:flex-row items-center justify-center sm:justify-start gap-3 mb-6 w-full">
+            {/* AGENT ID BOX */}
+            <div className="flex items-center gap-2">
+              <div className="font-mono text-[10px] text-zinc-400 uppercase tracking-widest bg-black/60 px-3 py-1.5 rounded-md border border-white/5 flex items-center gap-2">
+                <Fingerprint className="w-3 h-3 text-zinc-500" />
+                <span className="hidden sm:inline">AGENT ID:</span>
+                {agent.id.substring(0, 8)}...
+              </div>
+              <button
+                onClick={handleCopyId}
+                className="p-1.5 bg-zinc-900 border border-white/10 rounded hover:bg-zinc-800 transition-colors text-zinc-500 hover:text-white flex items-center gap-1"
+                title="Copy Agent ID"
+              >
+                {copiedId ? <Check className="w-3.5 h-3.5 text-green-500" /> : <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>}
+                {copiedId && <span className="text-[10px] font-mono font-bold text-green-500 uppercase tracking-wider pr-1">Copied!</span>}
+              </button>
+            </div>
+
+            {/* WALLET BOX */}
             {agent.wallet_address && (
               <div className="flex items-center gap-2">
                 <div className="font-mono text-[10px] text-zinc-400 uppercase tracking-widest bg-black/60 px-3 py-1.5 rounded-md border border-white/5 flex items-center gap-2">
@@ -57,10 +88,11 @@ export function ProfileHeader({ agent, totalMatches }: ProfileHeaderProps) {
                 </div>
                 <button
                   onClick={handleCopyAddress}
-                  className="p-1.5 bg-zinc-900 border border-white/10 rounded hover:bg-zinc-800 transition-colors text-zinc-500 hover:text-white"
+                  className="p-1.5 bg-zinc-900 border border-white/10 rounded hover:bg-zinc-800 transition-colors text-zinc-500 hover:text-white flex items-center gap-1"
                   title="Copy Address"
                 >
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
+                  {copiedWallet ? <Check className="w-3.5 h-3.5 text-green-500" /> : <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>}
+                  {copiedWallet && <span className="text-[10px] font-mono font-bold text-green-500 uppercase tracking-wider pr-1">Copied!</span>}
                 </button>
               </div>
             )}

@@ -8,6 +8,8 @@ import HallOfFame from './pages/HallOfFame';
 import Oracle from './pages/Oracle';
 import AgentProfile from './pages/AgentProfile';
 import GameArena from './pages/GameArena';
+import UserProfile from './pages/UserProfile';
+import { Toaster } from 'react-hot-toast';
 import './index.css';
 
 function GlobalMatchDirector() {
@@ -27,6 +29,24 @@ function GlobalMatchDirector() {
 function App() {
   return (
     <BrowserRouter>
+      <Toaster 
+        position="bottom-right" 
+        toastOptions={{
+          style: {
+            background: '#1a1a1a',
+            color: '#fff',
+            border: '1px solid rgba(255,255,255,0.1)',
+            fontFamily: 'monospace',
+            borderRadius: '12px'
+          },
+          success: {
+            iconTheme: {
+              primary: '#10B981',
+              secondary: '#000',
+            },
+          },
+        }}
+      />
       <GlobalMatchDirector />
       <Routes>
         <Route element={<Layout />}>
@@ -39,6 +59,7 @@ function App() {
           <Route path="/agent/:id" element={<AgentProfile />} />
           <Route path="/game-arena" element={<GameArena />} />
           <Route path="/game-arena/:matchId" element={<GameArena />} />
+          <Route path="/profile" element={<UserProfile />} />
         </Route>
       </Routes>
     </BrowserRouter>

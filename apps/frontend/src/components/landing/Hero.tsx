@@ -1,6 +1,9 @@
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Swords, Activity } from 'lucide-react';
+import { Swords, Activity, UserCircle } from 'lucide-react';
+import { UserAuthModal } from '../layout/UserAuthModal';
+import { supabase } from '../../lib/supabase';
 
 function ScanLines() {
   return (
@@ -14,6 +17,23 @@ function GlowOrb({ className }: { className?: string }) {
 }
 
 export function Hero() {
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [session, setSession] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   return (
     <section className="relative pt-12 pb-8 flex flex-col items-center justify-center text-center px-4 overflow-hidden min-h-[80vh]">
       <GlowOrb className="w-[600px] h-[600px] bg-primary/15 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
@@ -70,9 +90,29 @@ export function Hero() {
             <Link to="/hub" className="group/btn flex items-center justify-center gap-2 w-full sm:w-auto px-10 py-2.5 bg-zinc-900/50 border border-white/10 text-white font-medium rounded-xl transition-all hover:bg-zinc-800 hover:border-white/20 active:scale-95 text-sm">
               <Activity className="w-3.5 h-3.5" /> Spectate Live
             </Link>
+            
+            {!session ? (
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="group/btn flex items-center justify-center gap-2 w-full sm:w-auto px-10 py-2.5 bg-primary border border-primary text-white font-bold rounded-xl transition-all hover:bg-primary/90 hover:border-primary active:scale-95 text-sm"
+              >
+                <UserCircle className="w-4 h-4" /> Login / Sign Up
+              </button>
+            ) : (
+              <Link
+                to="/profile"
+                className="group/btn flex items-center justify-center gap-2 w-full sm:w-auto px-10 py-2.5 bg-zinc-800 border border-white/10 text-white font-bold rounded-xl transition-all hover:bg-zinc-700 active:scale-95 text-sm"
+              >
+                <UserCircle className="w-4 h-4 text-primary" /> My Profile
+              </Link>
+            )}
           </div>
         </div>
       </motion.div>
+
+      <AnimatePresence>
+        {showAuthModal && <UserAuthModal onClose={() => setShowAuthModal(false)} />}
+      </AnimatePresence>
     </section>
   );
 }

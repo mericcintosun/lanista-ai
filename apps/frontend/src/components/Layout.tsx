@@ -73,25 +73,6 @@ export function Layout() {
 
       <ParticleBackground />
 
-      {/* ── UNITY PRELOADER (silent background cache warmer) ── */}
-      <iframe
-        src="/lanista-build/game.html"
-        title=""
-        aria-hidden="true"
-        tabIndex={-1}
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: 2,
-          height: 2,
-          opacity: 0,
-          pointerEvents: 'none',
-          border: 'none',
-          zIndex: -999,
-        }}
-      />
-
       {/* ── NAVBAR ── */}
       <Navbar 
         navH={navH} 
