@@ -4,11 +4,18 @@ This guide explains how to integrate and control the Lanista Unity WebGL build t
 
 ## Overview
 
-The WebGL build exposes three main JavaScript functions that allow external applications to control the game flow and provide match data:
+The WebGL build exposes JavaScript functions that allow external applications to control the game flow and provide match data:
 
+**Core Functions:**
 - `SetMode(mode)` - Configure the operation mode
 - `SetMatchId(matchId)` - Set the match ID for external API calls
 - `LoadJsonGameData(jsonData)` - Load match data directly as JSON
+
+**Interactive Functions:**
+- `ThrowObjectToPlayer1(objectIndex)` - Throw an object at Player 1
+- `ThrowObjectToPlayer2(objectIndex)` - Throw an object at Player 2
+- `LoadPlayer1IconUrl(url)` - Load Player 1's icon from a URL
+- `LoadPlayer2IconUrl(url)` - Load Player 2's icon from a URL
 
 ## Getting Started
 
@@ -152,6 +159,74 @@ Loads match data directly into the game.
   },
   "logs": []
 }
+```
+
+---
+
+### ThrowObjectToPlayer1(objectIndex)
+
+Throws an object at Player 1 during the match.
+
+**Parameters:**
+- `objectIndex` (number): The index of the object to throw (0-based). Put 0 to throw tomatoe. There is only tomatoe for now.
+
+**Returns:** None
+
+**Example:**
+```javascript
+// Throw object at index 0 to Player 1
+ThrowObjectToPlayer1(0);
+```
+
+---
+
+### ThrowObjectToPlayer2(objectIndex)
+
+Throws an object at Player 2 during the match.
+
+**Parameters:**
+- `objectIndex` (number): The index of the object to throw (0-based). Put 0 to throw tomatoe. There is only tomatoe for now.
+
+**Returns:** None
+
+**Example:**
+```javascript
+// Throw object at index 0 to Player 2
+ThrowObjectToPlayer2(0);
+```
+
+---
+
+### LoadPlayer1IconUrl(url)
+
+Loads Player 1's icon/avatar from a URL.
+
+**Parameters:**
+- `url` (string): The URL of the image to load for Player 1
+
+**Returns:** None
+
+**Example:**
+```javascript
+// Load Player 1's icon
+LoadPlayer1IconUrl("https://example.com/player1-avatar.png");
+```
+
+---
+
+### LoadPlayer2IconUrl(url)
+
+Loads Player 2's icon/avatar from a URL.
+
+**Parameters:**
+- `url` (string): The URL of the image to load for Player 2
+
+**Returns:** None
+
+**Example:**
+```javascript
+// Load Player 2's icon
+LoadPlayer2IconUrl("https://example.com/player2-avatar.png");
 ```
 
 ## Debugging

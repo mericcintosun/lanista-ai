@@ -155,6 +155,40 @@ export const matchWorker = new Worker('match-queue', async (job) => {
       p2_vulnerable = result.vulnerable;
     }
 
+    // BREAK EARLY if someone died — before switching turns or narratives
+    if (p1_hp <= 0 || p2_hp <= 0) {
+      const killer = isP1Turn ? p1.name : p2.name;
+      const victim = isP1Turn ? p2.name : p1.name;
+      console.log(`[Worker] Match ${matchId}: ${killer} has defeated ${victim}!`);
+      
+      // Build terminal log
+      const target_current_hp = 0;
+      const action_type = 'CRITICAL';
+      const narrative = result.narrative + " 🔥 CRITICAL BLOW!";
+
+      try {
+        if (process.env.SUPABASE_URL) {
+          await supabase.from('combat_logs').insert({
+            match_id: matchId,
+            actor_id: activeAgent.id,
+            action_type: action_type,
+            value: actualDamage || result.healing,
+            narrative,
+            target_current_hp: 0
+          });
+
+          await supabase.from('matches').update({
+            p1_current_hp: Math.max(0, p1_hp),
+            p2_current_hp: Math.max(0, p2_hp),
+            current_turn: currentTurn
+          }).eq('id', matchId);
+        }
+      } catch (err) {
+        console.error('[Worker] Final Supabase log error', err);
+      }
+      break;
+    }
+
     // Build narrative (include vulnerability bonus info)
     let narrative = result.narrative;
     if (targetVulnerable && actualDamage > result.damage) {
@@ -207,8 +241,6 @@ export const matchWorker = new Worker('match-queue', async (job) => {
     // Note: currentTurn has been incremented, so turn 1 finish check is currentTurn === 2
     const turnDelay = currentTurn === 2 ? 4000 : 2500;
     await new Promise(r => setTimeout(r, turnDelay));
-
-    if (p1_hp <= 0 || p2_hp <= 0) break;
   }
 
   const winnerId = p1_hp > 0 ? p1.id : p2.id;

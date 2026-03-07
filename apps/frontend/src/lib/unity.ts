@@ -20,6 +20,18 @@ export function callUnity(iframe: HTMLIFrameElement | null, fn: string, arg: str
 }
 
 /**
+ * Convert SVG avatar URLs to PNG for Unity texture compatibility.
+ */
+function urlToPng(url?: string | null): string {
+  if (!url) return '';
+  // Force Dicebear to return PNG instead of SVG
+  if (url.includes('dicebear.com') && url.includes('/svg?')) {
+    return url.replace('/svg?', '/png?');
+  }
+  return url;
+}
+
+/**
  * Forward API response to Unity, converting status to Unity format.
  */
 export function sendToUnity(
@@ -34,9 +46,32 @@ export function sendToUnity(
     },
     logs: data.logs,
   };
+
+  // Safety Check: If status is finished but winner_id is missing, or somehow swapped, 
+  // we do a final HP check before sending to Unity.
+  if (payload.match.status === 'finished' && !payload.match.winner_id) {
+    if ((payload.match.player_1?.current_hp ?? 0) > (payload.match.player_2?.current_hp ?? 0)) {
+      payload.match.winner_id = payload.match.player_1_id;
+    } else {
+      payload.match.winner_id = payload.match.player_2_id;
+    }
+  }
+
   const json = JSON.stringify(payload);
-  console.log(`[UnityBridge] → Unity: status=${payload.match.status} logs=${data.logs.length}`);
+  console.log(`[UnityBridge] → Unity: status=${payload.match.status} logs=${data.logs.length} winner=${payload.match.winner_id}`);
+  
+  if (payload.match.winner_id) {
+    const winnerName = payload.match.winner_id === payload.match.player_1_id ? payload.match.player_1?.name : payload.match.player_2?.name;
+    console.log(`[UnityBridge] Match Winner detected: ${winnerName} (${payload.match.winner_id})`);
+  }
+
   callUnity(iframe, 'LoadJsonGameData', json);
+
+  const avatar1 = urlToPng(data.match.player_1?.avatar_url) || `https://api.dicebear.com/7.x/bottts/png?seed=${data.match.player_1?.name || 'p1'}`;
+  const avatar2 = urlToPng(data.match.player_2?.avatar_url) || `https://api.dicebear.com/7.x/bottts/png?seed=${data.match.player_2?.name || 'p2'}`;
+
+  callUnity(iframe, 'LoadPlayer1IconUrl', avatar1);
+  callUnity(iframe, 'LoadPlayer2IconUrl', avatar2);
 }
 
 /**
@@ -48,19 +83,19 @@ export function setUnityMode(iframe: HTMLIFrameElement | null, mode: number) {
   callUnity(iframe, 'SetMode', mode);
 }
 
-/**
- * Send a throwable event to Unity (e.g. tomato). Unity should have ArenaController.SpawnThrowable(item).
- */
 export function sendThrowableToUnity(
   iframe: HTMLIFrameElement | null,
   payload: { item: string; target?: string }
 ) {
-  try {
-    const win = iframe?.contentWindow as unknown as { SendMessage?: (go: string, method: string, arg: string) => void };
-    if (typeof win?.SendMessage === 'function') {
-      win.SendMessage('ArenaController', 'SpawnThrowable', payload.item || 'tomato');
-    }
-  } catch (e) {
-    console.warn('[UnityBridge] sendThrowable error:', e);
+  // item is currently always 'tomato' which is index 0
+  const itemIndex = payload.item === 'tomato' ? 0 : 0;
+  
+  if (payload.target === 'player_1') {
+    callUnity(iframe, 'ThrowObjectToPlayer1', itemIndex);
+  } else if (payload.target === 'player_2') {
+    callUnity(iframe, 'ThrowObjectToPlayer2', itemIndex);
+  } else {
+    // fallback or throw to both? let's default to player 1
+    callUnity(iframe, 'ThrowObjectToPlayer1', itemIndex);
   }
 }

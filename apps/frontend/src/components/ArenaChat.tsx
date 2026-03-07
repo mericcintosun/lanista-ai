@@ -117,6 +117,8 @@ export function ArenaChat({ matchId, session, match, unityIframeRef, className =
     [unityIframeRef]
   );
 
+  const { balance: sparkBalance, loading: sparkLoading, setBalance: setSparkBalance } = useSparkBalance(session);
+
   const {
     messages,
     sendNormalMessage,
@@ -125,9 +127,10 @@ export function ArenaChat({ matchId, session, match, unityIframeRef, className =
     throwTomato,
     sending,
     error,
-  } = useArenaChat(matchId, session, { onThrowable });
-
-  const { balance: sparkBalance, loading: sparkLoading } = useSparkBalance(session);
+  } = useArenaChat(matchId, session, { 
+    onThrowable,
+    onSpend: (newBalance) => setSparkBalance(newBalance)
+  });
 
   useEffect(() => {
     if (!scrollRef.current) return;

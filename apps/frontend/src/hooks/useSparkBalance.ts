@@ -1,15 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { API_URL } from '../lib/api';
+import { useSparkStore } from '../lib/spark-store';
 
+/**
+ * useSparkBalance: Hook to fetch and sync global Spark balance.
+ * Uses a Zustand store for UI-wide synchronization, plus Supabase 
+ * PostGres Realtime to keep it up to date.
+ */
 export function useSparkBalance(session: { access_token: string; user: { id: string } } | null) {
-  const [balance, setBalance] = useState<number>(0);
-  const [loading, setLoading] = useState(true);
+  const { balance, setBalance, isLoading, setIsLoading } = useSparkStore();
 
-  const fetchBalance = async () => {
+  const fetchBalance = useCallback(async () => {
     if (!session?.access_token) {
       setBalance(0);
-      setLoading(false);
+      setIsLoading(false);
       return;
     }
     try {
@@ -23,17 +28,18 @@ export function useSparkBalance(session: { access_token: string; user: { id: str
     } catch {
       setBalance(0);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
-  };
+  }, [session?.access_token, setBalance, setIsLoading]);
 
   useEffect(() => {
     fetchBalance();
-  }, [session?.access_token]);
+  }, [fetchBalance]);
 
   useEffect(() => {
     if (!session?.user?.id) return;
 
+    // Supabase Realtime subscription for DB-level balance updates
     const channel = supabase
       .channel(`spark-balance-${session.user.id}`)
       .on(
@@ -54,7 +60,7 @@ export function useSparkBalance(session: { access_token: string; user: { id: str
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [session?.user?.id]);
+  }, [session?.user?.id, setBalance]);
 
-  return { balance, loading, refresh: fetchBalance };
+  return { balance, loading: isLoading, refresh: fetchBalance, setBalance };
 }

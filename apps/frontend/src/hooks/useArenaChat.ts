@@ -52,14 +52,19 @@ async function spendSpark(
 export function useArenaChat(
   matchId: string | null,
   session: { access_token: string; user: { id: string; user_metadata?: { full_name?: string; name?: string; email?: string } } } | null,
-  options?: { onThrowable?: (payload: ThrowablePayload) => void }
+  options?: { 
+    onThrowable?: (payload: ThrowablePayload) => void;
+    onSpend?: (newBalance: number) => void;
+  }
 ) {
   const [messages, setMessages] = useState<ArenaChatMessage[]>([]);
   const [sending, setSending] = useState<'normal' | 'highlight' | 'megaphone' | 'tomato' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const onThrowableRef = useRef(options?.onThrowable);
+  const onSpendRef = useRef(options?.onSpend);
   onThrowableRef.current = options?.onThrowable;
+  onSpendRef.current = options?.onSpend;
 
   const raw = session?.user?.user_metadata?.full_name
     || session?.user?.user_metadata?.name
@@ -139,6 +144,7 @@ export function useArenaChat(
           setError(result.error || 'Insufficient Spark');
           return;
         }
+        if (result.newBalance !== undefined) onSpendRef.current?.(result.newBalance);
         sendPayload(text.trim(), 'highlight');
       } finally {
         setSending(null);
@@ -158,6 +164,7 @@ export function useArenaChat(
           setError(result.error || 'Insufficient Spark');
           return;
         }
+        if (result.newBalance !== undefined) onSpendRef.current?.(result.newBalance);
         sendPayload(text.trim(), 'megaphone');
       } finally {
         setSending(null);
@@ -179,6 +186,7 @@ export function useArenaChat(
           setError(result.error || 'Insufficient Spark');
           return;
         }
+        if (result.newBalance !== undefined) onSpendRef.current?.(result.newBalance);
         ch.send({
           type: 'broadcast',
           event: 'throwable',
