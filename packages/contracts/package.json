@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "deploy": "npx tsx scripts/deploy.ts",
-    "deploy:rank-up": "npx tsx scripts/deploy-rank-up-only.ts"
+    "deploy:rank-up": "npx tsx scripts/deploy-rank-up-only.ts",
+    "deploy:spark-treasury": "npx tsx scripts/deploy-spark-treasury.ts"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.1.0",

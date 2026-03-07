@@ -41,8 +41,10 @@ import oracleInventoryRoute from './src/routes/oracle/inventory.js';
 import leaderboardRoute from './src/routes/leaderboard.js';
 import userProfileRoute from './src/routes/user-profile.js';
 import userBindRoute from './src/routes/user-bind.js';
+import sparksRoute from './src/routes/sparks/index.js';
 import passportMetadataRoute from './src/routes/nft/passport-metadata.js';
 import passportImageRoute from './src/routes/nft/passport-image.js';
+import { startSparkEventListener } from './src/engine/spark-event-listener.js';
 
 const app = express();
 const corsOrigin = process.env.CORS_ORIGIN || '*';
@@ -98,6 +100,9 @@ app.use('/api/nft/passport-image', passportImageRoute);
 // User Profile
 app.use('/api/user/profile', userProfileRoute);
 app.use('/api/user/bind', userBindRoute);
+
+// Spark economy
+app.use('/api/sparks', sparksRoute);
 
 // =============================================================================
 // STATIC ENDPOINTS
@@ -298,3 +303,6 @@ const server = app.listen(parseInt(String(PORT)), HOST, () => {
 
 // Attach WebSocket server to the same HTTP server
 initWebSocketServer(server);
+
+// Spark purchase event listener (polls SparkTreasury.SparksPurchased and credits spark_balances)
+startSparkEventListener();

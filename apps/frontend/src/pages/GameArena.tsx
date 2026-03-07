@@ -1,11 +1,14 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import confetti from 'canvas-confetti';
+import { supabase } from '../lib/supabase';
 import { sendToUnity, setUnityMode } from '../lib/unity';
 import { useCombatRealtime } from '../hooks/useCombatRealtime';
 import { useHubData } from '../hooks/useHubData';
 import { LiveMatchList } from '../components/battle-arena/LiveMatchList';
 import { BattleArenaHeader } from '../components/battle-arena/BattleArenaHeader';
+import { ArenaChat } from '../components/ArenaChat';
+import { PredictionWidget } from '../components/arena/PredictionWidget';
 
 // Game Components
 import { UnityFrame, CombatStats, CombatLogs } from '../components/game';
@@ -13,6 +16,13 @@ import { UnityFrame, CombatStats, CombatLogs } from '../components/game';
 export default function GameArena() {
   const { matchId } = useParams<{ matchId: string }>();
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [session, setSession] = useState<Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['session']>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session: s } }) => setSession(s));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    return () => subscription.unsubscribe();
+  }, []);
 
   const { match, logs, signalReady } = useCombatRealtime(matchId || null);
   const { liveMatches } = useHubData();
@@ -88,6 +98,11 @@ export default function GameArena() {
 
   return (
     <div className="py-8 space-y-8 animate-in fade-in duration-700">
+      <PredictionWidget
+        match={match}
+        matchId={matchId}
+        session={session}
+      />
       {/* ── HEADER ── */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4">
         <div className="space-y-2">
@@ -99,12 +114,11 @@ export default function GameArena() {
               {isFinished ? 'ARCHIVED' : 'LOCKED'}
             </div>
           </div>
-          <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-[0.3em]">Sector: 0x77-B | Neural Convergence: STABLE</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 px-4">
-        {/* Left Column: Game & Logs */}
+        {/* Sol: Unity, 2 kutucuk (CombatStats), Live Data Stream hemen altında */}
         <div className="lg:col-span-8 flex flex-col gap-6">
           <UnityFrame
             ref={iframeRef}
@@ -113,11 +127,19 @@ export default function GameArena() {
             isLoading={!match}
           />
           <CombatStats match={match} />
+          <div className="min-h-[360px] w-full">
+            <CombatLogs logs={logs} match={match} />
+          </div>
         </div>
 
-        {/* Right Column: Dynamic HUD */}
-        <div className="lg:col-span-4 flex flex-col min-h-[500px]">
-          <CombatLogs logs={logs} match={match} />
+        {/* Right: Interaction bar + Arena Chat */}
+        <div className="lg:col-span-4 flex flex-col">
+          <ArenaChat
+            matchId={matchId}
+            session={session}
+            match={match}
+            unityIframeRef={iframeRef}
+          />
         </div>
       </div>
 

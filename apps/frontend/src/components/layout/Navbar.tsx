@@ -5,6 +5,8 @@ import { Menu, X, UserCircle, LogOut, Bot } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { UserAuthModal } from './UserAuthModal';
+import { SparkBalance } from '../spark/SparkBalance';
+import { SparkStoreModal } from '../spark/SparkStoreModal';
 
 interface NavItem {
   name: string;
@@ -24,6 +26,7 @@ interface NavbarProps {
 export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, navItems, myAgentId = null }: NavbarProps) {
   const location = useLocation();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showSparkStore, setShowSparkStore] = useState(false);
   const [session, setSession] = useState<any>(null);
 
   useEffect(() => {
@@ -89,6 +92,7 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
             </button>
           ) : (
             <div className="flex items-center gap-2 ml-4">
+              <SparkBalance session={session} onOpenStore={() => setShowSparkStore(true)} />
               {myAgentId && (
                 <Link
                   to={`/agent/${myAgentId}`}
@@ -116,6 +120,13 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
 
           <AnimatePresence>
             {showAuthModal && <UserAuthModal onClose={() => setShowAuthModal(false)} />}
+            {showSparkStore && (
+              <SparkStoreModal
+                onClose={() => setShowSparkStore(false)}
+                session={session}
+                onPurchased={() => {}}
+              />
+            )}
           </AnimatePresence>
         </div>
 

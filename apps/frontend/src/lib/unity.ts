@@ -39,11 +39,28 @@ export function sendToUnity(
   callUnity(iframe, 'LoadJsonGameData', json);
 }
 
-/** 
- * Set the operation mode of the Unity instance 
+/**
+ * Set the operation mode of the Unity instance
  * 0 = External API, 1 = iFrame, 2 = Simulation
  */
 export function setUnityMode(iframe: HTMLIFrameElement | null, mode: number) {
   console.log(`[UnityBridge] Setting mode: ${mode}`);
   callUnity(iframe, 'SetMode', mode);
+}
+
+/**
+ * Send a throwable event to Unity (e.g. tomato). Unity should have ArenaController.SpawnThrowable(item).
+ */
+export function sendThrowableToUnity(
+  iframe: HTMLIFrameElement | null,
+  payload: { item: string; target?: string }
+) {
+  try {
+    const win = iframe?.contentWindow as unknown as { SendMessage?: (go: string, method: string, arg: string) => void };
+    if (typeof win?.SendMessage === 'function') {
+      win.SendMessage('ArenaController', 'SpawnThrowable', payload.item || 'tomato');
+    }
+  } catch (e) {
+    console.warn('[UnityBridge] sendThrowable error:', e);
+  }
 }

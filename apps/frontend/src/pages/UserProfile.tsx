@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { API_URL } from '../lib/api';
 import { toast } from 'react-hot-toast';
 import { getEloTier } from '../lib/elo';
+import { useSparkBalance } from '../hooks/useSparkBalance';
+import { Link } from 'react-router-dom';
 
 const XIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" aria-hidden="true" className={className}><g><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></g></svg>
@@ -29,6 +31,7 @@ export default function UserProfile() {
   const [showClaimModal, setShowClaimModal] = useState(false);
 
   const navigate = useNavigate();
+  const { balance: sparkBalance, loading: sparkLoading } = useSparkBalance(session);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -276,11 +279,16 @@ export default function UserProfile() {
             { label: 'Rank', value: rankTier.name, icon: Trophy, color: rankTier.color, sub: activeAgents > 0 ? `ELO ${highestElo}` : 'No active Lany' },
             { label: 'Active Lany', value: activeAgents, icon: Swords, color: 'text-primary', sub: 'Ready for fight' },
             { label: 'Win Rate', value: `${averageWinRate.toFixed(0)}%`, icon: Activity, color: 'text-green-500', sub: `${totalMatchSum} matches` },
-            { label: 'Arena Points', value: arenaPoints.toLocaleString(), icon: Zap, color: 'text-cyan-500', sub: 'Available' }
+            { label: 'Arena Points', value: arenaPoints.toLocaleString(), icon: Zap, color: 'text-cyan-500', sub: 'Available' },
+            { label: 'Spark', value: sparkLoading ? '…' : sparkBalance.toLocaleString(), icon: Sparkles, color: 'text-amber-400', sub: 'Watch & spend', href: '/hub' }
           ].map((stat, i) => (
             <div key={i} className="bg-black/40 border border-white/5 rounded-2xl p-5 backdrop-blur-sm">
               <div className="flex items-center gap-3 text-zinc-500 font-mono text-[10px] uppercase tracking-widest mb-3"><stat.icon size={16} className={stat.color} /> {stat.label}</div>
-              <div className={`text-2xl font-black uppercase tracking-tighter ${stat.color}`}>{stat.value}</div>
+              {stat.href ? (
+                <Link to={stat.href} className={`text-2xl font-black uppercase tracking-tighter ${stat.color} hover:opacity-80 block`}>{stat.value}</Link>
+              ) : (
+                <div className={`text-2xl font-black uppercase tracking-tighter ${stat.color}`}>{stat.value}</div>
+              )}
               <div className="text-[10px] text-zinc-500 mt-1 font-mono">{stat.sub}</div>
             </div>
           ))}
