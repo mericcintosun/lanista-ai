@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { prefetchGameHtml } from '../../lib/prefetchGame';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, UserCircle, LogOut, Bot } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -126,7 +127,10 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
                   key={item.path}
                   to={item.path}
                   ref={el => { linksRef.current[idx] = el; }}
-                  onMouseEnter={() => setHoveredIdx(idx)}
+                  onMouseEnter={() => {
+                    setHoveredIdx(idx);
+                    if (item.path === '/game-arena') prefetchGameHtml();
+                  }}
                   onMouseLeave={() => setHoveredIdx(null)}
                   className={`transition-colors duration-300 py-2 relative z-10 ${isActive ? 'text-white' : 'text-zinc-500 hover:text-zinc-200'}`}
                 >

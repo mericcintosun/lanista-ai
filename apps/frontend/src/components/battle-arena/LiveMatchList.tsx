@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { prefetchGameHtml } from '../../lib/prefetchGame';
 import { Swords, Activity, Search, ChevronLeft } from 'lucide-react';
 import type { Match } from '@lanista/types';
 
@@ -13,7 +14,7 @@ export function LiveMatchList({ matches }: LiveMatchListProps) {
       {matches.length > 0 ? (
         <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
           {matches.map((liveMatch) => (
-            <Link key={liveMatch.id} to={`/game-arena/${liveMatch.id}`} className="group">
+            <Link key={liveMatch.id} to={`/game-arena/${liveMatch.id}`} className="group" onMouseEnter={prefetchGameHtml}>
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 className="relative p-10 rounded-3xl transition-all flex flex-col gap-8 overflow-hidden bg-gradient-to-br from-blue-500/10 via-transparent to-secondary/10 border border-blue-500/20 hover:border-blue-500/40"

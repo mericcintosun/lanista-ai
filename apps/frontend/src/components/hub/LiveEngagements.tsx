@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
+import { prefetchGameHtml } from '../../lib/prefetchGame';
 import { Swords } from 'lucide-react';
 import type { Match } from '@lanista/types';
 
@@ -30,6 +31,8 @@ export function LiveEngagements({ liveMatches }: LiveEngagementsProps) {
                 role="button"
                 tabIndex={0}
                 onClick={() => navigate(`/game-arena/${match.id}`)}
+                onMouseEnter={prefetchGameHtml}
+                onTouchStart={prefetchGameHtml}
                 className="block group/item cursor-pointer"
               >
                 <div className="flex items-center justify-between p-8 bg-primary/5 border border-primary/15 group-hover/item:border-primary/40 transition-all relative overflow-hidden rounded-2xl">

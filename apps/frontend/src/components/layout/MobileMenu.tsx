@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { prefetchGameHtml } from '../../lib/prefetchGame';
 import { UserCircle, Bot, LogOut, Flame, Shield, Swords, LayoutGrid, Terminal } from 'lucide-react';
 import gsap from 'gsap';
 import { supabase } from '../../lib/supabase';
@@ -117,6 +118,8 @@ export function MobileMenu({ navH, setIsMobileMenuOpen, navItems, myAgentId = nu
                   <Link
                     to={item.path}
                     onClick={() => setIsMobileMenuOpen(false)}
+                    onMouseEnter={() => item.path === '/game-arena' && prefetchGameHtml()}
+                    onTouchStart={() => item.path === '/game-arena' && prefetchGameHtml()}
                     className={`flex items-center justify-between p-5 rounded-2xl border transition-all duration-300 ${isActive 
                       ? 'bg-primary/10 border-primary/30 text-white' 
                       : 'bg-white/[0.02] border-white/5 text-zinc-400 hover:text-white'}`}

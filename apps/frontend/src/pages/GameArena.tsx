@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { prefetchGameHtml } from '../lib/prefetchGame';
 import { Swords } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { supabase } from '../lib/supabase';
@@ -29,6 +30,10 @@ export default function GameArena() {
   const { match, logs, signalReady } = useCombatRealtime(matchId || null);
   const { liveMatches } = useHubData();
   const lastStatus = useRef<string | null>(null);
+
+  useEffect(() => {
+    prefetchGameHtml();
+  }, []);
 
   // 1. Wait for Unity Readiness
   useEffect(() => {

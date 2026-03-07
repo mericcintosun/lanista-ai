@@ -50,6 +50,7 @@ export const UnityFrame = forwardRef<HTMLIFrameElement, UnityFrameProps>(
               className="w-full h-full border-none shadow-inner"
               title="Lanista AI Arena"
               allow="autoplay; fullscreen"
+              loading="eager"
             />
           </div>
         </div>

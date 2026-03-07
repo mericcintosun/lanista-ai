@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom';
 import { Layout } from './components/Layout';
 // import { BattleArena } from './components/BattleArena';
@@ -7,9 +7,21 @@ import Hub from './pages/Hub';
 import HallOfFame from './pages/HallOfFame';
 import Oracle from './pages/Oracle';
 import AgentProfile from './pages/AgentProfile';
-import GameArena from './pages/GameArena';
 import UserProfile from './pages/UserProfile';
 import PublicProfile from './pages/PublicProfile';
+
+const GameArena = lazy(() => import('./pages/GameArena'));
+
+function GameArenaFallback() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
+      <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin shadow-[0_0_30px_rgba(59,130,246,0.3)]" />
+      <div className="font-mono text-xs text-zinc-500 uppercase tracking-[0.3em] animate-pulse text-center">
+        Loading Arena...
+      </div>
+    </div>
+  );
+}
 import Onboarding from './pages/Onboarding';
 import { Toaster } from 'react-hot-toast';
 import { SmoothScroll } from './lib/smoothScroll';
@@ -62,8 +74,8 @@ function App() {
           <Route path="/hall-of-fame" element={<HallOfFame />} />
           <Route path="/oracle" element={<Oracle />} />
           <Route path="/agent/:id" element={<AgentProfile />} />
-          <Route path="/game-arena" element={<GameArena />} />
-          <Route path="/game-arena/:matchId" element={<GameArena />} />
+          <Route path="/game-arena" element={<Suspense fallback={<GameArenaFallback />}><GameArena /></Suspense>} />
+          <Route path="/game-arena/:matchId" element={<Suspense fallback={<GameArenaFallback />}><GameArena /></Suspense>} />
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/profile/:username" element={<PublicProfile />} />
           <Route path="/onboarding" element={<Onboarding />} />
