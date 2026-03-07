@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, UserCircle, LogOut, Bot } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import gsap from 'gsap';
 import { supabase } from '../../lib/supabase';
 import { UserAuthModal } from './UserAuthModal';
 import { SparkBalance } from '../spark/SparkBalance';
 import { SparkStoreModal } from '../spark/SparkStoreModal';
-
 interface NavItem {
   name: string;
   path: string;
@@ -28,6 +28,10 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSparkStore, setShowSparkStore] = useState(false);
   const [session, setSession] = useState<any>(null);
+  
+  const navRef = useRef<HTMLElement>(null);
+  const underlineRef = useRef<HTMLDivElement>(null);
+  const linksRef = useRef<(HTMLAnchorElement | null)[]>([]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
@@ -35,88 +39,139 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
     return () => subscription.unsubscribe();
   }, []);
 
+  // GSAP: Smooth Navbar Height
+  useEffect(() => {
+    gsap.to(navRef.current, {
+      height: navH,
+      duration: 0.4,
+      ease: 'power3.out'
+    });
+  }, [navH]);
+
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+
+  // GSAP: Hover Underline Logic
+  useEffect(() => {
+    const activeIdx = navItems.findIndex(item => 
+      location.pathname === item.path || (item.path === '/game-arena' && location.pathname.startsWith('/game-arena/'))
+    );
+    const targetIdx = hoveredIdx !== null ? hoveredIdx : (activeIdx !== -1 ? activeIdx : null);
+
+    if (targetIdx !== null && linksRef.current[targetIdx] && underlineRef.current) {
+      const link = linksRef.current[targetIdx];
+      const { left, width } = link.getBoundingClientRect();
+      const parentLeft = link.closest('.lg\\:flex')?.getBoundingClientRect().left || 0;
+
+      gsap.to(underlineRef.current, {
+        left: left - parentLeft,
+        width: width,
+        opacity: 1,
+        duration: 0.35,
+        ease: 'power3.out'
+      });
+    } else if (underlineRef.current) {
+      gsap.to(underlineRef.current, {
+        opacity: 0,
+        duration: 0.3,
+        ease: 'power2.in'
+      });
+    }
+  }, [hoveredIdx, location.pathname, navItems]);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     window.location.href = '/';
   };
 
   return (
-    <motion.nav
-      animate={{ height: navH }}
-      transition={{ duration: 0.25, ease: 'easeInOut' }}
-      className="fixed top-0 left-0 right-0 z-50 flex items-center bg-background/60 backdrop-blur-md border-b border-white/5 overflow-visible"
+    <nav
+      ref={navRef}
+      className={`fixed top-0 left-0 right-0 z-50 flex items-center transition-colors duration-500 ${scrolled ? 'bg-background/80 border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)]' : 'bg-transparent border-b border-transparent'} backdrop-blur-xl overflow-visible`}
     >
-      <div className="max-w-[1400px] w-full mx-auto px-4 sm:px-8 flex items-center justify-between">
+      <div className="max-w-[1440px] w-full mx-auto px-6 sm:px-10 flex items-center justify-between h-full">
         {/* Logo */}
         <Link 
           to="/" 
-          className="flex items-center gap-3 group"
+          className="flex items-center gap-3 shrink-0"
           onClick={() => setIsMobileMenuOpen(false)}
         >
-          <div className="relative shrink-0">
-            <img
-              src="/logo-remove-bg.png"
-              alt="LANISTA"
-              className={`transition-all duration-300 rounded-full aspect-square object-cover border-2 border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.1)] p-1 group-hover:border-white/60 group-hover:scale-105 ${scrolled ? 'h-8 w-8' : 'h-11 w-11'}`}
-            />
-          </div>
-          <span className={`font-mono font-black text-white lowercase transition-all duration-300 tracking-[-0.05em] group-hover:text-primary leading-none ${scrolled ? 'text-lg' : 'text-xl'}`}>
+          <img
+            src="/logo-remove-bg.png"
+            alt="Lanista"
+            className={`rounded-full border border-white/10 ${scrolled ? 'h-8 w-8' : 'h-10 w-10'}`}
+          />
+          <span className={`font-mono font-black text-white italic tracking-tighter ${scrolled ? 'text-lg' : 'text-xl'}`}>
             lanista
           </span>
         </Link>
 
         {/* Desktop Nav */}
-        <div className="hidden lg:flex items-center gap-10 font-mono text-xs uppercase tracking-[0.35em]">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.path || (item.path === '/game-arena' && location.pathname.startsWith('/game-arena/'));
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`transition-all duration-300 hover:text-white relative group ${isActive ? 'text-white font-bold' : 'text-zinc-500'}`}
-              >
-                {item.name}
-                {isActive && (
-                  <span className="absolute -bottom-1 left-0 right-0 h-px bg-primary shadow-[0_0_8px_rgba(255,45,45,0.8)] rounded-full" />
-                )}
-              </Link>
-            );
-          })}
-          
-          {!session ? (
-            <button
-               onClick={() => setShowAuthModal(true)}
-               className="ml-4 truncate flex items-center justify-center gap-2 px-6 py-2 bg-primary border border-primary text-white font-bold rounded-lg transition-all hover:bg-primary/90 hover:border-primary active:scale-95 normal-case tracking-normal"
-            >
-              <UserCircle className="w-4 h-4" /> Login
-            </button>
-          ) : (
-            <div className="flex items-center gap-2 ml-4">
-              <SparkBalance session={session} onOpenStore={() => setShowSparkStore(true)} />
-              {myAgentId && (
+        <div className="hidden lg:flex items-center gap-8 relative h-full">
+          {/* Animated GSAP Underline */}
+          <div 
+            ref={underlineRef}
+            className="absolute bottom-[20%] h-[2px] bg-primary opacity-0 pointer-events-none rounded-full shadow-[0_0_10px_rgba(255,45,45,0.8)] z-0"
+          />
+
+          <div className="flex items-center gap-8 font-mono text-xs uppercase tracking-[0.3em] font-bold">
+            {navItems.map((item, idx) => {
+              const isActive = location.pathname === item.path || (item.path === '/game-arena' && location.pathname.startsWith('/game-arena/'));
+              return (
                 <Link
-                  to={`/agent/${myAgentId}`}
-                  className="truncate flex items-center justify-center gap-2 px-5 py-2 bg-primary/10 border border-primary/30 text-primary font-bold rounded-lg transition-all hover:bg-primary/20 hover:border-primary/50 active:scale-95 normal-case tracking-normal"
-                  title="Go to my agent's profile"
+                  key={item.path}
+                  to={item.path}
+                  ref={el => { linksRef.current[idx] = el; }}
+                  onMouseEnter={() => setHoveredIdx(idx)}
+                  onMouseLeave={() => setHoveredIdx(null)}
+                  className={`transition-colors duration-300 py-2 relative z-10 ${isActive ? 'text-white' : 'text-zinc-500 hover:text-zinc-200'}`}
                 >
-                  <Bot className="w-4 h-4" /> My Agent
+                  {item.name}
                 </Link>
-              )}
-              <Link
-                to="/profile"
-                className="truncate flex items-center justify-center gap-2 px-6 py-2 bg-zinc-800 border border-white/10 text-white font-bold rounded-lg transition-all hover:bg-zinc-700 active:scale-95 normal-case tracking-normal"
-              >
-                <UserCircle className="w-4 h-4 text-primary" /> Profile
-              </Link>
+              );
+            })}
+          </div>
+          
+          <div className="h-6 w-[1px] bg-white/5 mx-2" />
+
+          <div className="flex items-center gap-3">
+            {!session ? (
               <button
-                onClick={handleSignOut}
-                className="p-2.5 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all active:scale-90 shadow-[0_0_15px_rgba(239,68,68,0.1)]"
-                title="Sign Out"
+                 onClick={() => setShowAuthModal(true)}
+                 className="flex items-center gap-2 px-5 py-2 bg-primary/10 border border-primary/20 text-primary font-black rounded-lg transition-all hover:bg-primary hover:text-white hover:border-primary active:scale-95 text-xs uppercase tracking-wider italic"
               >
-                <LogOut className="w-4 h-4" />
+                <UserCircle className="w-3.5 h-3.5" /> Login_
               </button>
-            </div>
-          )}
+            ) : (
+              <div className="flex items-center gap-3">
+                <SparkBalance session={session} onOpenStore={() => setShowSparkStore(true)} />
+                
+                {myAgentId && (
+                  <Link
+                    to={`/agent/${myAgentId}`}
+                    className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 text-white font-black rounded-lg transition-all hover:bg-white/10 hover:border-white/20 active:scale-95 text-xs uppercase tracking-wider"
+                  >
+                    <Bot className="w-3.5 h-3.5 text-primary" /> My Lany
+                  </Link>
+                )}
+
+                <Link
+                  to="/profile"
+                  className="p-2.5 bg-zinc-900 border border-white/10 text-zinc-400 rounded-lg hover:text-white hover:bg-zinc-800 transition-all active:scale-95"
+                  title="Profile Settings"
+                >
+                  <UserCircle className="w-4 h-4" />
+                </Link>
+
+                <button
+                  onClick={handleSignOut}
+                  className="p-2.5 bg-red-500/5 border border-red-500/10 text-red-500/60 rounded-lg hover:bg-red-500/20 hover:text-red-500 transition-all active:scale-90 shadow-[0_0_15px_rgba(239,68,68,0.05)]"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
 
           <AnimatePresence>
             {showAuthModal && <UserAuthModal onClose={() => setShowAuthModal(false)} />}
@@ -132,23 +187,23 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
 
         {/* Mobile Hamburger */}
         <button
-          className="lg:hidden flex items-center justify-center w-10 h-10 rounded-lg text-white hover:bg-white/10 transition-colors"
+          className="lg:hidden flex items-center justify-center w-10 h-10 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all"
           onClick={() => setIsMobileMenuOpen(prev => !prev)}
           aria-label="Toggle menu"
         >
           <AnimatePresence mode="wait" initial={false}>
             {isMobileMenuOpen ? (
-              <motion.span key="x" initial={{ rotate: -45, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 45, opacity: 0 }} transition={{ duration: 0.15 }}>
+              <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}>
                 <X className="w-5 h-5" />
               </motion.span>
             ) : (
-              <motion.span key="menu" initial={{ rotate: 45, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -45, opacity: 0 }} transition={{ duration: 0.15 }}>
+              <motion.span key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}>
                 <Menu className="w-5 h-5" />
               </motion.span>
             )}
           </AnimatePresence>
         </button>
       </div>
-    </motion.nav>
+    </nav>
   );
 }

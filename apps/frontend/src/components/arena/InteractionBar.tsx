@@ -22,9 +22,9 @@ export function InteractionBar({
 }: InteractionBarProps) {
   return (
     <div
-      className={`flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-black/60 backdrop-blur-md border border-zinc-800 shadow-lg ${className}`}
+      className={`flex items-center justify-center gap-2 sm:gap-3 py-2 sm:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl bg-black/60 backdrop-blur-md border border-zinc-800 shadow-lg ${className}`}
     >
-      <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mr-1">
+      <span className="text-[9px] sm:text-[10px] font-mono text-zinc-500 uppercase tracking-widest mr-0.5 sm:mr-1">
         Throw
       </span>
       <motion.button
@@ -33,12 +33,12 @@ export function InteractionBar({
         disabled={!session || sending}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary/10 border border-primary/30 hover:bg-primary/20 text-primary disabled:opacity-50 disabled:pointer-events-none transition-colors group"
+        className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2.5 rounded-lg bg-primary/10 border border-primary/30 hover:bg-primary/20 text-primary disabled:opacity-50 disabled:pointer-events-none transition-colors group"
         title={`Throw tomato at ${player1Name} (${TOMATO_COST} Spark)`}
       >
-        <Target className="w-4 h-4 group-hover:scale-110 transition-transform" />
-        <span className="text-xs font-bold uppercase tracking-tighter">{player1Name}</span>
-        <span className="text-[10px] opacity-80">-{TOMATO_COST}</span>
+        <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform" />
+        <span className="text-[10px] sm:text-xs font-bold uppercase tracking-tighter">{player1Name}</span>
+        <span className="text-[9px] sm:text-[10px] opacity-80 hidden sm:inline">-{TOMATO_COST}</span>
       </motion.button>
       <motion.button
         type="button"
@@ -46,12 +46,12 @@ export function InteractionBar({
         disabled={!session || sending}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary/10 border border-primary/30 hover:bg-primary/20 text-primary disabled:opacity-50 disabled:pointer-events-none transition-colors group"
+        className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2.5 rounded-lg bg-primary/10 border border-primary/30 hover:bg-primary/20 text-primary disabled:opacity-50 disabled:pointer-events-none transition-colors group"
         title={`Throw tomato at ${player2Name} (${TOMATO_COST} Spark)`}
       >
-        <Target className="w-4 h-4 group-hover:scale-110 transition-transform" />
-        <span className="text-xs font-bold uppercase tracking-tighter">{player2Name}</span>
-        <span className="text-[10px] opacity-80">-{TOMATO_COST}</span>
+        <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform" />
+        <span className="text-[10px] sm:text-xs font-bold uppercase tracking-tighter">{player2Name}</span>
+        <span className="text-[9px] sm:text-[10px] opacity-80 hidden sm:inline">-{TOMATO_COST}</span>
       </motion.button>
     </div>
   );

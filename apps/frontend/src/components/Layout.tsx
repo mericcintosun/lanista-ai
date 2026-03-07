@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ParticleBackground from './ParticleBackground';
 import { supabase } from '../lib/supabase';
 import { API_URL } from '../lib/api';
+import { getLenis } from '../lib/smoothScroll';
 
 // Sub-components
 import { Navbar } from './layout/Navbar';
@@ -80,6 +81,21 @@ export function Layout() {
     };
   }, [isMobileMenuOpen]);
 
+  // Scroll to top on route change (Lenis controls scroll, so use its API)
+  useEffect(() => {
+    const scrollToTop = () => {
+      const lenis = getLenis();
+      if (lenis) {
+        lenis.scrollTo(0, { immediate: true });
+      } else {
+        window.scrollTo(0, 0);
+      }
+    };
+    scrollToTop();
+    const id = setTimeout(scrollToTop, 100);
+    return () => clearTimeout(id);
+  }, [location.pathname]);
+
   const navH = scrolled ? NAV_H_SMALL : NAV_H_LARGE;
 
   const navItems = [
@@ -95,12 +111,13 @@ export function Layout() {
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-grid-pattern opacity-[0.03]" />
         <div className="absolute inset-0 mesh-gradient opacity-40" />
-        <div className="absolute inset-0 noise" />
         <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] mix-blend-screen animate-pulse" />
         <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[150px] mix-blend-screen" />
       </div>
 
-      <ParticleBackground />
+      <div className="fixed inset-0 z-[1]">
+        <ParticleBackground />
+      </div>
 
       {/* ── NAVBAR ── */}
       <Navbar 
@@ -130,7 +147,7 @@ export function Layout() {
         transition={{ duration: 0.25, ease: 'easeInOut' }}
         className="relative z-20 flex flex-col items-center w-full min-h-screen"
       >
-        <div className="w-full max-w-[1400px] px-4 sm:px-6 md:px-10">
+        <div className={`w-full ${location.pathname === '/' ? 'max-w-none px-0' : 'max-w-[1400px] px-4 sm:px-6 md:px-10'}`}>
           <Outlet context={{ openAuth: () => setShowAuthModal(true) }} />
         </div>
       </motion.main>

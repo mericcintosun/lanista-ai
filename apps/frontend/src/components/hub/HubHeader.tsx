@@ -8,37 +8,41 @@ interface HubHeaderProps {
 
 export function HubHeader({ refreshing, onRefresh }: HubHeaderProps) {
   return (
-    <section className="text-center space-y-10 pt-12 flex flex-col items-center justify-center min-h-[40vh] px-4">
-      <div className="space-y-4 w-full">
-        <p className="font-mono text-[10px] md:text-xs text-red-500 font-bold uppercase tracking-[0.4em] md:tracking-[0.6em] mb-4">// LANISTA DASHBOARD v2.4</p>
-        <div className="relative inline-block w-full">
-          <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-[10rem] font-black italic tracking-tighter text-white select-none relative z-10 leading-[0.8] uppercase break-words px-2">
+    <section className="text-center space-y-12 pt-16 flex flex-col items-center justify-center min-h-[45vh] px-4 relative overflow-hidden">
+      
+      <div className="space-y-4 w-full relative z-10">
+        <p className="font-mono text-[10px] md:text-xs text-primary font-black uppercase tracking-[0.5em] md:tracking-[0.8em] mb-6 opacity-70 italic">
+          // TERMINAL_ACCESS: HUB_PROTOCOL_v4.0
+        </p>
+        <div className="relative inline-block w-full max-w-4xl">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black italic tracking-tighter text-white select-none relative z-10 leading-[0.9] uppercase px-4 drop-shadow-[0_0_20px_rgba(255,255,255,0.05)]">
             THE HUB
           </h1>
-          <span className="absolute inset-0 z-0 translate-x-[2px] translate-y-[2px] md:translate-x-[4px] md:translate-y-[2px] text-red-500/30 blur-[2px] md:blur-[3px] italic font-black text-6xl sm:text-7xl md:text-8xl lg:text-[10rem] tracking-tighter leading-[0.8] uppercase pointer-events-none">
+          <span className="absolute inset-0 z-0 translate-x-[3px] translate-y-[3px] text-primary/10 blur-[2px] italic font-black text-5xl sm:text-6xl md:text-7xl lg:text-8xl tracking-tighter leading-[0.9] uppercase pointer-events-none select-none">
             THE HUB
           </span>
         </div>
       </div>
 
-      <div className="max-w-3xl space-y-8">
-        <p className="text-zinc-400 font-mono text-base md:text-base leading-relaxed uppercase tracking-widest">
-          Global battlefield telemetry. <br />
-          Monitor neural combat protocols and system engagements.
+      <div className="max-w-3xl space-y-10 relative z-10">
+        <p className="text-zinc-500 font-mono text-sm md:text-base leading-relaxed uppercase tracking-[0.2em] font-medium italic">
+          Neural combat telemetry active. <br />
+          Monitoring <span className="text-white">protocol engagements</span> across the global cluster.
         </p>
 
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-6">
+        <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-6">
           <Link
             to="/"
-            className="group px-14 py-5 glass border-white/5 text-white font-black tracking-[0.3em] text-[10px] uppercase transition-all hover:bg-white hover:text-black flex items-center gap-4 active:scale-95"
+            className="group min-w-[200px] py-4 glass border-white/10 text-white font-black tracking-[0.3em] text-[10px] uppercase transition-all hover:bg-white hover:text-black flex items-center justify-center gap-4 active:scale-95 rounded-sm"
           >
-            Main Access <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            Terminal Home <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </Link>
           <button
             onClick={onRefresh}
-            className="px-14 py-5 glass border-primary/20 text-primary font-black tracking-[0.3em] text-[10px] uppercase transition-all hover:bg-primary/10 flex items-center gap-4 active:scale-95"
+            className="group min-w-[200px] py-4 glass border-primary/30 text-primary font-black tracking-[0.3em] text-[10px] uppercase transition-all hover:bg-primary/10 flex items-center justify-center gap-4 active:scale-95 rounded-sm shadow-[0_0_20px_rgba(255,45,45,0.1)] hover:shadow-[0_0_30px_rgba(255,45,45,0.2)]"
           >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} /> Sync Data
+            <RefreshCw className={`w-3.5 h-3.5 transition-transform group-hover:rotate-180 duration-700 ${refreshing ? 'animate-spin border-primary/40' : ''}`} /> 
+            {refreshing ? 'Syncing...' : 'Sync Telemetry'}
           </button>
         </div>
       </div>

@@ -11,6 +11,7 @@ import GameArena from './pages/GameArena';
 import UserProfile from './pages/UserProfile';
 import Onboarding from './pages/Onboarding';
 import { Toaster } from 'react-hot-toast';
+import { SmoothScroll } from './lib/smoothScroll';
 import './index.css';
 
 function GlobalMatchDirector() {
@@ -30,6 +31,7 @@ function GlobalMatchDirector() {
 function App() {
   return (
     <BrowserRouter>
+      <SmoothScroll />
       <Toaster 
         position="bottom-right" 
         toastOptions={{

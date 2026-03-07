@@ -74,44 +74,44 @@ export function DigitalPassportCard({ agentId, agentName, walletAddress, avatarU
 
   return (
     <div
-      className={`bg-gradient-to-br from-zinc-900/80 to-zinc-900/40 border rounded-2xl p-6 sm:p-8 relative overflow-hidden transition-shadow duration-300 ${highHonor ? 'border-cyan-500/40' : 'border-cyan-500/30'} ${cardGlow}`}
+      className={`bg-gradient-to-br from-zinc-900/80 to-zinc-900/40 border rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 relative overflow-hidden transition-shadow duration-300 ${highHonor ? 'border-cyan-500/40' : 'border-cyan-500/30'} ${cardGlow}`}
     >
       <div className="absolute inset-0 opacity-30 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
       <div className="relative z-10 w-full max-w-2xl mx-auto">
-        <div className="flex items-start justify-between gap-4 mb-6 flex-wrap">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4 sm:mb-6">
+          <div className="flex items-center gap-3 sm:gap-4">
             {avatarUrl ? (
               <img
                 src={avatarUrl}
                 alt=""
-                className="w-14 h-14 rounded-xl object-cover bg-zinc-800 border border-white/10 ring-2 ring-cyan-500/20"
+                className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl object-cover bg-zinc-800 border border-white/10 ring-2 ring-cyan-500/20 shrink-0"
               />
             ) : (
-              <div className="w-14 h-14 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center">
-                <Shield className="w-7 h-7 text-cyan-400" />
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center shrink-0">
+                <Shield className="w-6 h-6 sm:w-7 sm:h-7 text-cyan-400" />
               </div>
             )}
-            <div>
-              <h3 className="font-mono text-sm font-black text-white uppercase tracking-widest">
+            <div className="min-w-0">
+              <h3 className="font-mono text-xs sm:text-sm font-black text-white uppercase tracking-widest">
                 Gladiator Passport
               </h3>
-              <p className="font-mono text-[10px] text-cyan-400/90 uppercase tracking-wider">
+              <p className="font-mono text-[9px] sm:text-[10px] text-cyan-400/90 uppercase tracking-wider">
                 LANY Identity • Immutable on-chain record
               </p>
-              <span className="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-md bg-cyan-500/10 border border-cyan-500/20 text-cyan-400/90 font-mono text-[9px] uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1 mt-1 sm:mt-1.5 px-2 py-0.5 rounded-md bg-cyan-500/10 border border-cyan-500/20 text-cyan-400/90 font-mono text-[8px] sm:text-[9px] uppercase tracking-wider">
                 ERC #8004 • Verified
               </span>
             </div>
           </div>
-          <div className="group/badge relative shrink-0">
+          <div className="group/badge relative shrink-0 self-start sm:self-auto">
             <span
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono text-[9px] uppercase tracking-widest font-bold"
+              className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono text-[8px] sm:text-[9px] uppercase tracking-widest font-bold"
               title="This Lany's stats and battle history are sealed immutably on Avalanche."
             >
-              <BadgeCheck className="w-3.5 h-3.5" />
+              <BadgeCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               Oracle Secured
             </span>
-            <div className="absolute top-full right-0 mt-2 w-64 p-3 bg-black/95 backdrop-blur-md border border-white/10 rounded-lg shadow-2xl opacity-0 invisible group-hover/badge:opacity-100 group-hover/badge:visible transition-all z-[60] pointer-events-none text-left">
+            <div className="absolute top-full right-0 mt-2 w-56 sm:w-64 p-3 bg-black/95 backdrop-blur-md border border-white/10 rounded-lg shadow-2xl opacity-0 invisible group-hover/badge:opacity-100 group-hover/badge:visible transition-all z-[60] pointer-events-none text-left">
               <p className="font-mono text-[10px] text-zinc-300 normal-case tracking-normal leading-relaxed">
                 This Lany's stats and battle history are sealed immutably on Avalanche. No backdoors, no edits.
               </p>
@@ -119,34 +119,34 @@ export function DigitalPassportCard({ agentId, agentName, walletAddress, avatarU
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="bg-black/30 rounded-xl p-4 border border-white/5">
-            <div className="flex items-center gap-2 text-zinc-500 font-mono text-[10px] uppercase tracking-widest mb-1">
-              <Hash className="w-3.5 h-3.5" /> Passport #
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          <div className="bg-black/30 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-white/5">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-zinc-500 font-mono text-[9px] sm:text-[10px] uppercase tracking-widest mb-0.5 sm:mb-1">
+              <Hash className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" /> Passport #
             </div>
-            <p className="font-mono text-lg font-bold text-white">#{passport.tokenId}</p>
+            <p className="font-mono text-base sm:text-lg font-bold text-white truncate">#{passport.tokenId}</p>
           </div>
-          <div className="bg-black/30 rounded-xl p-4 border border-white/5">
-            <div className="flex items-center gap-2 text-zinc-500 font-mono text-[10px] uppercase tracking-widest mb-1">
-              <Award className="w-3.5 h-3.5" /> Honor Score
+          <div className="bg-black/30 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-white/5">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-zinc-500 font-mono text-[9px] sm:text-[10px] uppercase tracking-widest mb-0.5 sm:mb-1">
+              <Award className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" /> Honor Score
             </div>
-            <p className="font-mono text-lg font-bold text-cyan-400">{passport.reputationScore}</p>
+            <p className="font-mono text-base sm:text-lg font-bold text-cyan-400">{passport.reputationScore}</p>
           </div>
-          <div className="bg-black/30 rounded-xl p-4 border border-white/5">
-            <div className="flex items-center gap-2 text-zinc-500 font-mono text-[10px] uppercase tracking-widest mb-1">
-              <Swords className="w-3.5 h-3.5" /> Battles
+          <div className="bg-black/30 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-white/5">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-zinc-500 font-mono text-[9px] sm:text-[10px] uppercase tracking-widest mb-0.5 sm:mb-1">
+              <Swords className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" /> Battles
             </div>
-            <p className="font-mono text-lg font-bold text-white">{passport.totalMatches}</p>
+            <p className="font-mono text-base sm:text-lg font-bold text-white">{passport.totalMatches}</p>
           </div>
-          <div className="bg-black/30 rounded-xl p-4 border border-white/5">
-            <div className="flex items-center gap-2 text-zinc-500 font-mono text-[10px] uppercase tracking-widest mb-1">
+          <div className="bg-black/30 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-white/5">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-zinc-500 font-mono text-[9px] sm:text-[10px] uppercase tracking-widest mb-0.5 sm:mb-1">
               Wins
             </div>
-            <p className="font-mono text-lg font-bold text-[#00FF00]">{passport.wins}</p>
+            <p className="font-mono text-base sm:text-lg font-bold text-[#00FF00]">{passport.wins}</p>
           </div>
         </div>
 
-        <p className="mt-4 font-mono text-[9px] text-zinc-600 uppercase tracking-widest">
+        <p className="mt-3 sm:mt-4 font-mono text-[8px] sm:text-[9px] text-zinc-600 uppercase tracking-widest leading-relaxed">
           {agentName} • Identity and reputation are permanently recorded and cannot be altered.
         </p>
       </div>

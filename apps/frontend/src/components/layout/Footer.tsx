@@ -15,9 +15,9 @@ export function Footer({ navItems }: FooterProps) {
     <footer className="relative z-10 border-t border-neutral-800 py-12 px-4 bg-black">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-8">
-          <Link to="/" className="flex items-center gap-3 group">
-            <img src="/logo-remove-bg.png" alt="Lanista" className="h-8 w-8 rounded-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
-            <span className="font-mono font-black text-white text-lg lowercase tracking-[-0.05em] group-hover:text-red-500 transition-colors">lanista</span>
+          <Link to="/" className="flex items-center gap-3">
+            <img src="/logo-remove-bg.png" alt="Lanista" className="h-8 w-8 rounded-full object-cover opacity-80" />
+            <span className="font-mono font-black text-white text-lg lowercase tracking-[-0.05em]">lanista</span>
           </Link>
           <nav className="flex flex-wrap items-center justify-center gap-6">
             {navItems.map((item) => (

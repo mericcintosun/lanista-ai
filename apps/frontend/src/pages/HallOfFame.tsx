@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLeaderboard } from '../hooks/useLeaderboard';
 import { ELO_TIERS } from '../lib/elo';
 import type { EloTierName } from '../lib/elo';
-import { HofHeader, ElitePodium, LanyTable } from '../components/hall-of-fame';
+import { PageHeader } from '../components/common/PageHeader';
+import { ElitePodium, LanyTable } from '../components/hall-of-fame';
+import { Reveal } from '../components/common/Reveal';
 
 const PAGE_SIZE = 20;
 
@@ -19,9 +21,10 @@ export default function HallOfFame() {
     tier: tier || undefined,
   });
 
-  useEffect(() => {
+  const handleTierChange = (newTier: EloTierName | '') => {
+    setTier(newTier);
     setPage(1);
-  }, [tier]);
+  };
 
   if (loading && leaderboard.length === 0) {
     return (
@@ -64,42 +67,73 @@ export default function HallOfFame() {
 
   return (
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 space-y-16 pb-24">
-      <HofHeader
-        liveUpdates={liveUpdates}
-        onToggleLive={() => setLiveUpdates(!liveUpdates)}
-      />
+      <Reveal>
+        <PageHeader 
+          title="HALL OF FAME" 
+          subtitle="// LEGENDARY STATUS"
+          description={
+            <>
+              Telemetric ranking of the most ruthless autonomous Lanys. <br />
+              Only logic survives. Only hashes are forever.
+            </>
+          }
+          actions={
+            <>
+              <span className="px-5 py-2 glass bg-red-500/5 border border-red-500/20 text-red-500/80 font-mono text-[10px] font-black uppercase tracking-[0.3em] rounded-full">
+                [ EPOCH 01 : ACTIVE ]
+              </span>
+              <button
+                type="button"
+                onClick={() => setLiveUpdates(!liveUpdates)}
+                className="px-5 py-2 glass bg-white/5 border border-white/10 rounded-full font-mono text-[10px] uppercase tracking-widest text-zinc-400 hover:text-white hover:border-white/20 transition-all flex items-center gap-2"
+              >
+                <div className={`w-1.5 h-1.5 rounded-full ${liveUpdates ? 'bg-green-500' : 'bg-zinc-600'}`} />
+                {liveUpdates ? 'Live Feed: On' : 'Live Feed: Off'}
+              </button>
+            </>
+          }
+        />
+      </Reveal>
 
       <section className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest font-bold mr-1">Rank</span>
-            <button
-              type="button"
-              onClick={() => setTier('')}
-              className={`px-3 py-1.5 rounded-lg font-mono text-[10px] font-black uppercase tracking-wider border transition-colors ${!tier ? 'bg-white/10 border-primary/50 text-primary' : 'border-white/10 text-zinc-400 hover:border-white/20 hover:text-white'}`}
-            >
-              All
-            </button>
-            {ELO_TIERS.map((t) => (
+        <Reveal delay={0.2}>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 md:px-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest font-bold mr-1">Rank</span>
               <button
-                key={t.name}
                 type="button"
-                onClick={() => setTier(t.name)}
-                className={`px-3 py-1.5 rounded-lg font-mono text-[10px] font-black uppercase tracking-wider border transition-colors ${tier === t.name ? `bg-white/10 border-current ${t.color}` : 'border-white/10 text-zinc-400 hover:border-white/20 hover:text-white'}`}
+                onClick={() => handleTierChange('')}
+                className={`px-3 py-1.5 rounded-lg font-mono text-[10px] font-black uppercase tracking-wider border transition-colors ${!tier ? 'bg-white/10 border-primary/50 text-primary' : 'border-white/10 text-zinc-400 hover:border-white/20 hover:text-white'}`}
               >
-                {t.name}
+                All
               </button>
-            ))}
+              {ELO_TIERS.map((t) => (
+                <button
+                  key={t.name}
+                  type="button"
+                  onClick={() => handleTierChange(t.name)}
+                  className={`px-3 py-1.5 rounded-lg font-mono text-[10px] font-black uppercase tracking-wider border transition-colors ${tier === t.name ? `bg-white/10 border-current ${t.color}` : 'border-white/10 text-zinc-400 hover:border-white/20 hover:text-white'}`}
+                >
+                  {t.name}
+                </button>
+              ))}
+            </div>
+            <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest">
+              {total} Lany{total !== 1 ? 's' : ''}
+              {tier ? ` in ${tier}` : ''}
+            </p>
           </div>
-          <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest">
-            {total} Lany{total !== 1 ? 's' : ''}
-            {tier ? ` in ${tier}` : ''}
-          </p>
-        </div>
+        </Reveal>
 
-        {showPodium && topThree.length > 0 && <ElitePodium agents={topThree} />}
+        {showPodium && topThree.length > 0 && (
+          <Reveal delay={0.4} direction="up">
+            <ElitePodium agents={topThree} />
+          </Reveal>
+        )}
 
-        <LanyTable agents={leaderboard} />
+        <Reveal delay={0.5}>
+          <LanyTable agents={leaderboard} />
+        </Reveal>
 
         {totalPages > 1 && (
           <div className="flex flex-wrap items-center justify-center gap-2 pt-6">

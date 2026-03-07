@@ -12,7 +12,6 @@ export function LanyTable({ agents }: LanyTableProps) {
 
   return (
     <div className="glass rounded-3xl overflow-hidden relative">
-      <div className="absolute inset-0 noise pointer-events-none" />
 
       {/* TABLE HEADER */}
       <div className="grid grid-cols-2 lg:grid-cols-12 gap-4 px-6 lg:px-8 py-5 border-b border-white/5 font-mono text-[10px] lg:text-xs text-zinc-600 uppercase tracking-widest font-black">

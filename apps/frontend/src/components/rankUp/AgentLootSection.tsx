@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Package, ExternalLink, X, Sparkles } from 'lucide-react';
+import { Skeleton } from '../common/Skeleton';
 import { API_URL } from '../../lib/api';
 import { tokenIdToImagePath, tokenIdToName, tokenIdToDescription, tokenIdToRankAndSlot } from '../../lib/rankUpItems';
 
@@ -17,18 +18,73 @@ interface AgentLootSectionProps {
   agentName?: string;
 }
 
-export function AgentLootSection({ walletAddress, agentName }: AgentLootSectionProps) {
-  const [items, setItems] = useState<InventoryItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+function LootCard({
+  tokenId,
+  balance,
+  idx,
+  onSelect,
+}: {
+  tokenId: number;
+  balance: number;
+  idx: number;
+  onSelect: () => void;
+}) {
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const { rankName } = tokenIdToRankAndSlot(tokenId);
+  const name = tokenIdToName(tokenId);
+  const src = tokenIdToImagePath(tokenId);
 
+  return (
+    <motion.button
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: idx * 0.04 }}
+      whileHover={{ scale: 1.02, y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      onClick={onSelect}
+      className="group relative rounded-xl border border-white/10 bg-black/40 overflow-hidden text-left transition-all hover:border-primary/30 hover:shadow-[0_0_30px_rgba(255,45,45,0.08)]"
+    >
+      <div className="aspect-square bg-gradient-to-b from-white/5 to-transparent relative flex items-center justify-center p-4">
+        {!imgLoaded && (
+          <div className="absolute inset-0">
+            <Skeleton className="w-full h-full rounded-lg" />
+          </div>
+        )}
+        <img
+          src={src}
+          alt={name}
+          className={`w-full h-full object-contain transition-all duration-300 group-hover:scale-105 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+          onLoad={() => setImgLoaded(true)}
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = 'none';
+            setImgLoaded(true);
+          }}
+        />
+        <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-black/70 border border-white/10 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-300">
+          {rankName}
+        </div>
+      </div>
+      <div className="p-3 border-t border-white/5">
+        <p className="font-black text-white text-sm italic uppercase tracking-tight truncate">{name}</p>
+        {balance > 1 && (
+          <p className="text-xs text-zinc-500 font-mono mt-0.5">× {balance}</p>
+        )}
+      </div>
+    </motion.button>
+  );
+}
+
+export function AgentLootSection({ walletAddress, agentName }: AgentLootSectionProps) {
   const hasValidWallet = Boolean(walletAddress && walletAddress.length >= 40);
+  const [items, setItems] = useState<InventoryItem[]>([]);
+  const [loading, setLoading] = useState(hasValidWallet);
+  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const effectiveItems = hasValidWallet ? items : [];
 
   useEffect(() => {
     if (!hasValidWallet) return;
+    setLoading(true);
     const ac = new AbortController();
-    queueMicrotask(() => setLoading(true));
     fetch(`${API_URL}/oracle/inventory/${encodeURIComponent(walletAddress!)}`, { signal: ac.signal })
       .then((r) => r.json())
       .then((data) => {
@@ -80,57 +136,44 @@ export function AgentLootSection({ walletAddress, agentName }: AgentLootSectionP
           </div>
 
           {loading && (
-            <div className="flex items-center justify-center py-16">
-              <div className="w-8 h-8 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-zinc-500">
+                <div className="w-4 h-4 rounded-full border-2 border-primary/50 border-t-primary animate-spin" />
+                <span className="font-mono text-xs uppercase tracking-widest">Loading loot…</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="rounded-xl border border-white/10 bg-black/40 overflow-hidden">
+                    <Skeleton className="aspect-square" />
+                    <div className="p-3 space-y-2">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
           {!loading && effectiveItems.length === 0 && (
             <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] py-16 px-6 text-center">
               <Package className="w-12 h-12 text-zinc-600 mx-auto mb-3" />
-              <p className="font-mono text-xs text-zinc-500 uppercase tracking-widest">No rank-up loot yet</p>
-              <p className="text-[10px] text-zinc-600 mt-1 max-w-xs mx-auto">Win matches and rank up to earn Oracle-verified loot.</p>
+              <p className="font-mono text-sm text-zinc-500 uppercase tracking-widest">No rank-up loot yet</p>
+              <p className="text-xs text-zinc-600 mt-2 max-w-xs mx-auto">Win matches and rank up to earn Oracle-verified loot.</p>
             </div>
           )}
 
           {!loading && effectiveItems.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {effectiveItems.map(({ tokenId, balance }, idx) => {
-                const { rankName } = tokenIdToRankAndSlot(tokenId);
-                const name = tokenIdToName(tokenId);
-                return (
-                  <motion.button
-                    key={tokenId}
-                    initial={{ opacity: 0, scale: 0.96 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: idx * 0.04 }}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setSelectedItem({ tokenId, balance })}
-                    className="group relative rounded-xl border border-white/10 bg-black/40 overflow-hidden text-left transition-all hover:border-primary/30 hover:shadow-[0_0_30px_rgba(255,45,45,0.08)]"
-                  >
-                    <div className="aspect-square bg-gradient-to-b from-white/5 to-transparent relative flex items-center justify-center p-4">
-                      <img
-                        src={tokenIdToImagePath(tokenId)}
-                        alt={name}
-                        className="w-full h-full object-contain transition-transform group-hover:scale-105"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                      <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-black/70 border border-white/10 font-mono text-[9px] font-bold uppercase tracking-wider text-zinc-300">
-                        {rankName}
-                      </div>
-                    </div>
-                    <div className="p-3 border-t border-white/5">
-                      <p className="font-black text-white text-sm italic uppercase tracking-tight truncate">{name}</p>
-                      {balance > 1 && (
-                        <p className="text-[10px] text-zinc-500 font-mono mt-0.5">× {balance}</p>
-                      )}
-                    </div>
-                  </motion.button>
-                );
-              })}
+              {effectiveItems.map(({ tokenId, balance }, idx) => (
+                <LootCard
+                  key={tokenId}
+                  tokenId={tokenId}
+                  balance={balance}
+                  idx={idx}
+                  onSelect={() => setSelectedItem({ tokenId, balance })}
+                />
+              ))}
             </div>
           )}
         </div>

@@ -35,7 +35,7 @@ export function AgentBalance({ address }: AgentBalanceProps) {
   const isLow = numBal < 0.01;
 
   return (
-    <div className="font-mono text-[10px] uppercase tracking-widest bg-black/60 px-3 py-1.5 rounded-md border border-white/5 flex items-center gap-2">
+    <div className="font-mono text-xs uppercase tracking-widest bg-black/60 px-3 py-1.5 rounded-md border border-white/5 flex items-center gap-2">
       <span className={`w-1.5 h-1.5 rounded-full ${loading ? 'bg-zinc-600 animate-pulse' : isLow ? 'bg-yellow-500' : 'bg-[#00FF00]'}`} />
       <span className="text-zinc-500">ENERGY (AVAX):</span>
       <span className={isLow ? 'text-yellow-500 font-bold' : 'text-white'}>

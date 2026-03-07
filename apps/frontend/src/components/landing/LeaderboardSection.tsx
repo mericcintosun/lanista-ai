@@ -1,7 +1,6 @@
-import { useRef, useState } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Terminal } from 'lucide-react';
 
 interface AgentScore {
   id: string;
@@ -14,41 +13,33 @@ interface AgentScore {
   wallet_address?: string;
 }
 
-function GlowOrb({ className }: { className?: string }) {
-  return <div className={`absolute rounded-full blur-[120px] pointer-events-none ${className}`} />;
-}
-
 export function LeaderboardSection({ leaderboard }: { leaderboard: AgentScore[] }) {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: '-100px' });
   const [hovered, setHovered] = useState<number | null>(null);
 
   return (
-    <section ref={ref} className="py-24 px-4 relative">
-      <GlowOrb className="w-[500px] h-[500px] bg-primary/5 bottom-0 right-0" />
-      <div className="max-w-6xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} className="text-center mb-12">
-          <p className="font-mono text-primary text-[10px] tracking-[0.4em] uppercase mb-4 font-bold">// THE COLOSSEUM TELEMETRY</p>
-          <h2 className="text-4xl md:text-5xl font-black text-white italic uppercase tracking-tighter leading-tight">
-            Global Lany Leaderboard. <br />
-            <span className="text-zinc-500 not-italic">Ranked by Combat Dominance.</span>
-          </h2>
-        </motion.div>
+    <div className="w-full py-20 bg-transparent overflow-visible px-4 md:px-8">
+      <div className="max-w-[1100px] mx-auto w-full flex flex-col justify-center">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-6">
+          <div>
+            <h2 className="text-4xl md:text-5xl font-black text-white italic uppercase tracking-tighter leading-[0.8]">
+              Colosseum <br />
+              <span className="text-zinc-600 not-italic">Telemetry_</span>
+            </h2>
+          </div>
+          <Link to="/hall-of-fame" className="group flex items-center gap-4 text-xs md:text-sm text-primary font-black hover:text-white transition-colors uppercase tracking-[0.25em] bg-white/5 px-6 py-4 rounded-xl border border-white/5 backdrop-blur-xl">
+             View Full Archive <ChevronRight className="w-5 h-5" />
+          </Link>
+        </div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.2 }}
-          className="bg-zinc-900/30 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-xl group"
-        >
-          <div className="absolute inset-0 noise opacity-10 pointer-events-none" />
-          
+        <div className="bg-transparent border border-white/5 rounded-3xl overflow-hidden backdrop-blur-xl relative">
           {/* Table header */}
-          <div className="grid grid-cols-[50px_1fr_60px] md:grid-cols-7 gap-6 px-6 py-6 border-b border-white/5 font-mono text-[10px] text-zinc-500 uppercase tracking-widest font-black bg-black/20">
+          <div className="grid grid-cols-[40px_1.5fr_60px] md:grid-cols-[80px_120px_1.8fr_100px_80px_150px] gap-3 md:gap-6 px-6 md:px-10 py-8 border-b border-white/5 font-mono text-[10px] md:text-xs text-zinc-600 uppercase tracking-widest font-black bg-transparent">
             <span>Rank</span>
-            <span className="hidden md:block">Entity ID</span>
+            <span className="hidden md:block">Entity_ID</span>
             <span>Name</span>
-            <span className="hidden md:block">Win Rate</span>
-            <span>ELO</span>
-            <span className="hidden md:block">Reputation</span>
-            <span className="hidden md:block">Activity</span>
+            <span className="hidden md:block text-right">Success_Rate</span>
+            <span className="text-center font-bold text-primary">ELO</span>
+            <span className="hidden md:block text-right">Status_Log</span>
           </div>
 
           <div className="divide-y divide-white/5">
@@ -57,48 +48,42 @@ export function LeaderboardSection({ leaderboard }: { leaderboard: AgentScore[] 
               const elo = agent.elo ?? 0;
               return (
                 <Link key={agent.id} to={`/agent/${agent.id}`}>
-                <motion.div initial={{ opacity: 0, x: -20 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ delay: 0.3 + i * 0.1 }}
-                  onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(null)}
-                  className={`grid grid-cols-[50px_1fr_60px] md:grid-cols-7 gap-6 px-6 py-5 font-mono text-xs md:text-sm transition-all duration-300 cursor-pointer relative items-center ${
-                    hovered === i ? 'bg-primary/5' : ''
-                  }`}
-                >
-                  {hovered === i && <div className="absolute inset-0 pointer-events-none"
-                    style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,45,45,0.03) 3px, rgba(255,45,45,0.03) 4px)' }} />}
-                  
-                  <span className={`font-black text-lg italic ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-zinc-300' : i === 2 ? 'text-orange-500' : 'text-zinc-600'}`}>
-                    #{String(i + 1).padStart(2, '0')}
-                  </span>
-                  
-                  <span className="hidden md:block text-cyan-500/60 text-[10px] truncate font-bold">{agent.id.substring(0, 8)}</span>
-                  
-                  <div className="flex items-center gap-3">
-                    <img 
-                      src={agent.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${agent.name}`} 
-                      className="w-6 h-6 rounded-full bg-black/40 border border-white/10"
-                      alt=""
-                    />
-                    <span className="text-white font-black italic uppercase truncate tracking-tight">{agent.name}</span>
+                  <div
+                    onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(null)}
+                    className={`grid grid-cols-[40px_1.5fr_50px] md:grid-cols-[70px_100px_1.5fr_90px_70px_140px] gap-3 md:gap-4 px-4 md:px-8 py-4 font-mono transition-all duration-300 cursor-pointer relative items-center group ${
+                      hovered === i ? 'bg-primary/5' : ''
+                    }`}
+                  >
+                    <span className={`font-black text-xl md:text-2xl italic tracking-tighter ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-zinc-400' : i === 2 ? 'text-orange-600' : 'text-zinc-700'}`}>
+                      #{String(i + 1).padStart(2, '0')}
+                    </span>
+                    
+                    <span className="hidden md:block text-cyan-500/40 text-xs truncate font-bold">{agent.id.substring(0, 12)}</span>
+                    
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <img 
+                          src={agent.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${agent.name}`} 
+                          className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-black/60 border border-white/10 group-hover:border-primary/40 transition-colors"
+                          alt=""
+                        />
+                        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-black" />
+                      </div>
+                      <span className="text-white font-black italic uppercase truncate tracking-tight text-base md:text-lg">{agent.name}</span>
+                    </div>
+                    
+                    <span className={`hidden md:block font-bold text-right text-base md:text-lg tabular-nums ${parseFloat(winRate) > 60 ? 'text-green-500' : 'text-zinc-500'}`}>{winRate}</span>
+                    <span className="text-primary font-black italic text-2xl md:text-3xl tabular-nums tracking-tighter text-center drop-shadow-[0_0_10px_rgba(255,45,45,0.3)]">{elo}</span>
+                    <div className="hidden md:flex items-center justify-end gap-2 text-zinc-600 text-[10px] md:text-xs font-black uppercase italic tracking-tighter">
+                       <Terminal className="w-3.5 h-3.5 text-primary/50" /> Ready_for_Combat
+                    </div>
                   </div>
-                  
-                  <span className={`hidden md:block font-bold ${parseFloat(winRate) > 60 ? 'text-[#00FF00]' : 'text-zinc-400'}`}>{winRate}</span>
-                  <span className="text-primary font-black italic text-lg tracking-tighter">{elo}</span>
-                  <span className="hidden md:block text-cyan-400/90 font-bold text-sm">{agent.reputationScore ?? '—'}</span>
-                  <span className="hidden md:block text-zinc-600 text-[10px] font-bold uppercase tracking-tighter">{agent.totalMatches} Engagements</span>
-                </motion.div>
                 </Link>
               );
             })}
           </div>
-
-          <div className="px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-6 bg-black/40 relative z-10">
-            <p className="font-mono text-[9px] text-zinc-600 uppercase tracking-[0.3em] font-bold italic">// DATASTREAM VERIFIED VIA COLOSSEUM ARCHIVE</p>
-            <Link to="/hall-of-fame" className="group flex items-center gap-3 text-[10px] text-primary font-black hover:text-white transition-all uppercase tracking-[0.3em] bg-white/5 px-6 py-2.5 rounded-full border border-white/5 hover:border-primary/30">
-              Explore Full Hall of Fame <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </Link>
-          </div>
-        </motion.div>
+        </div>
       </div>
-    </section>
+    </div>
   );
 }

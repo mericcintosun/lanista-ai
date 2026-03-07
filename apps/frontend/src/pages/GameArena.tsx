@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { Swords } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { supabase } from '../lib/supabase';
 import { sendToUnity, setUnityMode } from '../lib/unity';
 import { useCombatRealtime } from '../hooks/useCombatRealtime';
 import { useHubData } from '../hooks/useHubData';
+import { PageHeader } from '../components/common/PageHeader';
 import { LiveMatchList } from '../components/battle-arena/LiveMatchList';
-import { BattleArenaHeader } from '../components/battle-arena/BattleArenaHeader';
 import { ArenaChat } from '../components/ArenaChat';
 import { PredictionWidget } from '../components/arena/PredictionWidget';
+import { Reveal } from '../components/common/Reveal';
 
 // Game Components
 import { UnityFrame, CombatStats, CombatLogs } from '../components/game';
@@ -73,10 +75,14 @@ export default function GameArena() {
   // 4. List View if no matchId
   if (!matchId) {
     return (
-      <div className="py-8 space-y-8 animate-in fade-in duration-700">
-        <BattleArenaHeader title="ARENA" subtitle="// ACTIVE ENGAGEMENTS" />
+      <div className="py-8 space-y-8">
+        <Reveal>
+          <PageHeader title="ARENA" subtitle="// ACTIVE ENGAGEMENTS" />
+        </Reveal>
         <div className="max-w-6xl mx-auto w-full px-4">
-          <LiveMatchList matches={liveMatches} />
+          <Reveal delay={0.2} direction="up">
+            <LiveMatchList matches={liveMatches} />
+          </Reveal>
         </div>
       </div>
     );
@@ -97,52 +103,74 @@ export default function GameArena() {
   const isFinished = match.status === 'finished' || match.status === 'aborted';
 
   return (
-    <div className="py-8 space-y-8 animate-in fade-in duration-700">
-      <PredictionWidget
-        match={match}
-        matchId={matchId}
-        session={session}
-      />
-      {/* ── HEADER ── */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4">
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <h1 className="font-mono text-4xl font-black text-white italic uppercase tracking-tighter sm:text-5xl">Live Combat</h1>
-            <div className={`px-3 py-1 border rounded font-mono text-[10px] tracking-widest font-black ${
-              isFinished ? 'bg-zinc-800 border-zinc-700 text-zinc-500' : 'bg-primary/20 border-primary/30 text-primary animate-pulse'
-            }`}>
-              {isFinished ? 'ARCHIVED' : 'LOCKED'}
+    <div className="max-w-[1600px] mx-auto py-4 sm:py-6 px-4 space-y-4 sm:space-y-6">
+      <Reveal>
+        <PredictionWidget
+          match={match}
+          matchId={matchId}
+          session={session}
+        />
+      </Reveal>
+      
+      {/* ── INTEGRATED TOOLBAR ── */}
+      <Reveal className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 glass border-white/5 bg-white/[0.02] rounded-xl" delay={0.1}>
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+            <Swords className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="font-mono text-xl font-black text-white italic uppercase tracking-tighter leading-none">Combat Feed</h1>
+            <p className="font-mono text-[9px] text-zinc-500 uppercase tracking-widest mt-1">Live Telemetry Link Active</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="flex flex-col items-end mr-4">
+             <span className="font-mono text-[9px] text-zinc-500 uppercase tracking-widest">Protocol ID</span>
+             <span className="font-mono text-xs text-white uppercase tabular-nums">#{matchId?.substring(0, 12)}</span>
+          </div>
+          <div className={`px-4 py-1.5 border rounded font-mono text-[10px] tracking-widest font-black ${
+            isFinished ? 'bg-zinc-800 border-zinc-700 text-zinc-500' : 'bg-primary/20 border-primary/30 text-primary animate-pulse'
+          }`}>
+            {isFinished ? 'STATUS: ARCHIVED' : 'STATUS: LIVE_ENGAGEMENT'}
+          </div>
+        </div>
+      </Reveal>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+        {/* Main: Unity & Stats — mobile: 2nd, desktop: left 8 cols */}
+        <Reveal className="lg:col-span-8 flex flex-col gap-4 sm:gap-6 order-2 lg:order-1" direction="left" delay={0.2}>
+          <div className="relative group">
+            <div className="absolute -inset-[1px] bg-gradient-to-r from-primary/20 via-primary/5 to-cyan-500/20 rounded-2xl blur-sm opacity-50" />
+            <div className="relative">
+              <UnityFrame
+                ref={iframeRef}
+                onRefresh={() => window.location.reload()}
+                onFullscreen={() => iframeRef.current?.requestFullscreen()}
+                isLoading={!match}
+              />
             </div>
           </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 px-4">
-        {/* Sol: Unity, 2 kutucuk (CombatStats), Live Data Stream hemen altında */}
-        <div className="lg:col-span-8 flex flex-col gap-6">
-          <UnityFrame
-            ref={iframeRef}
-            onRefresh={() => window.location.reload()}
-            onFullscreen={() => iframeRef.current?.requestFullscreen()}
-            isLoading={!match}
-          />
+          
           <CombatStats match={match} />
-          <div className="min-h-[360px] w-full">
+          
+          <div className="h-[300px] sm:h-[400px] w-full">
             <CombatLogs logs={logs} match={match} />
           </div>
-        </div>
+        </Reveal>
 
-        {/* Right: Interaction bar + Arena Chat */}
-        <div className="lg:col-span-4 flex flex-col">
-          <ArenaChat
-            matchId={matchId}
-            session={session}
-            match={match}
-            unityIframeRef={iframeRef}
-          />
-        </div>
+        {/* Chat — mobile: 1st (priority), desktop: right 4 cols */}
+        <Reveal className="lg:col-span-4 flex flex-col h-full order-1 lg:order-2" direction="right" delay={0.3}>
+          <div className="lg:sticky lg:top-24 flex flex-col gap-4 sm:gap-6">
+            <ArenaChat
+              matchId={matchId}
+              session={session}
+              match={match}
+              unityIframeRef={iframeRef}
+            />
+          </div>
+        </Reveal>
       </div>
-
     </div>
   );
 }

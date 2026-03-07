@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Sparkles, Megaphone, Users, Flame } from 'lucide-react';
+import { Send, Sparkles, Megaphone, Users, Flame, Maximize2, Minimize2 } from 'lucide-react';
 import { useArenaChat, type ArenaChatMessage } from '../hooks/useArenaChat';
 import { useSparkBalance } from '../hooks/useSparkBalance';
 import { sendThrowableToUnity } from '../lib/unity';
@@ -79,29 +79,29 @@ function MessageRow({ msg }: { msg: ArenaChatMessage }) {
 
   if (msg.type === 'normal') {
     return (
-      <div className="flex flex-col gap-1 rounded-r-lg">
-        <div className="flex items-baseline gap-2">
-          <span className="text-[10px] font-mono text-zinc-500 shrink-0">{formatTime(msg.timestamp)}</span>
-          <span className="text-sm font-bold text-zinc-200">{msg.username}:</span>
+      <div className="flex flex-col gap-0.5 sm:gap-1 rounded-r-lg">
+        <div className="flex items-baseline gap-1.5 sm:gap-2">
+          <span className="text-[9px] sm:text-[10px] font-mono text-zinc-500 shrink-0">{formatTime(msg.timestamp)}</span>
+          <span className="text-xs sm:text-sm font-bold text-zinc-200 truncate">{msg.username}:</span>
         </div>
-        <p className="text-sm leading-relaxed text-zinc-400 break-words pl-0">{msg.text}</p>
+        <p className="text-xs sm:text-sm leading-relaxed text-zinc-400 break-words pl-0">{msg.text}</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-1.5 rounded-r-lg p-3 border-l-2 border-primary bg-gradient-to-r from-primary/10 to-transparent shadow-[inset_4px_0_0_0_rgba(255,45,45,0.15)]">
-      <div className="flex items-baseline justify-between gap-2 flex-wrap">
-        <div className="flex items-baseline gap-2">
-          <span className="text-sm font-bold text-zinc-100">{msg.username}:</span>
+    <div className="flex flex-col gap-1 sm:gap-1.5 rounded-r-lg p-2 sm:p-3 border-l-2 border-primary bg-gradient-to-r from-primary/10 to-transparent shadow-[inset_4px_0_0_0_rgba(255,45,45,0.15)]">
+      <div className="flex items-baseline justify-between gap-1.5 sm:gap-2 flex-wrap">
+        <div className="flex items-baseline gap-1.5 sm:gap-2 min-w-0">
+          <span className="text-xs sm:text-sm font-bold text-zinc-100 truncate">{msg.username}:</span>
           {sparkSpent != null && (
-            <span className="text-[10px] bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded border border-amber-500/30 font-bold uppercase tracking-tighter">
+            <span className="text-[9px] sm:text-[10px] bg-amber-500/10 text-amber-500 px-1.5 sm:px-2 py-0.5 rounded border border-amber-500/30 font-bold uppercase tracking-tighter shrink-0">
               {sparkSpent} Spark
             </span>
           )}
         </div>
       </div>
-      <p className="text-sm leading-relaxed text-amber-50/95 font-medium break-words">{msg.text}</p>
+      <p className="text-xs sm:text-sm leading-relaxed text-amber-50/95 font-medium break-words">{msg.text}</p>
     </div>
   );
 }
@@ -146,6 +146,7 @@ export function ArenaChat({ matchId, session, match, unityIframeRef, className =
   }, [messages]);
 
   const [input, setInput] = useState('');
+  const [expanded, setExpanded] = useState(false);
 
   const handleSend = (type: 'normal' | 'highlight' | 'megaphone') => {
     const text = input.trim().slice(0, MAX_MESSAGE_CHARS);
@@ -183,33 +184,46 @@ export function ArenaChat({ matchId, session, match, unityIframeRef, className =
         session={session}
         player1Name={match?.player_1?.name ?? 'Red'}
         player2Name={match?.player_2?.name ?? 'Blue'}
-        className="mb-3"
+        className="mb-2 sm:mb-3"
       />
 
       <main
-        className={`w-full min-h-[560px] max-h-[700px] flex flex-col bg-black/60 backdrop-blur-md border border-zinc-800 rounded-xl overflow-hidden shadow-2xl ${className}`}
+        className={`w-full min-h-[160px] sm:min-h-[360px] lg:min-h-[560px] max-h-[38vh] sm:max-h-[55vh] lg:max-h-[700px] flex flex-col bg-black/60 backdrop-blur-md border border-zinc-800 rounded-xl overflow-hidden shadow-2xl transition-[max-height] duration-300 ${expanded ? 'max-lg:!max-h-[85vh]' : ''} ${className}`}
       >
         {/* Header */}
-        <header className="p-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/50 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-3 h-3 bg-primary rounded-full animate-pulse shadow-[0_0_8px_var(--primary-glow)]" />
-            <h1 className="text-lg font-bold tracking-wider uppercase italic text-zinc-100">
+        <header className="p-2.5 sm:p-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/50 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-primary rounded-full animate-pulse shadow-[0_0_8px_var(--primary-glow)]" />
+            <h1 className="text-sm sm:text-lg font-bold tracking-wider uppercase italic text-zinc-100">
               Lanista <span className="text-primary drop-shadow-[0_0_5px_var(--primary-glow)]">Arena</span>
             </h1>
           </div>
-          <div className="flex items-center gap-2 text-xs text-zinc-400 font-mono">
-            <Users className="w-4 h-4" />
-            <span>Arena Chat</span>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-zinc-400 font-mono">
+              <Users className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span>Arena Chat</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setExpanded((e) => !e)}
+              className="lg:hidden p-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-colors"
+              title={expanded ? 'Küçült' : 'Genişlet'}
+              aria-label={expanded ? 'Chati küçült' : 'Chati genişlet'}
+            >
+              {expanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </button>
           </div>
         </header>
 
         {/* Message list */}
         <section
           ref={scrollRef}
-          className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0 custom-scrollbar"
+          data-lenis-prevent
+          className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-2.5 sm:p-4 space-y-2 sm:space-y-4 min-h-0 custom-scrollbar"
+          style={{ WebkitOverflowScrolling: 'touch' }}
         >
           {messages.length === 0 && (
-            <p className="text-zinc-500 text-sm font-mono py-10 text-center">
+            <p className="text-zinc-500 text-xs sm:text-sm font-mono py-6 sm:py-10 text-center">
               No messages yet. Join the fight.
             </p>
           )}
@@ -234,57 +248,57 @@ export function ArenaChat({ matchId, session, match, unityIframeRef, className =
         )}
 
         {/* Footer: textarea + actions */}
-        <footer className="p-4 border-t border-zinc-800 bg-zinc-900/50 shrink-0">
-          <div className="relative mb-3">
+        <footer className="p-2 sm:p-3 lg:p-4 border-t border-zinc-800 bg-zinc-900/50 shrink-0">
+          <div className="relative mb-2 sm:mb-3">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value.slice(0, MAX_MESSAGE_CHARS))}
               onKeyDown={handleKeyDown}
-              placeholder={session ? `Send a message (max ${MAX_MESSAGE_CHARS} chars)` : 'Sign in to chat'}
+              placeholder={session ? `Message (${MAX_MESSAGE_CHARS})` : 'Sign in to chat'}
               disabled={!session}
               maxLength={MAX_MESSAGE_CHARS}
-              rows={2}
-              className="w-full h-[4.5rem] min-h-[4.5rem] max-h-[4.5rem] bg-black/40 border border-zinc-700 rounded-lg p-3 text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-primary transition-colors resize-none overflow-y-auto"
+              rows={1}
+              className="w-full h-[2.25rem] sm:h-[3rem] lg:h-[4.5rem] min-h-[2.25rem] sm:min-h-[3rem] lg:min-h-[4.5rem] max-h-[2.25rem] sm:max-h-[3rem] lg:max-h-[4.5rem] bg-black/40 border border-zinc-700 rounded-lg px-2.5 py-1.5 sm:px-3 sm:py-2 lg:p-3 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-primary transition-colors resize-none overflow-y-auto"
             />
           </div>
 
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between gap-1.5 sm:gap-2 flex-wrap">
+            <div className="flex items-center gap-1 sm:gap-2">
               <button
                 type="button"
                 onClick={() => handleSend('normal')}
                 disabled={!session || !input.trim()}
-                className="p-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors text-zinc-300 disabled:opacity-50 disabled:pointer-events-none group"
+                className="p-1.5 sm:p-2 lg:p-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors text-zinc-300 disabled:opacity-50 disabled:pointer-events-none group"
                 title="Send (free)"
               >
-                <Send className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform" />
               </button>
               <button
                 type="button"
                 onClick={() => handleSend('highlight')}
                 disabled={!session || !input.trim() || sending !== null}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 transition-colors text-amber-500 disabled:opacity-50 disabled:pointer-events-none group"
+                className="flex items-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 transition-colors text-amber-500 disabled:opacity-50 disabled:pointer-events-none group"
                 title="Highlight (50 Spark)"
               >
-                <Sparkles className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                <span className="text-[10px] font-black uppercase tracking-tighter">50</span>
+                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform" />
+                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-tighter hidden sm:inline">50</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleSend('megaphone')}
                 disabled={!session || !input.trim() || sending !== null}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 transition-colors text-primary disabled:opacity-50 disabled:pointer-events-none group"
+                className="flex items-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 transition-colors text-primary disabled:opacity-50 disabled:pointer-events-none group"
                 title="Megaphone (500 Spark) — banner to all viewers"
               >
-                <Megaphone className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                <span className="text-[10px] font-black uppercase tracking-tighter">500</span>
+                <Megaphone className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform" />
+                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-tighter hidden sm:inline">500</span>
               </button>
             </div>
 
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 border border-zinc-700 rounded-full">
-              <Flame className="w-3.5 h-3.5 text-amber-500" />
-              <span className="text-xs font-bold text-amber-500 uppercase tracking-tighter">
-                {sparkLoading ? '…' : `${sparkBalance.toLocaleString()} Sparks`}
+            <div className="flex items-center gap-1 sm:gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 bg-zinc-800 border border-zinc-700 rounded-full">
+              <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-500" />
+              <span className="text-[10px] sm:text-xs font-bold text-amber-500 uppercase tracking-tighter">
+                {sparkLoading ? '…' : `${sparkBalance.toLocaleString()}`}
               </span>
             </div>
           </div>

@@ -2,17 +2,18 @@ import { useState } from 'react';
 import { useOracleData } from '../hooks/useOracleData';
 
 // Components
+import { PageHeader } from '../components/common/PageHeader';
 import {
-  OracleHeader,
   ContractStats,
   NetworkTelemetry,
   CombatRecordList,
   LootProofModal
 } from '../components/oracle';
+import { Reveal } from '../components/common/Reveal';
 
 const ORACLE_CONTRACT = '0xAF470Ae9FE071451E5CC420fb7893326D66c7D12';
 const FUJI_EXPLORER = 'https://testnet.snowtrace.io';
-const LOOT_CONTRACT = '0x2E078795472996d6FB090A630Dc63f09e3Bda0d1';
+const LOOT_CONTRACT = '0xDE15a54ef5F3d993352532faCA843889ec2072B2';
 
 export default function Oracle() {
   const { 
@@ -46,24 +47,49 @@ export default function Oracle() {
 
   return (
     <div className="w-full max-w-[1400px] mx-auto space-y-16 pb-24 px-6 relative">
-      <OracleHeader />
+      <Reveal>
+        <PageHeader 
+          title="THE ORACLE" 
+          subtitle="// ARCHIVE PROTOCOL"
+          description={
+            <>
+              Verified log of all combat resolutions. <br />
+              Secured by core system validation, immutable forever.
+            </>
+          }
+          actions={
+            <div className="flex items-center gap-3 glass bg-white/5 border border-white/10 px-5 py-2 rounded-full">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(0,255,0,0.6)]" />
+              <span className="font-mono text-[10px] text-zinc-400 uppercase tracking-widest font-black">
+                [ SYSTEM SYNC: SECURE ]
+              </span>
+            </div>
+          }
+        />
+      </Reveal>
 
-      <ContractStats 
-        contractAddress={ORACLE_CONTRACT}
-        explorerUrl={FUJI_EXPLORER}
-        onChainCount={onChainCount}
-        totalCount={totalCount}
-        onCopy={handleCopy}
-        copied={copied}
-      />
+      <Reveal delay={0.2} direction="up" distance={20}>
+        <ContractStats 
+          contractAddress={ORACLE_CONTRACT}
+          explorerUrl={FUJI_EXPLORER}
+          onChainCount={onChainCount}
+          totalCount={totalCount}
+          onCopy={handleCopy}
+          copied={copied}
+        />
+      </Reveal>
 
-      <NetworkTelemetry />
+      <Reveal delay={0.3} direction="up" distance={20}>
+        <NetworkTelemetry />
+      </Reveal>
 
-      <CombatRecordList 
-        matches={matches}
-        loading={loading}
-        onOpenLootModal={openLootModal}
-      />
+      <Reveal delay={0.4}>
+        <CombatRecordList 
+          matches={matches}
+          loading={loading}
+          onOpenLootModal={openLootModal}
+        />
+      </Reveal>
 
       <LootProofModal 
         lootModalMatchId={lootModalMatchId}

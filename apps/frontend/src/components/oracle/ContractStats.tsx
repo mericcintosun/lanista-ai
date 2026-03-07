@@ -19,7 +19,6 @@ export function ContractStats({
 }: ContractStatsProps) {
   return (
     <div className="glass rounded-3xl p-1 relative overflow-hidden group">
-      <div className="absolute inset-0 noise pointer-events-none" />
       <div className="p-10 relative z-10">
         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
 

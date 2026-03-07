@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Package, ExternalLink, X } from 'lucide-react';
+import { Reveal } from '../components/common/Reveal';
+import { MagneticButton } from '../components/common/MagneticButton';
 import { API_URL } from '../lib/api';
 import { tokenIdToImagePath, tokenIdToName, tokenIdToDescription, tokenIdToRankAndSlot } from '../lib/rankUpItems';
 
@@ -54,22 +56,18 @@ export default function Inventory() {
 
   return (
     <div className="w-full max-w-[1200px] mx-auto px-6 pb-24">
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-12"
-      >
-        <div className="font-mono text-[10px] uppercase tracking-[0.35em] text-zinc-500 font-bold flex items-center gap-2">
-          <Package className="w-4 h-4" />
+      <Reveal className="mb-12">
+        <div className="font-mono text-[10px] uppercase tracking-[0.35em] text-zinc-500 font-bold flex items-center gap-2 text-glow">
+          <Package className="w-4 h-4 text-primary" />
           Rank-up loot
         </div>
-        <h1 className="mt-2 text-3xl sm:text-4xl font-black italic uppercase tracking-tight text-white">
+        <h1 className="mt-2 text-4xl sm:text-6xl font-black italic uppercase tracking-tighter text-white">
           Inventory
         </h1>
-        <p className="mt-2 text-sm text-zinc-400 max-w-xl">
-          Loot earned when your Lany ranks up. Oracle-verified.
+        <p className="mt-4 text-sm text-zinc-400 max-w-xl font-mono leading-relaxed border-l border-primary/30 pl-4 uppercase">
+          // Loot earned when your Lany ranks up. Oracle-verified.
         </p>
-      </motion.div>
+      </Reveal>
 
       <div className="mb-8">
         <label className="block text-xs font-mono uppercase tracking-widest text-zinc-500 mb-2">
@@ -101,27 +99,25 @@ export default function Inventory() {
       )}
 
       {!loading && effectiveItems.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+        <Reveal 
           className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
+          stagger={0.05}
         >
           {effectiveItems.map(({ tokenId, balance }) => {
             const { rankName } = tokenIdToRankAndSlot(tokenId);
             const description = tokenIdToDescription(tokenId);
             return (
-              <motion.div
+              <div
                 key={tokenId}
-                whileHover={{ scale: 1.02 }}
-                className="rounded-2xl border border-white/10 bg-black/30 overflow-hidden cursor-pointer"
+                className="rounded-2xl border border-white/10 bg-black/30 overflow-hidden cursor-pointer group hover:border-primary/30 transition-all duration-300"
                 onClick={() => setSelectedItem({ tokenId, balance })}
                 title={description}
               >
-                <div className="aspect-square bg-white/5 relative">
+                <div className="aspect-square bg-white/5 relative overflow-hidden">
                   <img
                     src={tokenIdToImagePath(tokenId)}
                     alt={tokenIdToName(tokenId)}
-                    className="w-full h-full object-contain p-4"
+                    className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500"
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = 'none';
                       const placeholder = (e.target as HTMLImageElement).nextElementSibling;
@@ -135,34 +131,36 @@ export default function Inventory() {
                     #{tokenId}
                   </div>
                 </div>
-                <div className="p-3">
-                  <div className="font-mono text-xs text-zinc-500 uppercase tracking-wider">
+                <div className="p-3 bg-zinc-900/40">
+                  <div className="font-mono text-[9px] text-zinc-500 uppercase tracking-[0.2em] font-bold">
                     {rankName}
                   </div>
-                  <div className="font-black italic text-white truncate">
+                  <div className="font-black italic text-white truncate text-sm uppercase tracking-tight">
                     {tokenIdToName(tokenId)}
                   </div>
                   {balance > 1 && (
-                    <div className="text-[10px] text-zinc-400 mt-0.5">× {balance}</div>
+                    <div className="text-[10px] text-primary/70 font-bold mt-1 uppercase tracking-widest font-mono italic">× {balance}</div>
                   )}
                 </div>
-              </motion.div>
+              </div>
             );
           })}
-        </motion.div>
+        </Reveal>
       )}
 
       {RANK_UP_LOOT_NFT_ADDRESS && wallet && (
         <div className="mt-8">
-          <a
-            href={`${FUJI_EXPLORER}/address/${RANK_UP_LOOT_NFT_ADDRESS}?a=${wallet}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-zinc-400 hover:text-primary transition-colors"
-          >
-            View on Snowtrace
-            <ExternalLink className="w-3 h-3" />
-          </a>
+          <MagneticButton>
+            <a
+              href={`${FUJI_EXPLORER}/address/${RANK_UP_LOOT_NFT_ADDRESS}?a=${wallet}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-zinc-400 hover:text-primary transition-colors"
+            >
+              View on Snowtrace
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </MagneticButton>
         </div>
       )}
 
@@ -180,7 +178,7 @@ export default function Inventory() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               className="relative w-full max-w-md rounded-2xl border border-white/10 bg-zinc-900/95 backdrop-blur-xl p-6 shadow-xl"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
               <button
                 type="button"
