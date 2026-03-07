@@ -1,8 +1,19 @@
 import express from 'express';
 import { supabase } from '../lib/supabase.js';
 import crypto from 'crypto';
+import rateLimit from 'express-rate-limit';
 
 const router = express.Router();
+
+const bindLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 15, // Max 15 attempts per 15 minutes per IP
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many bind requests from this IP, please try again later." }
+});
+
+router.use(bindLimiter);
 
 router.post('/generate', async (req, res) => {
     try {
@@ -29,7 +40,8 @@ router.post('/generate', async (req, res) => {
 
         const { data: bots, error: botErr } = await query;
         if (botErr) {
-            return res.status(500).json({ error: `Database Error: ${botErr.message}` });
+            console.error("Database query error:", botErr.message);
+            return res.status(500).json({ error: "Internal database error occurred while querying agent." });
         }
         
         if (!bots || bots.length === 0) {
@@ -47,21 +59,38 @@ router.post('/generate', async (req, res) => {
         }
 
         // Verify API Key
-        const hashToVerify = crypto.createHash('sha256').update(api_key).digest('hex');
-        if (hashToVerify !== bot.api_key_hash) {
+        let isValidKey = false;
+        if (api_key.includes('.')) {
+            const [keyBotId, secret] = api_key.split('.');
+            if (bot.api_key_hash?.includes(':')) {
+                const [salt, storedHash] = bot.api_key_hash.split(':');
+                const hashToVerify = crypto.pbkdf2Sync(secret, salt, 10000, 64, 'sha512').toString('hex');
+                if (hashToVerify === storedHash) {
+                    isValidKey = true;
+                }
+            }
+        } else {
+            // Legacy SHA-256 Support
+            const hashToVerify = crypto.createHash('sha256').update(api_key).digest('hex');
+            if (hashToVerify === bot.api_key_hash) {
+                isValidKey = true;
+            }
+        }
+
+        if (!isValidKey) {
             return res.status(403).json({ error: "Invalid API Key. You can only claim this agent if you possess its API Key." });
         }
 
-        // Generate a cryptographically secure 6-character code (LNST-XXXXXX)
-        const randomHex = crypto.randomBytes(3).toString('hex').toUpperCase();
+        // Generate a cryptographically secure 8-character hex code (approx 4.2 billion combinations)
+        const randomHex = crypto.randomBytes(4).toString('hex').toUpperCase();
         const bindCode = `LNST-${randomHex}`;
 
         // Set expiration time to 15 minutes from now
         const expiresAt = new Date();
         expiresAt.setMinutes(expiresAt.getMinutes() + 15);
 
-        // Delete any existing pending requests for this user + bot pair
-        await supabase.from('agent_bind_requests').delete().eq('user_id', user.id).eq('bot_id', bot.id);
+        // Delete ALL existing pending requests for this user to enforce single active request and prevent race condition anomalies
+        await supabase.from('agent_bind_requests').delete().eq('user_id', user.id);
 
         // Insert new bind request
         const { error: insertErr } = await supabase.from('agent_bind_requests').insert({
@@ -92,8 +121,9 @@ router.post('/verify', async (req, res) => {
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
         if (authError || !user) return res.status(401).json({ error: "Invalid token" });
 
-        const { tweet_url } = req.body;
+        const { tweet_url, twitter_handle } = req.body;
         if (!tweet_url) return res.status(400).json({ error: "tweet_url is required" });
+        if (!twitter_handle) return res.status(400).json({ error: "twitter_handle is required to verify ownership" });
 
         // 1. Get the pending bind request for this user
         const { data: request, error: reqErr } = await supabase
@@ -112,9 +142,20 @@ router.post('/verify', async (req, res) => {
             return res.status(400).json({ error: "Binding code expired (15 minutes limit). Please generate a new code." });
         }
 
-        // 3. Fetch Tweet via oEmbed API (No auth required)
+        // 3. Fetch Tweet via oEmbed API (No auth required) with Timeout protection
         const oembedUrl = `https://publish.twitter.com/oembed?url=${encodeURIComponent(tweet_url)}`;
-        const oembedRes = await fetch(oembedUrl);
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000); // 6 second timeout
+        
+        let oembedRes;
+        try {
+            oembedRes = await fetch(oembedUrl, { signal: controller.signal });
+        } catch (fetchErr) {
+            clearTimeout(timeoutId);
+            return res.status(408).json({ error: "X (Twitter) API response timed out. Please try again." });
+        }
+        clearTimeout(timeoutId);
         
         if (!oembedRes.ok) {
             return res.status(400).json({ error: "Could not fetch tweet. Make sure the URL is correct and the account is public." });
@@ -123,20 +164,32 @@ router.post('/verify', async (req, res) => {
         const tweetData = await oembedRes.json();
         const tweetHtml = tweetData.html || '';
 
+        const authorUrl = tweetData.author_url || '';
+        const authorMatch = authorUrl.match(/twitter\.com\/([^/]+)/i) || authorUrl.match(/x\.com\/([^/]+)/i);
+        if (!authorMatch || authorMatch[1].toLowerCase() !== twitter_handle.toLowerCase().replace('@', '')) {
+            return res.status(400).json({ error: "Tweet author does not match the provided X handle. You can only claim bots from your own account." });
+        }
+
         // 4. Verify the bind code is in the tweet
         if (!tweetHtml.includes(request.bind_code)) {
             return res.status(400).json({ error: "Binding code not found in the tweet. Make sure you posted the exact code." });
         }
 
         // 5. Success! Update the bot's owner_id
-        const { error: updateErr } = await supabase
+        const { data: updateData, error: updateErr } = await supabase
             .from('bots')
             .update({ owner_id: user.id })
-            .eq('id', request.bot_id);
+            .eq('id', request.bot_id)
+            .is('owner_id', null)
+            .select();
 
         if (updateErr) {
             console.error("Bot update error:", updateErr);
             return res.status(500).json({ error: "Failed to claim agent in database" });
+        }
+
+        if (!updateData || updateData.length === 0) {
+            return res.status(400).json({ error: "Agent claim failed. It may have already been claimed by someone else." });
         }
 
         // 6. Automatically upgrade user role to 'commander' if they were an observer

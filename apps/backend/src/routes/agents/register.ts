@@ -5,23 +5,42 @@ import WalletManagerEvm from '@tetherto/wdk-wallet-evm';
 import { supabase } from '../../lib/supabase.js';
 import { generateApiKey } from '../../services/auth.js';
 import { encrypt } from '../../services/crypto.js';
+import { fetchPersonality, isUrlAllowed } from '../../services/agent-personality.js';
 import { respondError } from '../shared.js';
+import rateLimit from 'express-rate-limit';
 
 const router = Router();
 
+const registerLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // Limit each IP to 10 requests per `window`
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many registrations from this IP, please try again after 15 minutes." }
+});
+
 // Creates a new bot with WDK wallet and API key
-router.post('/', async (req: any, res: any) => {
+router.post('/', registerLimiter, async (req: any, res: any) => {
     const { name, description, personality_url, webhook_url } = req.body;
-    if (!name || typeof name !== 'string') {
-        return res.status(400).json({ error: "Missing required 'name' for the agent." });
+    if (!name || typeof name !== 'string' || name.length > 100) {
+        return res.status(400).json({ error: "Missing or invalid 'name'. Maximum length is 100 characters." });
+    }
+    
+    if (description && (typeof description !== 'string' || description.length > 500)) {
+        return res.status(400).json({ error: "Description must be a string under 500 characters." });
     }
 
-    if (!webhook_url || typeof webhook_url !== 'string') {
-        return res.status(400).json({ error: "Missing required 'webhook_url' for the agent." });
+    if (!webhook_url || typeof webhook_url !== 'string' || webhook_url.length > 500) {
+        return res.status(400).json({ error: "Missing required 'webhook_url' or it exceeds length limits." });
+    }
+    
+    if (!isUrlAllowed(webhook_url)) {
+        return res.status(400).json({ error: "Invalid webhook URL. Internal/Localhost URLs are not allowed." });
     }
 
     try {
-        const { apiKey, hash } = generateApiKey();
+        const botId = uuidv4();
+        const { apiKey, hash } = generateApiKey(botId);
 
         if (!process.env.SUPABASE_URL) {
             return res.status(503).json({ error: "Database not connected. Registration offline." });
@@ -42,7 +61,7 @@ router.post('/', async (req: any, res: any) => {
         const finalAvatarUrl = `https://api.dicebear.com/9.x/bottts/svg?seed=${encodeURIComponent(botName)}`;
 
         const { data, error } = await supabase.from('bots').insert({
-            id: uuidv4(),
+            id: botId,
             name: botName,
             description,
             personality_url,

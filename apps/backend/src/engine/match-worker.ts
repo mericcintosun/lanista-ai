@@ -260,18 +260,18 @@ export const matchWorker = new Worker('match-queue', async (job) => {
       );
 
       await Promise.all([
-        supabase.from('bots').update({
-          elo: eloResult.newWinnerElo,
-          total_matches: winnerRep.newTotalMatches,
-          reputation_score: winnerRep.newReputation,
-          wins: winnerRep.newWins
-        }).eq('id', winnerId),
-        supabase.from('bots').update({
-          elo: eloResult.newLoserElo,
-          total_matches: loserRep.newTotalMatches,
-          reputation_score: loserRep.newReputation,
-          wins: loserRep.newWins
-        }).eq('id', loserId)
+        supabase.rpc('update_bot_stats', {
+          bot_id: winnerId,
+          elo_change: winnerEloGain,
+          is_win: true,
+          reputation_score_new: winnerRep.newReputation
+        }),
+        supabase.rpc('update_bot_stats', {
+          bot_id: loserId,
+          elo_change: -loserEloLoss,
+          is_win: false,
+          reputation_score_new: loserRep.newReputation
+        })
       ]);
 
       console.log(`[ELO] Winner ${winnerId}: ${winnerEloBefore} → ${eloResult.newWinnerElo} (+${winnerEloGain})`);

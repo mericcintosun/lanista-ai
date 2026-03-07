@@ -48,6 +48,7 @@ export function encrypt(text: string): string {
     const key = deriveKey(salt);
 
     const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
+    key.fill(0); // Clear key from memory
 
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
@@ -81,6 +82,7 @@ export function decrypt(encryptedData: string): string {
 
     const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
     decipher.setAuthTag(authTag);
+    key.fill(0); // Clear key from memory
 
     let decrypted = decipher.update(ciphertextHex, 'hex', 'utf8');
     decrypted += decipher.final('utf8');

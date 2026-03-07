@@ -1,5 +1,5 @@
 import { WebSocketServer, WebSocket } from 'ws';
-import { createHash } from 'crypto';
+import { createHash, pbkdf2Sync } from 'crypto';
 import { supabase } from '../lib/supabase.js';
 import Redis from 'ioredis';
 import type { Server } from 'http';
@@ -87,14 +87,39 @@ export function initWebSocketServer(server: Server) {
         }
 
         // Authenticate: hash token and look up bot
-        const hash = createHash('sha256').update(token).digest('hex');
-        const { data: bot, error } = await supabase
-            .from('bots')
-            .select('id, name, status')
-            .eq('api_key_hash', hash)
-            .single();
+        let bot;
+        
+        if (token.includes('.')) {
+            const [botId, secret] = token.split('.');
+            if (botId && secret) {
+                const { data, error } = await supabase
+                    .from('bots')
+                    .select('id, name, status, api_key_hash')
+                    .eq('id', botId)
+                    .single();
+                
+                if (!error && data && data.api_key_hash?.includes(':')) {
+                    const [salt, storedHash] = data.api_key_hash.split(':');
+                    const hashToVerify = pbkdf2Sync(secret, salt, 10000, 64, 'sha512').toString('hex');
+                    if (hashToVerify === storedHash) {
+                        bot = data;
+                    }
+                }
+            }
+        } else {
+            // Legacy SHA-256 Support
+            const hash = createHash('sha256').update(token).digest('hex');
+            const { data, error } = await supabase
+                .from('bots')
+                .select('id, name, status')
+                .eq('api_key_hash', hash)
+                .single();
+            if (!error && data) {
+                bot = data;
+            }
+        }
 
-        if (error || !bot) {
+        if (!bot) {
             ws.send(JSON.stringify({ type: 'error', message: 'Invalid API key.' }));
             ws.close(4003, 'Invalid API key');
             return;

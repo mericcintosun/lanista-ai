@@ -51,7 +51,7 @@ async function spendSpark(
 
 export function useArenaChat(
   matchId: string | null,
-  session: { access_token: string; user: { id: string; user_metadata?: { full_name?: string; name?: string } } } | null,
+  session: { access_token: string; user: { id: string; user_metadata?: { full_name?: string; name?: string; email?: string } } } | null,
   options?: { onThrowable?: (payload: ThrowablePayload) => void }
 ) {
   const [messages, setMessages] = useState<ArenaChatMessage[]>([]);
@@ -71,7 +71,7 @@ export function useArenaChat(
 
     const channelName = `room-arena-${matchId}`;
     const channel = supabase.channel(channelName, {
-      config: { broadcast: { self: true } },
+      config: { private: true, broadcast: { self: true, ack: true } },
     });
 
     channel.on('broadcast', { event: 'chat' }, ({ payload }) => {

@@ -24,6 +24,7 @@ export default function UserProfile() {
   const [bindApiKey, setBindApiKey] = useState('');
   const [bindCode, setBindCode] = useState<string | null>(null);
   const [bindTweetUrl, setBindTweetUrl] = useState('');
+  const [bindTwitterHandle, setBindTwitterHandle] = useState('');
   const [bindLoading, setBindLoading] = useState(false);
   const [bindError, setBindError] = useState<string | null>(null);
   const [bindSuccess, setBindSuccess] = useState<string | null>(null);
@@ -115,8 +116,8 @@ export default function UserProfile() {
   };
 
   const handleVerifyBindCode = async () => {
-    if (!bindTweetUrl.trim()) {
-      setBindError("Please enter the X post URL.");
+    if (!bindTwitterHandle.trim() || !bindTweetUrl.trim()) {
+      setBindError("Please enter your X handle and the post URL.");
       return;
     }
     setBindLoading(true);
@@ -127,7 +128,10 @@ export default function UserProfile() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`
         },
-        body: JSON.stringify({ tweet_url: bindTweetUrl.trim() })
+        body: JSON.stringify({ 
+          tweet_url: bindTweetUrl.trim(),
+          twitter_handle: bindTwitterHandle.trim()
+        })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Verification failed');
@@ -204,6 +208,13 @@ export default function UserProfile() {
           <div className="p-4 bg-black/40 rounded-xl border border-white/5 space-y-3">
             <div className="text-zinc-500 font-mono text-[10px] uppercase tracking-widest font-bold">Step 3: Verification URL</div>
             <div className="flex gap-3">
+              <input 
+                type="text" 
+                placeholder="X Handle (e.g. meric)" 
+                className="w-1/3 bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white font-mono text-sm focus:border-green-500/50 outline-none"
+                value={bindTwitterHandle}
+                onChange={(e) => setBindTwitterHandle(e.target.value)}
+              />
               <input 
                 type="url" 
                 placeholder="Tweet URL" 

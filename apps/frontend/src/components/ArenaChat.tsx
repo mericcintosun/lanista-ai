@@ -7,7 +7,7 @@ import { sendThrowableToUnity } from '../lib/unity';
 import { InteractionBar } from './arena/InteractionBar';
 import type { Match } from '@lanista/types';
 
-const MEGAPHONE_BANNER_DURATION_MS = 18000;
+const MEGAPHONE_BANNER_DURATION_MS = 8000;
 const MAX_MESSAGE_CHARS = 280;
 
 function formatTime(ts: number) {
@@ -48,7 +48,7 @@ function MegaphoneBanner({ message }: { message: ArenaChatMessage }) {
               className="flex whitespace-nowrap"
               initial={{ x: '100%' }}
               animate={{ x: '-100%' }}
-              transition={{ duration: 15, ease: 'linear' }}
+              transition={{ duration: 7, ease: 'linear' }}
             >
               <span className="inline-block pl-4 text-base sm:text-lg font-semibold text-white tracking-tight">
                 {displayText}
@@ -74,7 +74,7 @@ interface ArenaChatProps {
 }
 
 function MessageRow({ msg }: { msg: ArenaChatMessage }) {
-  const isHighlight = msg.type === 'highlight' || msg.type === 'megaphone';
+  // isHighlight removed since it is unused
   const sparkSpent = msg.type === 'highlight' ? 50 : msg.type === 'megaphone' ? 500 : undefined;
 
   if (msg.type === 'normal') {

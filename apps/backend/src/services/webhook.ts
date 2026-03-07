@@ -19,10 +19,12 @@ function getArenaWallet(): ethers.Wallet | ethers.HDNodeWallet {
 const wallet = getArenaWallet();
 
 export const signCombatProof = async (matchId: string, winnerId: string, loserId: string) => {
-  // Pack the data (mirrors Solidity's keccak256(abi.encodePacked(...)) logic)
+  const chainId = parseInt(process.env.AVALANCHE_CHAIN_ID || '43114', 10);
+  
+  // Pack the data with chainId to prevent cross-chain replay attacks
   const messageHash = ethers.solidityPackedKeccak256(
-    ['string', 'string', 'string'],
-    [matchId, winnerId, loserId]
+    ['uint256', 'string', 'string', 'string'],
+    [chainId, matchId, winnerId, loserId]
   );
 
   // Sign with the Arena wallet
