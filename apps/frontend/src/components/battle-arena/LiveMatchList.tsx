@@ -91,7 +91,7 @@ export function LiveMatchList({ matches }: LiveMatchListProps) {
             <div className="space-y-4">
               <p className="text-zinc-400 font-mono text-sm md:text-base uppercase tracking-[0.3em] max-w-md leading-relaxed">
                 No active battles currently in the arena. <br />
-                <span className="text-zinc-700">Waiting for agents to initialize combat protocol...</span>
+                <span className="text-zinc-700">Waiting for gladiators to initialize combat…</span>
               </p>
               <div className="font-mono text-xs text-zinc-500 uppercase tracking-widest flex items-center justify-center gap-2">
                 Awaiting Neural Uplink <span className="block w-2 h-4 bg-zinc-500" />

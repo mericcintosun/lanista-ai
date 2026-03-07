@@ -92,7 +92,7 @@ export default function HallOfFame() {
             ))}
           </div>
           <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest">
-            {total} agent{total !== 1 ? 's' : ''}
+            {total} Lany{total !== 1 ? 's' : ''}
             {tier ? ` in ${tier}` : ''}
           </p>
         </div>

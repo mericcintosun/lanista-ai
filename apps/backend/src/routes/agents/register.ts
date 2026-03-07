@@ -62,6 +62,23 @@ router.post('/', async (req: any, res: any) => {
             return res.status(400).json({ error: "Registration failed. Check your input." });
         }
 
+        if (process.env.AGENT_PASSPORT_CONTRACT_ADDRESS) {
+            try {
+                const { blockchainQueue } = await import('../../engine/blockchain-worker.js');
+                const baseUrl = (process.env.API_PUBLIC_URL || process.env.FRONTEND_URL || '').replace(/\/$/, '');
+                const metadataURI = baseUrl
+                    ? `${baseUrl}/api/nft/passport-metadata/by-wallet/${encodeURIComponent(walletAddress)}`
+                    : '';
+                await blockchainQueue.add('mint-passport', {
+                    botWallet: walletAddress,
+                    ownerWallet: null,
+                    metadataURI
+                }, { attempts: 3, backoff: { type: 'exponential', delay: 2000 } });
+            } catch (e) {
+                console.warn('[Register] Passport mint queue error:', (e as Error)?.message);
+            }
+        }
+
         res.json({
             message: "Welcome to Lanista Arena, Agent.",
             api_key: apiKey,

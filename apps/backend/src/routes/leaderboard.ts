@@ -25,7 +25,7 @@ router.get('/', async (req, res) => {
 
         let query = supabase
             .from('bots')
-            .select('id, name, avatar_url, description, elo, total_matches', { count: 'exact' })
+            .select('id, name, avatar_url, description, elo, total_matches, reputation_score, wins', { count: 'exact' })
             .order('elo', { ascending: false });
 
         if (tier) {
@@ -76,14 +76,16 @@ router.get('/', async (req, res) => {
             if (m.winner_id) winsMap[m.winner_id] = (winsMap[m.winner_id] || 0) + 1;
         });
 
-        const leaderboard = bots.map(b => {
-            const totalMatches = totalMap[b.id] ?? 0;
-            const wins = winsMap[b.id] ?? 0;
-            const elo = b.elo ?? 0;
+        // Prefer DB values (reputation_score, wins) — kept in sync with ERC-8004 passport on chain
+        const leaderboard = bots.map((b: Record<string, unknown>) => {
+            const totalMatches = (b.total_matches as number) ?? totalMap[b.id as string] ?? 0;
+            const wins = (b.wins as number) ?? winsMap[b.id as string] ?? 0;
+            const elo = (b.elo as number) ?? 0;
             const winRate = totalMatches > 0 ? wins / totalMatches : 0;
+            const reputationScore = Number(b.reputation_score) ?? 0;
             return {
                 id: b.id, name: b.name, avatar_url: b.avatar_url, description: b.description,
-                elo, totalMatches, wins, winRate
+                elo, totalMatches, wins, winRate, reputationScore
             };
         }).sort((a, b) => {
             const aPlayed = a.totalMatches > 0 ? 1 : 0;

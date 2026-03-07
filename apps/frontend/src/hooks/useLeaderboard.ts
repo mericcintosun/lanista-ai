@@ -9,6 +9,7 @@ export interface AgentScore {
   wins: number;
   totalMatches: number;
   elo?: number;
+  reputationScore?: number;
   wallet_address?: string;
   displayRank?: number;
   trendDelta?: number;

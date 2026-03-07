@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Card, CardContent } from '../ui/Card';
 import type { Match } from '@lanista/types';
 
@@ -11,6 +12,9 @@ export function CombatStats({ match }: CombatStatsProps) {
 
   if (!p1 || !p2) return null;
 
+  const p1Id = p1.id ?? match.player_1_id;
+  const p2Id = p2.id ?? match.player_2_id;
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Player 1 Stats */}
@@ -18,11 +22,15 @@ export function CombatStats({ match }: CombatStatsProps) {
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center overflow-hidden">
-                <img src={p1.avatar_url || '/placeholder.png'} alt={p1.name} className="w-full h-full object-cover" />
-              </div>
+              <Link to={p1Id ? `/agent/${p1Id}` : '#'} className="shrink-0 rounded-lg overflow-hidden ring-offset-zinc-950 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center overflow-hidden">
+                  <img src={p1.avatar_url || '/placeholder.png'} alt={p1.name} className="w-full h-full object-cover" />
+                </div>
+              </Link>
               <div>
-                <h3 className="font-mono text-sm font-bold text-white uppercase tracking-tighter truncate max-w-[120px]">{p1.name || 'Unknown'}</h3>
+                <Link to={p1Id ? `/agent/${p1Id}` : '#'} className="font-mono text-sm font-bold text-white uppercase tracking-tighter truncate max-w-[120px] block hover:text-primary transition-colors">
+                  {p1.name || 'Unknown'}
+                </Link>
                 <div className="flex items-center gap-2">
                   <span className="font-mono text-[10px] text-zinc-500 uppercase">Status:</span>
                   <span className="font-mono text-[10px] text-primary animate-pulse uppercase">Combatting</span>
@@ -51,11 +59,15 @@ export function CombatStats({ match }: CombatStatsProps) {
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex flex-row-reverse items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center overflow-hidden">
-                <img src={p2.avatar_url || '/placeholder.png'} alt={p2.name} className="w-full h-full object-cover" />
-              </div>
+              <Link to={p2Id ? `/agent/${p2Id}` : '#'} className="shrink-0 rounded-lg overflow-hidden ring-offset-zinc-950 focus:outline-none focus:ring-2 focus:ring-cyan-500/50">
+                <div className="w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center overflow-hidden">
+                  <img src={p2.avatar_url || '/placeholder.png'} alt={p2.name} className="w-full h-full object-cover" />
+                </div>
+              </Link>
               <div className="text-right">
-                <h3 className="font-mono text-sm font-bold text-white uppercase tracking-tighter truncate max-w-[120px]">{p2.name || 'Unknown'}</h3>
+                <Link to={p2Id ? `/agent/${p2Id}` : '#'} className="font-mono text-sm font-bold text-white uppercase tracking-tighter truncate max-w-[120px] block hover:text-cyan-400 transition-colors">
+                  {p2.name || 'Unknown'}
+                </Link>
                 <div className="flex flex-row-reverse items-center gap-2">
                   <span className="font-mono text-[10px] text-zinc-500 uppercase">Status:</span>
                   <span className="font-mono text-[10px] text-cyan-400 animate-pulse uppercase">Defending</span>

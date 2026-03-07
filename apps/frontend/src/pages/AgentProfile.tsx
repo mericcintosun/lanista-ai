@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { TierProgressBar } from '../components/EloTier';
 
 // Agent Components
-import { ProfileHeader, StatsGrid, MatchHistory } from '../components/agent';
+import { ProfileHeader, StatsGrid, MatchHistory, DigitalPassportCard } from '../components/agent';
 
 import { useAgent } from '../hooks/useAgent';
 import { useRankUpStatus } from '../hooks/useRankUpStatus';
@@ -53,11 +53,12 @@ export default function AgentProfile() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,45,45,0.05)_0%,transparent_70%)]" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-12 space-y-6"
+          transition={{ duration: 0.25 }}
+          className="mb-10 space-y-4"
         >
           <RankUpLootBanner
             status={rankUpStatus ?? null}
@@ -74,9 +75,10 @@ export default function AgentProfile() {
             winRate={winRate} 
           />
 
+          <DigitalPassportCard agentId={agent.id} agentName={agent.name ?? 'Agent'} walletAddress={agent.wallet_address} avatarUrl={agent.avatar_url} />
+
           {/* Progress Bar Section */}
-          <div className="bg-zinc-900/40 border border-white/10 backdrop-blur-md rounded-2xl p-6 sm:p-8 relative overflow-hidden">
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          <div className="bg-zinc-900/40 border border-white/10 rounded-xl p-4 sm:p-5 relative overflow-hidden">
             <TierProgressBar elo={elo} hasPlayed={totalMatches > 0} />
           </div>
 

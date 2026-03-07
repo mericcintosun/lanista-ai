@@ -1,6 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, ExternalLink } from 'lucide-react';
+import { Zap, ExternalLink, Link2 } from 'lucide-react';
 import type { OnChainMatch } from '../../hooks/useOracleData';
+
+const FUJI_EXPLORER = 'https://testnet.snowtrace.io';
 
 interface CombatRecordListProps {
   matches: OnChainMatch[];
@@ -17,7 +19,7 @@ export function CombatRecordList({
     <div className="space-y-8">
       <div className="flex items-center gap-4">
         <Zap className="w-5 h-5 text-red-500" />
-        <h2 className="text-xs font-black tracking-[0.4em] uppercase text-white">Verified Combat Log</h2>
+        <h2 className="text-xs font-black tracking-[0.4em] uppercase text-white">Verified Battle Log</h2>
       </div>
 
       {loading ? (
@@ -25,13 +27,14 @@ export function CombatRecordList({
           <div className="w-12 h-12 border border-white/10 rounded-full flex items-center justify-center">
             <div className="w-2 h-2 bg-white rounded-full animate-ping" />
           </div>
-          <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest italic">Interrogating Node...</p>
+          <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest italic">Checking Oracle…</p>
         </div>
       ) : (
         <div className="space-y-4">
           <AnimatePresence>
             {matches.length > 0 ? matches.map((match, i) => {
               const isOnChain = match.tx_hash && match.tx_hash.startsWith('0x') && match.tx_hash.length > 40;
+              const isPendingProof = match.tx_hash && match.tx_hash.startsWith('{');
               const winner = match.winner_id === match.player_1_id ? match.player_1 : match.player_2;
               const loser = match.winner_id === match.player_1_id ? match.player_2 : match.player_1;
               const hasLoot = typeof match.winner_loot_item_id === 'number' && !Number.isNaN(match.winner_loot_item_id as number);
@@ -66,7 +69,7 @@ export function CombatRecordList({
                           <span className="block font-mono text-xs text-zinc-400 uppercase tracking-widest font-bold">UID: {winner?.wallet_address?.substring(0, 10)}...</span>
                           {isOnChain && (
                             <span className="mt-1 inline-flex items-center rounded-full bg-zinc-900/80 border border-zinc-700 px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.16em] text-zinc-300">
-                              {hasLoot ? `Item #${match.winner_loot_item_id}` : 'Loot pending (VRF)'}
+                              {hasLoot ? `Item #${match.winner_loot_item_id}` : 'Reward pending'}
                             </span>
                           )}
                         </div>
@@ -94,16 +97,32 @@ export function CombatRecordList({
 
                     <div className="w-full lg:w-48 text-center md:text-right flex flex-col items-center md:items-end gap-1 mt-2 md:mt-0">
                       {isOnChain ? (
-                        <button
-                          type="button"
-                          onClick={() => onOpenLootModal(match.id)}
-                          className="font-mono text-[10px] text-zinc-200 bg-zinc-900/70 border border-zinc-600 hover:border-primary/60 hover:text-primary transition-colors uppercase tracking-[0.16em] px-3 py-1.5 rounded-full inline-flex items-center gap-2"
-                        >
-                          View on-chain proof
-                          <ExternalLink className="w-3 h-3" />
-                        </button>
+                        <div className="flex flex-col sm:flex-row items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => onOpenLootModal(match.id)}
+                            className="font-mono text-[10px] text-zinc-200 bg-zinc-900/70 border border-zinc-600 hover:border-primary/60 hover:text-primary transition-colors uppercase tracking-[0.16em] px-3 py-1.5 rounded-full inline-flex items-center gap-2"
+                          >
+                            Battle log
+                            <ExternalLink className="w-3 h-3" />
+                          </button>
+                          {match.tx_hash && match.tx_hash.startsWith('0x') && (
+                            <a
+                              href={`${FUJI_EXPLORER}/tx/${match.tx_hash}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-mono text-[10px] text-zinc-500 hover:text-cyan-400 border border-white/10 hover:border-cyan-500/40 px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 transition-colors"
+                              title="View on Avalanche Explorer"
+                            >
+                              <Link2 className="w-3 h-3" />
+                              Explorer
+                            </a>
+                          )}
+                        </div>
+                      ) : isPendingProof ? (
+                        <span className="font-mono text-xs text-amber-500/90 uppercase tracking-widest italic font-bold">Sealing…</span>
                       ) : (
-                        <span className="font-mono text-xs text-zinc-500 uppercase tracking-widest italic font-bold">Awaiting Validation...</span>
+                        <span className="font-mono text-xs text-zinc-500 uppercase tracking-widest italic font-bold">Awaiting verification…</span>
                       )}
                     </div>
                   </div>
@@ -111,7 +130,7 @@ export function CombatRecordList({
               );
             }) : (
               <div className="text-center py-20 border border-dashed border-white/5 bg-white/[0.01]">
-                <p className="font-mono text-[10px] text-zinc-800 uppercase tracking-[0.4em]">No validated proofs indexed on current uplink.</p>
+                <p className="font-mono text-[10px] text-zinc-800 uppercase tracking-[0.4em]">No verified battles yet.</p>
               </div>
             )}
           </AnimatePresence>

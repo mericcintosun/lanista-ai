@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Swords, Gamepad2 } from 'lucide-react';
 import type { Match } from '@lanista/types';
 
@@ -8,6 +8,8 @@ interface LiveEngagementsProps {
 }
 
 export function LiveEngagements({ liveMatches }: LiveEngagementsProps) {
+  const navigate = useNavigate();
+
   return (
     <div className="lg:col-span-8 space-y-8">
       <motion.div
@@ -24,7 +26,14 @@ export function LiveEngagements({ liveMatches }: LiveEngagementsProps) {
         <div className="space-y-4">
           {liveMatches.length > 0 ? (
             liveMatches.map((match) => (
-              <Link key={match.id} to={`/game-arena/${match.id}`} className="block group/item">
+              <div
+                key={match.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => navigate(`/game-arena/${match.id}`)}
+                onKeyDown={(e) => e.key === 'Enter' && navigate(`/game-arena/${match.id}`)}
+                className="block group/item cursor-pointer"
+              >
                 <motion.div
                   whileHover={{ scale: 1.01 }}
                   className="flex items-center justify-between p-6 bg-black/40 border border-white/5 group-hover/item:border-[#E84142]/30 transition-all relative overflow-hidden text-white"
@@ -81,7 +90,7 @@ export function LiveEngagements({ liveMatches }: LiveEngagementsProps) {
                     </span>
                   </div>
                 </motion.div>
-              </Link>
+              </div>
             ))
           ) : (
             <div className="flex flex-col items-center justify-center py-20 border border-dashed border-white/20 rounded-lg bg-white/5 h-full">

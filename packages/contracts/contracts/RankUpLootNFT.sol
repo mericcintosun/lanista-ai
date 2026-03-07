@@ -35,6 +35,9 @@ contract RankUpLootNFT is ERC1155, VRFConsumerBaseV2Plus {
     }
     mapping(uint256 => FulfilledResult) public fulfilledByRequestId;
 
+    /// @dev Each (botWallet, rankIndex) can only receive one rank-up reward ever.
+    mapping(address => mapping(uint8 => bool)) public hasRequestedRankReward;
+
     event RankUpLootRequested(uint256 indexed requestId, address indexed botWallet, uint8 rankIndex);
     event RankUpLootAwarded(uint256 indexed requestId, address indexed botWallet, uint8 rankIndex, uint256 itemId, uint256 randomness);
 
@@ -95,9 +98,12 @@ contract RankUpLootNFT is ERC1155, VRFConsumerBaseV2Plus {
     function requestRankUpLoot(address botWallet, uint8 rankIndex) external onlyOwner returns (uint256 requestId) {
         require(botWallet != address(0), "Invalid wallet");
         require(rankIndex < totalRanks, "Invalid rank");
+        require(!hasRequestedRankReward[botWallet][rankIndex], "Already received reward for this rank");
         require(subscriptionId != 0, "VRF subId not set");
         require(keyHash != bytes32(0), "VRF keyHash not set");
         require(address(s_vrfCoordinator) != address(0), "Coordinator not set");
+
+        hasRequestedRankReward[botWallet][rankIndex] = true;
 
         VRFV2PlusClient.RandomWordsRequest memory req = VRFV2PlusClient.RandomWordsRequest({
             keyHash: keyHash,

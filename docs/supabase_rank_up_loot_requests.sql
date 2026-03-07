@@ -11,10 +11,14 @@ CREATE TABLE IF NOT EXISTS public.rank_up_loot_requests (
   item_id smallint,
   fulfilled_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
-  UNIQUE(request_id)
+  UNIQUE(request_id),
+  UNIQUE(bot_id, new_rank_index)
 );
 
 CREATE INDEX IF NOT EXISTS idx_rank_up_loot_requests_bot_id ON public.rank_up_loot_requests(bot_id);
 CREATE INDEX IF NOT EXISTS idx_rank_up_loot_requests_fulfilled_at ON public.rank_up_loot_requests(fulfilled_at) WHERE fulfilled_at IS NULL;
 
-COMMENT ON TABLE public.rank_up_loot_requests IS 'Tracks Chainlink VRF requests for rank-up NFT loot; fulfilled_at and item_id are updated when VRF callback mints the NFT.';
+COMMENT ON TABLE public.rank_up_loot_requests IS 'Tracks Chainlink VRF requests for rank-up NFT loot; fulfilled_at and item_id are updated when VRF callback mints the NFT. One row per (bot_id, new_rank_index) — each bot can receive rank-up reward only once per rank.';
+
+-- If the table already exists without the unique constraint, run:
+-- ALTER TABLE public.rank_up_loot_requests ADD CONSTRAINT rank_up_loot_requests_bot_rank_unique UNIQUE (bot_id, new_rank_index);

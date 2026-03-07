@@ -90,6 +90,25 @@ Metadata URL’i değişecekse (ör. domain değişti):
 
 ---
 
+## 6. Backfill: Eksik rank-up loot (Silver’da NFT çıkmıyorsa)
+
+Maç bittiğinde blockchain job’ın çalışması için `winnerRep`/`loserRep` gerekir. Bu değişkenler bir süre hatalı olduğu için **o dönemde** rank atlayan botlar için VRF hiç istenmedi; bu yüzden Silver (veya başka rank) görünüp envanterde NFT olmayabilir.
+
+**Çözüm:** Eksik rank-up isteklerini tek seferlik backfill ile aç:
+
+```bash
+cd apps/backend
+# Önce dry-run ile kimlere istek atılacağını gör
+DRY_RUN=1 npm run backfill-rank-up-loot
+
+# Gerçek çalıştırma (zincirde requestRankUpLoot + DB'ye rank_up_loot_requests insert)
+npm run backfill-rank-up-loot
+```
+
+Gerekli env: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `AVALANCHE_RPC_URL`, `DEPLOYER_PRIVATE_KEY`, `RANK_UP_LOOT_NFT_ADDRESS`. VRF fulfill asenkron; backend’deki RankUpLootPoller (~30 sn) fulfillment’ı görünce `matches.winner_loot_item_id` ve envanter güncellenir.
+
+---
+
 ## Kısa kontrol listesi
 
 - [ ] `packages/contracts/.env` dolu (DEPLOYER_PRIVATE_KEY, VRF_*, RANK_UP_LOOT_BASE_URI)

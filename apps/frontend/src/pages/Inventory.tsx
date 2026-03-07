@@ -11,7 +11,7 @@ interface InventoryItem {
 }
 
 const FUJI_EXPLORER = 'https://testnet.snowtrace.io';
-const RANK_UP_LOOT_NFT_ADDRESS = '0x224362a5FDb1AB380c9183C4E9ec8eb08aFE0E36';
+const RANK_UP_LOOT_NFT_ADDRESS = '0xde15a54ef5f3d993352532faca843889ec2072b2';
 
 export default function Inventory() {
   const [searchParams] = useSearchParams();
@@ -23,17 +23,22 @@ export default function Inventory() {
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
   useEffect(() => {
-    if (walletFromUrl) setWallet(walletFromUrl);
+    if (!walletFromUrl) return;
+    queueMicrotask(() => setWallet(walletFromUrl));
   }, [walletFromUrl]);
 
+  const hasValidWallet = Boolean(wallet && wallet.length >= 40);
+  const effectiveItems = hasValidWallet ? items : [];
+  const effectiveError = hasValidWallet ? error : null;
+
   useEffect(() => {
-    if (!wallet || wallet.length < 40) {
-      setItems([]);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    fetch(`${API_URL}/oracle/inventory/${encodeURIComponent(wallet)}`)
+    if (!hasValidWallet) return;
+    const ac = new AbortController();
+    queueMicrotask(() => {
+      setLoading(true);
+      setError(null);
+    });
+    fetch(`${API_URL}/oracle/inventory/${encodeURIComponent(wallet!)}`, { signal: ac.signal })
       .then((r) => r.json())
       .then((data) => {
         if (data.items) setItems(data.items);
@@ -44,7 +49,8 @@ export default function Inventory() {
         setItems([]);
       })
       .finally(() => setLoading(false));
-  }, [wallet]);
+    return () => ac.abort();
+  }, [wallet, hasValidWallet]);
 
   return (
     <div className="w-full max-w-[1200px] mx-auto px-6 pb-24">
@@ -61,7 +67,7 @@ export default function Inventory() {
           Inventory
         </h1>
         <p className="mt-2 text-sm text-zinc-400 max-w-xl">
-          NFTs minted when your agent ranks up. Verified via Chainlink VRF.
+          Loot earned when your Lany ranks up. Oracle-verified.
         </p>
       </motion.div>
 
@@ -78,9 +84,9 @@ export default function Inventory() {
         />
       </div>
 
-      {error && (
+      {effectiveError && (
         <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
-          {error}
+          {effectiveError}
         </div>
       )}
 
@@ -88,19 +94,19 @@ export default function Inventory() {
         <div className="text-zinc-500 font-mono text-sm">Loading…</div>
       )}
 
-      {!loading && wallet && items.length === 0 && !error && (
+      {!loading && wallet && effectiveItems.length === 0 && !effectiveError && (
         <div className="rounded-2xl border border-white/10 bg-white/5 p-12 text-center text-zinc-400">
-          No rank-up loot NFTs in this wallet.
+          No rank-up loot in this wallet.
         </div>
       )}
 
-      {!loading && items.length > 0 && (
+      {!loading && effectiveItems.length > 0 && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
         >
-          {items.map(({ tokenId, balance }) => {
+          {effectiveItems.map(({ tokenId, balance }) => {
             const { rankName } = tokenIdToRankAndSlot(tokenId);
             const description = tokenIdToDescription(tokenId);
             return (

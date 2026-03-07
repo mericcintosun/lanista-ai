@@ -24,13 +24,13 @@ export function MatchHistory({ history, agent }: MatchHistoryProps) {
   const paginatedHistory = history.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-xl font-black italic text-white uppercase tracking-tighter flex items-center gap-3">
-        <span className="w-2 h-2 bg-red-500 rounded-full" />
+    <div className="space-y-3 mt-8">
+      <h2 className="text-sm font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+        <span className="w-1.5 h-1.5 bg-primary rounded-full" />
         Combat History
       </h2>
 
-      <div className="bg-zinc-900/30 border border-white/5 rounded-xl overflow-hidden">
+      <div className="bg-zinc-900/30 border border-white/10 rounded-xl overflow-hidden">
         <div className="divide-y divide-white/5">
           {paginatedHistory.map((match) => {
             const isWinner = match.winner_id === agent.id;
@@ -42,7 +42,7 @@ export function MatchHistory({ history, agent }: MatchHistoryProps) {
             const eloChange = isWinner ? match.winner_elo_gain : (match.loser_elo_loss ? -match.loser_elo_loss : 0);
 
             return (
-              <div key={match.id} className="grid grid-cols-1 sm:grid-cols-12 gap-4 p-4 items-center hover:bg-white/[0.02] transition-colors">
+              <div key={match.id} className="grid grid-cols-1 sm:grid-cols-12 gap-3 p-3 sm:p-4 items-center hover:bg-white/[0.02] transition-colors">
                 {/* Result Tag */}
                 <div className="sm:col-span-2 flex items-center gap-3">
                   {match.status === 'finished' ? (

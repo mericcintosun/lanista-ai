@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import fetch from 'node-fetch';
-import { writeFileSync } from 'fs';
+import { writeFileSync, readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
 
 const API_BASE = process.env.API_BASE || 'https://backend-production-9598.up.railway.app/api';
@@ -320,16 +320,27 @@ async function spawnDummy(name: string) {
 }
 
 async function main() {
-  const TOTAL = 4;
-  for (let i = 0; i < TOTAL; i++) {
+  const outPath = resolve(process.cwd(), 'dummy-agents.json');
+  if (existsSync(outPath)) {
+    try {
+      const existing = JSON.parse(readFileSync(outPath, 'utf8')) as RegisteredAgent[];
+      if (Array.isArray(existing) && existing.length > 0) {
+        registeredAgents.push(...existing);
+        console.log(`📂 Loaded ${existing.length} existing agents from ${outPath}`);
+      }
+    } catch (e) {
+      console.warn('Could not load existing dummy-agents.json:', (e as Error)?.message);
+    }
+  }
+
+  const ADD = parseInt(process.env.SPAWN_COUNT || '4', 10) || 4;
+  for (let i = 0; i < ADD; i++) {
     const name = nextBotName();
-    console.log(`\n--- Spawning Bot ${i + 1} of ${TOTAL} :: ${name} ---`);
+    console.log(`\n--- Spawning Bot ${i + 1} of ${ADD} :: ${name} ---`);
     await spawnDummy(name);
-    // İsteğe bağlı, logların daha rahat okunması için kısa bir bekleme
     await new Promise((r) => setTimeout(r, 300));
   }
 
-  const outPath = resolve(process.cwd(), 'dummy-agents.json');
   writeFileSync(outPath, JSON.stringify(registeredAgents, null, 2), 'utf8');
   console.log(`\n📁 Saved ${registeredAgents.length} dummy agents to ${outPath}`);
 }

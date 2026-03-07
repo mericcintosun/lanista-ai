@@ -5,6 +5,7 @@ import { evaluateStrategy, resolveAction, DEFAULT_STRATEGY } from './strategy.js
 import type { Strategy, GameState } from './strategy.js';
 import { calculateElo } from '../services/elo.js';
 import { getRankIndex } from '../lib/rank.js';
+import { calculateWinnerReputation, calculateLoserReputation } from '../services/reputation.js';
 import Redis from 'ioredis';
 
 // Use REDIS_URL directly if provided, important for BullMQ
@@ -219,12 +220,14 @@ export const matchWorker = new Worker('match-queue', async (job) => {
   let loserEloLoss = 0;
   let winnerRankedUp = false;
   let winnerNewRankIndex = 0;
+  let winnerRep: { newReputation: number; newWins: number; newTotalMatches: number } | null = null;
+  let loserRep: { newReputation: number; newWins: number; newTotalMatches: number } | null = null;
 
   try {
     if (process.env.SUPABASE_URL) {
       const [{ data: winnerData }, { data: loserData }] = await Promise.all([
-        supabase.from('bots').select('elo, total_matches').eq('id', winnerId).single(),
-        supabase.from('bots').select('elo, total_matches').eq('id', loserId).single()
+        supabase.from('bots').select('elo, total_matches, reputation_score, wins').eq('id', winnerId).single(),
+        supabase.from('bots').select('elo, total_matches, reputation_score, wins').eq('id', loserId).single()
       ]);
 
       winnerEloBefore = winnerData?.elo ?? 0;
@@ -244,14 +247,29 @@ export const matchWorker = new Worker('match-queue', async (job) => {
       winnerNewRankIndex = getRankIndex(eloResult.newWinnerElo, true);
       winnerRankedUp = winnerNewRankIndex > winnerOldRankIndex;
 
+      winnerRep = calculateWinnerReputation(
+        Number(winnerData?.reputation_score ?? 100),
+        Number(winnerData?.wins ?? 0),
+        winnerData?.total_matches ?? 0
+      );
+      loserRep = calculateLoserReputation(
+        Number(loserData?.reputation_score ?? 100),
+        Number(loserData?.wins ?? 0),
+        loserData?.total_matches ?? 0
+      );
+
       await Promise.all([
         supabase.from('bots').update({
           elo: eloResult.newWinnerElo,
-          total_matches: (winnerData?.total_matches ?? 0) + 1
+          total_matches: winnerRep.newTotalMatches,
+          reputation_score: winnerRep.newReputation,
+          wins: winnerRep.newWins
         }).eq('id', winnerId),
         supabase.from('bots').update({
           elo: eloResult.newLoserElo,
-          total_matches: (loserData?.total_matches ?? 0) + 1
+          total_matches: loserRep.newTotalMatches,
+          reputation_score: loserRep.newReputation,
+          wins: loserRep.newWins
         }).eq('id', loserId)
       ]);
 
@@ -311,7 +329,13 @@ export const matchWorker = new Worker('match-queue', async (job) => {
         loserWallet: loserBot?.wallet_address || null,
         combatLogs: allCombatLogs,
         winnerRankedUp,
-        winnerNewRankIndex
+        winnerNewRankIndex,
+        winnerReputation: winnerRep?.newReputation ?? 100,
+        loserReputation: loserRep?.newReputation ?? 100,
+        winnerWins: winnerRep?.newWins ?? 0,
+        loserWins: loserRep?.newWins ?? 0,
+        winnerTotalMatches: winnerRep?.newTotalMatches ?? 0,
+        loserTotalMatches: loserRep?.newTotalMatches ?? 0
       }, {
         attempts: 3,
         backoff: { type: 'exponential', delay: 2000 }

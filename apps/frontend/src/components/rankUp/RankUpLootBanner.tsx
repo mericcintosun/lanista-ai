@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Gift, Package, Loader2 } from 'lucide-react';
 import type { RankUpStatus } from '../../hooks/useRankUpStatus';
@@ -21,70 +20,58 @@ export function RankUpLootBanner({ status, loading, onDismiss, dismissed }: Rank
     <AnimatePresence>
       {(pending || fulfilled) && (
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
+          initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          className="mb-6 rounded-2xl border border-white/10 bg-gradient-to-r from-primary/10 to-transparent p-4 sm:p-6"
+          exit={{ opacity: 0, y: -8 }}
+          className="rounded-xl border border-white/10 bg-gradient-to-r from-primary/10 to-transparent p-3 sm:p-4"
         >
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             {pending && (
               <>
-                <div className="flex items-center justify-center w-16 h-16 rounded-xl bg-white/5 shrink-0">
-                  <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-white/5 shrink-0">
+                  <Loader2 className="w-6 h-6 text-primary animate-spin" />
                 </div>
-                <div className="flex-1">
-                  <div className="font-mono text-[10px] uppercase tracking-widest text-zinc-500">
-                    Rank-up reward
-                  </div>
-                  <div className="mt-1 font-black italic text-white">
-                    Rolling your item…
-                  </div>
-                  <p className="mt-1 text-sm text-zinc-400">
-                    Chainlink VRF is selecting one of five NFTs for your new rank. This usually takes under a minute.
-                  </p>
+                <div className="flex-1 min-w-0">
+                  <div className="font-mono text-[10px] uppercase tracking-wider text-zinc-500">Rank-up reward</div>
+                  <div className="mt-0.5 font-semibold text-white text-sm">Rolling your item…</div>
+                  <p className="mt-0.5 text-xs text-zinc-400">Usually takes under a minute.</p>
                 </div>
               </>
             )}
 
             {fulfilled && status.itemId && (
               <>
-                <div className="flex items-center justify-center w-20 h-20 rounded-xl bg-black/30 border border-white/10 shrink-0 overflow-hidden">
+                <div className="flex items-center justify-center w-14 h-14 rounded-lg bg-black/30 border border-white/10 shrink-0 overflow-hidden">
                   <img
                     src={tokenIdToImagePath(status.itemId)}
                     alt={tokenIdToName(status.itemId)}
-                    className="w-full h-full object-contain p-2"
+                    className="w-full h-full object-contain p-1.5"
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = 'none';
                     }}
                   />
                 </div>
-                <div className="flex-1">
-                  <div className="font-mono text-[10px] uppercase tracking-widest text-zinc-500 flex items-center gap-2">
-                    <Gift className="w-3 h-3" />
-                    Rank-up reward
+                <div className="flex-1 min-w-0">
+                  <div className="font-mono text-[10px] uppercase tracking-wider text-zinc-500 flex items-center gap-1.5">
+                    <Gift className="w-3 h-3" /> Rank-up reward
                   </div>
-                  <div className="mt-1 font-black italic text-white">
-                    You earned: {tokenIdToName(status.itemId)}
-                  </div>
-                  <p className="mt-1 text-sm text-zinc-400 italic">
-                    {tokenIdToDescription(status.itemId)}
+                  <div className="mt-0.5 font-semibold text-white text-sm">You earned: {tokenIdToName(status.itemId)}</div>
+                  <p className="mt-0.5 text-xs text-zinc-400">{tokenIdToDescription(status.itemId)}</p>
+                  <p className="mt-0.5 text-[10px] text-zinc-500">
+                    {tokenIdToRankAndSlot(status.itemId).rankName} tier reward secured for your agent’s wallet.
                   </p>
-                  <p className="mt-1 text-xs text-zinc-500">
-                    {tokenIdToRankAndSlot(status.itemId).rankName} tier NFT has been minted to your agent’s wallet.
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="mt-2 flex flex-wrap gap-2">
                     <a
                       href="#loot"
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/20 border border-primary/40 text-primary font-mono text-xs uppercase tracking-widest hover:bg-primary/30 transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/20 border border-primary/40 text-primary font-mono text-[10px] uppercase tracking-wider hover:bg-primary/30 transition-colors"
                     >
-                      <Package className="w-4 h-4" />
-                      View loot
+                      <Package className="w-3.5 h-3.5" /> View loot
                     </a>
                     {onDismiss && (
                       <button
                         type="button"
                         onClick={onDismiss}
-                        className="px-4 py-2 rounded-xl border border-white/10 text-zinc-400 font-mono text-xs uppercase tracking-widest hover:text-white transition-colors"
+                        className="px-3 py-1.5 rounded-lg border border-white/10 text-zinc-500 font-mono text-[10px] uppercase tracking-wider hover:text-white transition-colors"
                       >
                         Dismiss
                       </button>

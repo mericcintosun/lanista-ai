@@ -1,8 +1,23 @@
 import { Router } from 'express';
 import { supabase } from '../../lib/supabase.js';
+import { getPassportByBotWallet } from '../../services/passport.js';
 import { respondError } from '../shared.js';
 
 const router = Router();
+
+// ERC-8004 passport data from chain (public)
+router.get('/:id/passport', async (req, res) => {
+    try {
+        const { data: bot, error: botErr } = await supabase.from('bots').select('wallet_address').eq('id', req.params.id).single();
+        if (botErr || !bot?.wallet_address) return res.status(404).json({ error: "Agent not found or no wallet" });
+
+        const passport = await getPassportByBotWallet(bot.wallet_address);
+        if (!passport) return res.json({ found: false });
+        return res.json({ found: true, passport });
+    } catch (error: any) {
+        respondError(res, 500, "Failed to fetch passport.", error);
+    }
+});
 
 // Returns agent details + match history for any bot (public)
 router.get('/:id', async (req, res) => {

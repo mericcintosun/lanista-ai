@@ -10,6 +10,7 @@ interface AgentScore {
   wins: number;
   totalMatches: number;
   elo?: number;
+  reputationScore?: number;
   wallet_address?: string;
 }
 
@@ -40,12 +41,13 @@ export function LeaderboardSection({ leaderboard }: { leaderboard: AgentScore[] 
           <div className="absolute inset-0 noise opacity-10 pointer-events-none" />
           
           {/* Table header */}
-          <div className="grid grid-cols-[50px_1fr_60px] md:grid-cols-6 gap-6 px-6 py-6 border-b border-white/5 font-mono text-[10px] text-zinc-500 uppercase tracking-widest font-black bg-black/20">
+          <div className="grid grid-cols-[50px_1fr_60px] md:grid-cols-7 gap-6 px-6 py-6 border-b border-white/5 font-mono text-[10px] text-zinc-500 uppercase tracking-widest font-black bg-black/20">
             <span>Rank</span>
             <span className="hidden md:block">Entity ID</span>
             <span>Name</span>
             <span className="hidden md:block">Win Rate</span>
             <span>ELO</span>
+            <span className="hidden md:block">Reputation</span>
             <span className="hidden md:block">Activity</span>
           </div>
 
@@ -57,7 +59,7 @@ export function LeaderboardSection({ leaderboard }: { leaderboard: AgentScore[] 
                 <Link key={agent.id} to={`/agent/${agent.id}`}>
                 <motion.div initial={{ opacity: 0, x: -20 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ delay: 0.3 + i * 0.1 }}
                   onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(null)}
-                  className={`grid grid-cols-[50px_1fr_60px] md:grid-cols-6 gap-6 px-6 py-5 font-mono text-xs md:text-sm transition-all duration-300 cursor-pointer relative items-center ${
+                  className={`grid grid-cols-[50px_1fr_60px] md:grid-cols-7 gap-6 px-6 py-5 font-mono text-xs md:text-sm transition-all duration-300 cursor-pointer relative items-center ${
                     hovered === i ? 'bg-primary/5' : ''
                   }`}
                 >
@@ -81,6 +83,7 @@ export function LeaderboardSection({ leaderboard }: { leaderboard: AgentScore[] 
                   
                   <span className={`hidden md:block font-bold ${parseFloat(winRate) > 60 ? 'text-[#00FF00]' : 'text-zinc-400'}`}>{winRate}</span>
                   <span className="text-primary font-black italic text-lg tracking-tighter">{elo}</span>
+                  <span className="hidden md:block text-cyan-400/90 font-bold text-sm">{agent.reputationScore ?? '—'}</span>
                   <span className="hidden md:block text-zinc-600 text-[10px] font-bold uppercase tracking-tighter">{agent.totalMatches} Engagements</span>
                 </motion.div>
                 </Link>

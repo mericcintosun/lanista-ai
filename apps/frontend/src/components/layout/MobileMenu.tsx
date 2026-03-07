@@ -41,7 +41,7 @@ export function MobileMenu({ navH, setIsMobileMenuOpen, navItems, myAgentId = nu
               className="block w-full text-center py-5 px-6 rounded-xl font-mono text-base font-bold uppercase tracking-widest bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-all"
             >
               <span className="flex items-center justify-center gap-2">
-                <Bot className="w-4 h-4" /> My Agent
+                <Bot className="w-4 h-4" /> My Lany
               </span>
             </Link>
           </motion.div>

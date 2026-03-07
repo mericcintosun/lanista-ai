@@ -69,7 +69,7 @@ export default function UserProfile() {
           navigate('/onboarding');
         } else if (searchParams.get('newAuth') === 'true') {
           if (data.profile.activeAgents === 0) {
-            toast.success("Welcome Commander! Don't forget to claim your agent to enter the arena.", { duration: 8000, icon: '🏆' });
+            toast.success("Welcome Commander! Don't forget to claim your Lany to enter the arena.", { duration: 8000, icon: '🏆' });
           }
           searchParams.delete('newAuth');
           setSearchParams(searchParams, { replace: true });
@@ -84,7 +84,7 @@ export default function UserProfile() {
 
   const handleGenerateBindCode = async () => {
     if (!bindAgentIdentifier.trim() || !bindApiKey.trim()) {
-      setBindError("Agent Identifier and API Key are required.");
+      setBindError("Lany identifier and API Key are required.");
       return;
     }
     setBindLoading(true);
@@ -151,11 +151,11 @@ export default function UserProfile() {
       
       {!bindCode && !bindSuccess && (
         <div className="p-4 bg-black/40 rounded-xl border border-white/5 space-y-3">
-          <div className="text-zinc-500 font-mono text-[10px] uppercase tracking-widest font-bold">Step 1: Locate Agent</div>
+          <div className="text-zinc-500 font-mono text-[10px] uppercase tracking-widest font-bold">Step 1: Locate Lany</div>
           <div className="flex flex-col gap-3">
             <input 
               type="text" 
-              placeholder="Agent Name or UUID" 
+              placeholder="Lany name or Core ID" 
               className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white font-mono text-sm focus:border-primary/50 outline-none"
               value={bindAgentIdentifier}
               onChange={(e) => setBindAgentIdentifier(e.target.value)}
@@ -273,8 +273,8 @@ export default function UserProfile() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="col-span-1 md:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: 'Rank', value: rankTier.name, icon: Trophy, color: rankTier.color, sub: activeAgents > 0 ? `ELO ${highestElo}` : 'No active agents' },
-            { label: 'Active Agents', value: activeAgents, icon: Swords, color: 'text-primary', sub: 'Ready for fight' },
+            { label: 'Rank', value: rankTier.name, icon: Trophy, color: rankTier.color, sub: activeAgents > 0 ? `ELO ${highestElo}` : 'No active Lany' },
+            { label: 'Active Lany', value: activeAgents, icon: Swords, color: 'text-primary', sub: 'Ready for fight' },
             { label: 'Win Rate', value: `${averageWinRate.toFixed(0)}%`, icon: Activity, color: 'text-green-500', sub: `${totalMatchSum} matches` },
             { label: 'Arena Points', value: arenaPoints.toLocaleString(), icon: Zap, color: 'text-cyan-500', sub: 'Available' }
           ].map((stat, i) => (
@@ -288,7 +288,7 @@ export default function UserProfile() {
 
         {profileData?.role === 'commander' && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="col-span-1 md:col-span-2 bg-black/40 border border-white/5 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden">
-            <h3 className="text-lg font-black text-white uppercase tracking-wider mb-6 flex items-center gap-2 text-primary"><XIcon className="w-5 h-5 fill-primary" /> Claim Your Agent</h3>
+            <h3 className="text-lg font-black text-white uppercase tracking-wider mb-6 flex items-center gap-2 text-primary"><XIcon className="w-5 h-5 fill-primary" /> Claim Your Lany</h3>
             {renderClaimForm()}
           </motion.div>
         )}
@@ -354,8 +354,8 @@ export default function UserProfile() {
                   <div className="w-10 h-10 bg-primary/20 rounded-2xl flex items-center justify-center border border-primary/30"><Sparkles size={18} className="text-primary" /></div>
                   <div className="leading-tight"><h4 className="text-white font-black text-xs uppercase tracking-tighter">Upgrade Needed</h4><p className="text-zinc-500 text-[9px] font-mono uppercase">Inactive Tactical Status</p></div>
                 </div>
-                <p className="text-zinc-400 text-[10px] font-mono leading-relaxed border-l-2 border-primary/20 pl-3">Ready to command? Claim your agent and enter the arena ranks.</p>
-                <button onClick={() => setShowClaimModal(true)} className="w-full py-3 bg-primary text-white text-[10px] font-black uppercase rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all">Claim Agent</button>
+                <p className="text-zinc-400 text-[10px] font-mono leading-relaxed border-l-2 border-primary/20 pl-3">Ready to command? Claim your Lany and enter the arena ranks.</p>
+                <button onClick={() => setShowClaimModal(true)} className="w-full py-3 bg-primary text-white text-[10px] font-black uppercase rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all">Claim Lany</button>
               </div>
               <div className="absolute top-0 left-0 w-full h-[1px] bg-primary/20 animate-scan" />
             </div>
@@ -372,7 +372,7 @@ export default function UserProfile() {
                <div className="space-y-6">
                  <div className="space-y-1">
                    <div className="flex items-center gap-2 text-primary italic font-black text-xs uppercase"><XIcon className="w-4 h-4 fill-primary" /> Neural Claim</div>
-                   <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">Claim Your Agent</h2>
+                   <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">Claim Your Lany</h2>
                  </div>
                  {renderClaimForm()}
                  {bindSuccess && <button onClick={() => window.location.reload()} className="w-full py-4 bg-white text-black font-black uppercase text-xs rounded-2xl hover:bg-primary hover:text-white transition-all">Complete Transition</button>}

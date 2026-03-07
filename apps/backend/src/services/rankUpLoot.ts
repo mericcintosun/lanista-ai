@@ -45,8 +45,9 @@ export async function requestRankUpLoot(
     return null;
   }
 
+  const contractAddress = await contract.getAddress();
   try {
-    console.log(`[RankUpLoot] Requesting VRF. wallet=${botWallet}, rankIndex=${rankIndex}`);
+    console.log(`[RankUpLoot] Requesting VRF. contract=${contractAddress} wallet=${botWallet} rankIndex=${rankIndex}`);
     const tx = await contract.requestRankUpLoot(botWallet, rankIndex, { gasLimit: 500_000 });
     const receipt = await tx.wait();
 
@@ -68,6 +69,9 @@ export async function requestRankUpLoot(
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error('[RankUpLoot] requestRankUpLoot error:', msg);
+    if (typeof err === 'object' && err !== null && 'data' in err) {
+      console.error('[RankUpLoot] revert data:', (err as { data?: unknown }).data);
+    }
     return null;
   }
 }

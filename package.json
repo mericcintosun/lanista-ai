@@ -6,7 +6,9 @@
     "dev:frontend": "cd apps/frontend && npm run dev",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "spawn-dummy": "npx tsx spawn-dummy.ts",
-    "spawn-dummy-requeue": "npx tsx spawn-dummy-requeue.ts"
+    "spawn-dummy-requeue": "npx tsx spawn-dummy-requeue.ts",
+    "arena": "npx tsx spawn-dummy-requeue.ts",
+    "delete-all-bots": "npx tsx scripts/delete-all-bots.ts"
   },
   "version": "1.0.0",
   "private": true,

@@ -15,6 +15,8 @@ import { supabase } from './src/lib/supabase.js';
 import { initWebSocketServer } from './src/engine/ws-server.js';
 import { findMatch } from './src/engine/matchmaker.js';
 import { getLootForMatch } from './src/services/loot.js';
+import { getRankUpLootResult } from './src/services/rankUpLoot.js';
+import { getPassportByBotWallet, updateReputationOnChain } from './src/services/passport.js';
 import { redis, startMatch } from './src/routes/shared.js';
 
 // --- Individual route modules ---
@@ -39,6 +41,8 @@ import oracleInventoryRoute from './src/routes/oracle/inventory.js';
 import leaderboardRoute from './src/routes/leaderboard.js';
 import userProfileRoute from './src/routes/user-profile.js';
 import userBindRoute from './src/routes/user-bind.js';
+import passportMetadataRoute from './src/routes/nft/passport-metadata.js';
+import passportImageRoute from './src/routes/nft/passport-image.js';
 
 const app = express();
 const corsOrigin = process.env.CORS_ORIGIN || '*';
@@ -87,6 +91,10 @@ app.use('/api/oracle/inventory', oracleInventoryRoute);
 // Leaderboard
 app.use('/api/leaderboard', leaderboardRoute);
 
+// NFT passport (metadata + image for ERC-721)
+app.use('/api/nft/passport-metadata', passportMetadataRoute);
+app.use('/api/nft/passport-image', passportImageRoute);
+
 // User Profile
 app.use('/api/user/profile', userProfileRoute);
 app.use('/api/user/bind', userBindRoute);
@@ -104,8 +112,8 @@ app.post('/api/dummy-webhook', (req, res) => {
 // CRON JOBS
 // =============================================================================
 
-// --- LOOT SYNC POLLER ---
-// Automatically updates matches where on-chain VRF is fulfilled but DB winner_loot_item_id is still null
+// --- LOOT SYNC POLLER (legacy LootChest) ---
+// Updates matches where on-chain VRF is fulfilled but DB winner_loot_item_id is still null
 setInterval(async () => {
   if (!process.env.SUPABASE_URL) return;
   try {
@@ -136,6 +144,72 @@ setInterval(async () => {
     console.error('[LootPoller] ❌', err.message);
   }
 }, 30 * 1000);
+
+// --- RANK-UP NFT POLLER (RankUpLootNFT / new Chainlink contract) ---
+// Syncs winner_loot_item_id from rank_up_loot_requests when VRF is fulfilled
+setInterval(async () => {
+  if (!process.env.SUPABASE_URL) return;
+  try {
+    const { data: requests } = await supabase
+      .from('rank_up_loot_requests')
+      .select('match_id, request_id')
+      .not('request_id', 'is', null);
+
+    if (!requests || requests.length === 0) return;
+
+    for (const row of requests) {
+      try {
+        const result = await getRankUpLootResult(row.request_id);
+        if (result?.fulfilled && Number.isFinite(result.itemId) && result.itemId > 0) {
+          const { error } = await supabase
+            .from('matches')
+            .update({ winner_loot_item_id: result.itemId })
+            .eq('id', row.match_id);
+
+          if (!error) {
+            console.log(`[RankUpLootPoller] ✅ Match ${row.match_id} → Item #${result.itemId}`);
+          }
+        }
+      } catch { /* swallow single-request errors */ }
+    }
+  } catch (err: any) {
+    console.error('[RankUpLootPoller] ❌', err.message);
+  }
+}, 30 * 1000);
+
+// --- PASSPORT REPUTATION SYNC (ERC-8004) ---
+// DB → chain: fixes drift when updateReputationOnChain failed after a match. Idempotent; skips in-sync bots.
+const PASSPORT_SYNC_INTERVAL_MS = Number(process.env.PASSPORT_SYNC_INTERVAL_MS) || 6 * 60 * 60 * 1000; // default 6h
+setInterval(async () => {
+  if (!process.env.SUPABASE_URL || !process.env.AGENT_PASSPORT_CONTRACT_ADDRESS) return;
+  try {
+    const { data: bots, error } = await supabase
+      .from('bots')
+      .select('id, wallet_address, reputation_score, total_matches, wins')
+      .not('wallet_address', 'is', null);
+    if (error || !bots?.length) return;
+
+    let synced = 0;
+    for (const bot of bots) {
+      const wallet = (bot.wallet_address || '').trim();
+      if (!wallet || wallet.length < 40) continue;
+
+      const passport = await getPassportByBotWallet(wallet);
+      if (!passport) continue;
+
+      const rep = Number(bot.reputation_score) ?? 100;
+      const total = Math.max(0, Math.min(0xffff_ffff, Number(bot.total_matches) ?? 0));
+      const winsCount = Math.max(0, Math.min(0xffff_ffff, Number(bot.wins) ?? 0));
+      if (passport.totalMatches === total && passport.wins === winsCount && passport.reputationScore === rep) continue;
+
+      const ok = await updateReputationOnChain(wallet, rep, total, winsCount);
+      if (ok) synced++;
+    }
+    if (synced > 0) console.log(`[PassportSync] ✅ ${synced} passport(s) synced to chain`);
+  } catch (err: any) {
+    console.error('[PassportSync] ❌', err?.message ?? err);
+  }
+}, PASSPORT_SYNC_INTERVAL_MS);
 
 // --- STALE MATCH SWEEPER ---
 // Aborts matches older than 3 minutes that are still active, resets bot statuses

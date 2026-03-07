@@ -5,7 +5,7 @@ import { API_URL } from '../../lib/api';
 import { tokenIdToImagePath, tokenIdToName, tokenIdToDescription, tokenIdToRankAndSlot } from '../../lib/rankUpItems';
 
 const FUJI_EXPLORER = 'https://testnet.snowtrace.io';
-const RANK_UP_LOOT_NFT_ADDRESS = '0x224362a5FDb1AB380c9183C4E9ec8eb08aFE0E36';
+const RANK_UP_LOOT_NFT_ADDRESS = '0xde15a54ef5f3d993352532faca843889ec2072b2';
 
 interface InventoryItem {
   tokenId: number;
@@ -22,20 +22,22 @@ export function AgentLootSection({ walletAddress, agentName }: AgentLootSectionP
   const [loading, setLoading] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
+  const hasValidWallet = Boolean(walletAddress && walletAddress.length >= 40);
+  const effectiveItems = hasValidWallet ? items : [];
+
   useEffect(() => {
-    if (!walletAddress || walletAddress.length < 40) {
-      setItems([]);
-      return;
-    }
-    setLoading(true);
-    fetch(`${API_URL}/oracle/inventory/${encodeURIComponent(walletAddress)}`)
+    if (!hasValidWallet) return;
+    const ac = new AbortController();
+    queueMicrotask(() => setLoading(true));
+    fetch(`${API_URL}/oracle/inventory/${encodeURIComponent(walletAddress!)}`, { signal: ac.signal })
       .then((r) => r.json())
       .then((data) => {
         setItems(Array.isArray(data?.items) ? data.items : []);
       })
       .catch(() => setItems([]))
       .finally(() => setLoading(false));
-  }, [walletAddress]);
+    return () => ac.abort();
+  }, [walletAddress, hasValidWallet]);
 
   if (!walletAddress) return null;
 
@@ -47,21 +49,21 @@ export function AgentLootSection({ walletAddress, agentName }: AgentLootSectionP
         className="rounded-2xl border border-white/10 bg-gradient-to-b from-zinc-900/80 to-black/60 backdrop-blur-xl overflow-hidden relative"
       >
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(255,45,45,0.08),transparent)] pointer-events-none" />
-        <div className="relative z-10 p-6 sm:p-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                <Package className="w-5 h-5 text-primary" />
+        <div className="relative z-10 p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <Package className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <h2 className="text-lg font-black italic uppercase tracking-tight text-white flex items-center gap-2">
+                <h2 className="text-base font-bold text-white uppercase tracking-tight flex items-center gap-2">
                   Rank-up Loot
-                  <span className="text-[10px] font-mono font-normal normal-case text-zinc-500 tracking-widest flex items-center gap-1">
+                  <span className="text-[10px] font-mono font-normal normal-case text-zinc-500 tracking-wider flex items-center gap-1">
                     <Sparkles className="w-3 h-3" /> VRF
                   </span>
                 </h2>
-                <p className="text-xs text-zinc-400 font-mono uppercase tracking-wider mt-0.5">
-                  NFTs earned when {agentName ?? 'this agent'} ranks up
+                <p className="text-[11px] text-zinc-500 font-mono uppercase tracking-wider mt-0.5">
+                  Loot earned when {agentName ?? 'this Lany'} ranks up
                 </p>
               </div>
             </div>
@@ -83,17 +85,17 @@ export function AgentLootSection({ walletAddress, agentName }: AgentLootSectionP
             </div>
           )}
 
-          {!loading && items.length === 0 && (
+          {!loading && effectiveItems.length === 0 && (
             <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] py-16 px-6 text-center">
               <Package className="w-12 h-12 text-zinc-600 mx-auto mb-3" />
               <p className="font-mono text-xs text-zinc-500 uppercase tracking-widest">No rank-up loot yet</p>
-              <p className="text-[10px] text-zinc-600 mt-1 max-w-xs mx-auto">Win matches and rank up to earn VRF-verified NFTs.</p>
+              <p className="text-[10px] text-zinc-600 mt-1 max-w-xs mx-auto">Win matches and rank up to earn Oracle-verified loot.</p>
             </div>
           )}
 
-          {!loading && items.length > 0 && (
+          {!loading && effectiveItems.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {items.map(({ tokenId, balance }, idx) => {
+              {effectiveItems.map(({ tokenId, balance }, idx) => {
                 const { rankName } = tokenIdToRankAndSlot(tokenId);
                 const name = tokenIdToName(tokenId);
                 return (
