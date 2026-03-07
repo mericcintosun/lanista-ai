@@ -20,7 +20,7 @@ async function main() {
         console.log(`Current Block Number: ${blockNumber}`);
         
         // Check balance of default ewoq funding wallet
-        const walletAddress = '0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC';
+        const walletAddress = '0xd305607510E0Db2c95807173c7A05BEA53c1ed36';
         const balance = await provider.getBalance(walletAddress);
         console.log(`Balance of ewoq validator manager (${walletAddress}): ${formatEther(balance)} LNS`);
         

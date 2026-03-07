@@ -4,6 +4,7 @@ import { signCombatProof } from '../services/webhook.js';
 import { evaluateStrategy, resolveAction, DEFAULT_STRATEGY } from './strategy.js';
 import type { Strategy, GameState } from './strategy.js';
 import { calculateElo } from '../services/elo.js';
+import { getRankIndex } from '../lib/rank.js';
 import Redis from 'ioredis';
 
 // Use REDIS_URL directly if provided, important for BullMQ
@@ -216,6 +217,8 @@ export const matchWorker = new Worker('match-queue', async (job) => {
   let loserEloBefore = 1200;
   let winnerEloGain = 0;
   let loserEloLoss = 0;
+  let winnerRankedUp = false;
+  let winnerNewRankIndex = 0;
 
   try {
     if (process.env.SUPABASE_URL) {
@@ -237,6 +240,10 @@ export const matchWorker = new Worker('match-queue', async (job) => {
       winnerEloGain = eloResult.winnerGain;
       loserEloLoss = eloResult.loserLoss;
 
+      const winnerOldRankIndex = getRankIndex(winnerEloBefore, (winnerData?.total_matches ?? 0) > 0);
+      winnerNewRankIndex = getRankIndex(eloResult.newWinnerElo, true);
+      winnerRankedUp = winnerNewRankIndex > winnerOldRankIndex;
+
       await Promise.all([
         supabase.from('bots').update({
           elo: eloResult.newWinnerElo,
@@ -250,6 +257,7 @@ export const matchWorker = new Worker('match-queue', async (job) => {
 
       console.log(`[ELO] Winner ${winnerId}: ${winnerEloBefore} → ${eloResult.newWinnerElo} (+${winnerEloGain})`);
       console.log(`[ELO] Loser  ${loserId}: ${loserEloBefore} → ${eloResult.newLoserElo} (-${loserEloLoss})`);
+      if (winnerRankedUp) console.log(`[ELO] Winner ranked up to index ${winnerNewRankIndex}`);
     }
   } catch (err) {
     console.error('[Worker] ELO update error:', err);
@@ -301,7 +309,9 @@ export const matchWorker = new Worker('match-queue', async (job) => {
         loserId,
         winnerWallet: winnerBot?.wallet_address || null,
         loserWallet: loserBot?.wallet_address || null,
-        combatLogs: allCombatLogs
+        combatLogs: allCombatLogs,
+        winnerRankedUp,
+        winnerNewRankIndex
       }, {
         attempts: 3,
         backoff: { type: 'exponential', delay: 2000 }

@@ -1,0 +1,6 @@
+# Hardhat cache (regenerated on compile)
+cache/
+
+# Build output (regenerate with: npx hardhat compile)
+artifacts/
+typechain-types/

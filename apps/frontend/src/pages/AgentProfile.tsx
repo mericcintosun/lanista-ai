@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { TierProgressBar } from '../components/EloTier';
@@ -6,11 +7,16 @@ import { TierProgressBar } from '../components/EloTier';
 import { ProfileHeader, StatsGrid, MatchHistory } from '../components/agent';
 
 import { useAgent } from '../hooks/useAgent';
+import { useRankUpStatus } from '../hooks/useRankUpStatus';
+import { RankUpLootBanner } from '../components/rankUp/RankUpLootBanner';
+import { AgentLootSection } from '../components/rankUp/AgentLootSection';
 
 export default function AgentProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { agent, history, loading } = useAgent(id);
+  const { status: rankUpStatus, loading: rankUpLoading } = useRankUpStatus(agent?.id ?? null);
+  const [rankUpBannerDismissed, setRankUpBannerDismissed] = useState(false);
 
   if (loading) {
     return (
@@ -53,6 +59,12 @@ export default function AgentProfile() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-12 space-y-6"
         >
+          <RankUpLootBanner
+            status={rankUpStatus ?? null}
+            loading={rankUpLoading}
+            dismissed={rankUpBannerDismissed}
+            onDismiss={() => setRankUpBannerDismissed(true)}
+          />
           <ProfileHeader agent={agent} totalMatches={totalMatches} />
           
           <StatsGrid 
@@ -67,6 +79,8 @@ export default function AgentProfile() {
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
             <TierProgressBar elo={elo} hasPlayed={totalMatches > 0} />
           </div>
+
+          <AgentLootSection walletAddress={agent.wallet_address} agentName={agent.name} />
         </motion.div>
 
         <MatchHistory history={history} agent={agent} />

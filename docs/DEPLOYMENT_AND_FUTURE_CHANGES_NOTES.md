@@ -76,7 +76,8 @@
 | `ORACLE_CONTRACT_ADDRESS` | Oracle contract adresi |
 | `DEPLOYER_PRIVATE_KEY` | Deployer wallet private key |
 | `AVALANCHE_RPC_URL` | Avalanche Fuji RPC endpoint |
-| `LOOT_CHEST_CONTRACT_ADDRESS` | Loot chest contract |
+| `LOOT_CHEST_CONTRACT_ADDRESS` | Loot chest contract (legacy per-match) |
+| `RANK_UP_LOOT_NFT_ADDRESS` | Rank-up ERC-1155 NFT contract (Chainlink VRF, mint on rank-up) |
 | `CORS_ORIGIN` | İzin verilen origin'ler (varsayılan: `*`) |
 | `MATCH_WORKER_CONCURRENCY` | Aynı anda işlenecek max maç sayısı (varsayılan: 5) |
 | `PORT` | Railway otomatik atar — elle ayarlama |
@@ -88,6 +89,7 @@
 | `VITE_API_URL` | Backend Railway URL'i |
 | `VITE_SUPABASE_URL` | Supabase proje URL'i |
 | `VITE_SUPABASE_ANON_KEY` | Supabase anon/public key |
+| `VITE_RANK_UP_LOOT_NFT_ADDRESS` | Rank-up NFT contract address (Inventory + Snowtrace link) |
 
 ### Local Scripts (root `.env`)
 
@@ -222,6 +224,7 @@ React (`/arena/:matchId`) → iframe (Unity WebGL) → Backend API
 | `apps/backend/nixpacks.toml` | Railway build config |
 | `apps/backend/index.ts` | CORS, 0.0.0.0 binding, tüm endpoint'ler |
 | `apps/backend/src/engine/match-worker.ts` | Maç işleme, concurrency, blockchain queue'ya job ekleme |
-| `apps/backend/src/engine/blockchain-worker.ts` | On-chain işlemler (Oracle + Loot), concurrency=1 |
+| `apps/backend/src/engine/blockchain-worker.ts` | On-chain işlemler (Oracle + rank-up loot NFT), concurrency=1 |
+| `docs/supabase_rank_up_loot_requests.sql` | Supabase'de çalıştırılacak tablo: rank_up_loot_requests |
 | `apps/backend/src/engine/matchmaker.ts` | Redis Lua atomic matchmaking |
 | `.env` | Root env — `API_BASE` script'ler için |

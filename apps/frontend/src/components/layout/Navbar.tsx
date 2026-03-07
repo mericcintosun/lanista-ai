@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, UserCircle, LogOut } from 'lucide-react';
+import { Menu, X, UserCircle, LogOut, Bot } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { UserAuthModal } from './UserAuthModal';
@@ -18,24 +18,17 @@ interface NavbarProps {
   isMobileMenuOpen: boolean;
   setIsMobileMenuOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
   navItems: NavItem[];
+  myAgentId?: string | null;
 }
 
-export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, navItems }: NavbarProps) {
+export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, navItems, myAgentId = null }: NavbarProps) {
   const location = useLocation();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [session, setSession] = useState<any>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
+    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => setSession(session));
     return () => subscription.unsubscribe();
   }, []);
 
@@ -96,6 +89,15 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
             </button>
           ) : (
             <div className="flex items-center gap-2 ml-4">
+              {myAgentId && (
+                <Link
+                  to={`/agent/${myAgentId}`}
+                  className="truncate flex items-center justify-center gap-2 px-5 py-2 bg-primary/10 border border-primary/30 text-primary font-bold rounded-lg transition-all hover:bg-primary/20 hover:border-primary/50 active:scale-95 normal-case tracking-normal"
+                  title="Go to my agent's profile"
+                >
+                  <Bot className="w-4 h-4" /> My Agent
+                </Link>
+              )}
               <Link
                 to="/profile"
                 className="truncate flex items-center justify-center gap-2 px-6 py-2 bg-zinc-800 border border-white/10 text-white font-bold rounded-lg transition-all hover:bg-zinc-700 active:scale-95 normal-case tracking-normal"

@@ -54,9 +54,10 @@ export function LeaderboardSection({ leaderboard }: { leaderboard: AgentScore[] 
               const winRate = agent.totalMatches > 0 ? (agent.wins / agent.totalMatches * 100).toFixed(1) + '%' : '0%';
               const elo = agent.elo ?? 0;
               return (
-                <motion.div key={agent.id} initial={{ opacity: 0, x: -20 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ delay: 0.3 + i * 0.1 }}
+                <Link key={agent.id} to={`/agent/${agent.id}`}>
+                <motion.div initial={{ opacity: 0, x: -20 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ delay: 0.3 + i * 0.1 }}
                   onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(null)}
-                  className={`grid grid-cols-[50px_1fr_60px] md:grid-cols-6 gap-6 px-6 py-5 font-mono text-xs md:text-sm transition-all duration-300 cursor-default relative items-center ${
+                  className={`grid grid-cols-[50px_1fr_60px] md:grid-cols-6 gap-6 px-6 py-5 font-mono text-xs md:text-sm transition-all duration-300 cursor-pointer relative items-center ${
                     hovered === i ? 'bg-primary/5' : ''
                   }`}
                 >
@@ -82,6 +83,7 @@ export function LeaderboardSection({ leaderboard }: { leaderboard: AgentScore[] 
                   <span className="text-primary font-black italic text-lg tracking-tighter">{elo}</span>
                   <span className="hidden md:block text-zinc-600 text-[10px] font-bold uppercase tracking-tighter">{agent.totalMatches} Engagements</span>
                 </motion.div>
+                </Link>
               );
             })}
           </div>

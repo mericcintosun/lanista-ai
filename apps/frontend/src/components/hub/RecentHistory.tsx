@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { History } from 'lucide-react';
 import type { Match } from '@lanista/types';
 
@@ -47,20 +47,20 @@ export function RecentHistory({ recentMatches }: RecentHistoryProps) {
                 </div>
 
                 <div className="flex items-center justify-center flex-1 sm:flex-[2] gap-4 sm:gap-10 py-2 sm:py-0">
-                  <div className="flex items-center gap-2 sm:gap-3 flex-1 justify-end">
-                    <span className={`text-sm sm:text-lg font-bold tracking-tighter uppercase italic truncate text-right ${match.winner_id === match.player_1_id ? 'text-white' : 'text-zinc-500'}`}>
+                  <div className="flex items-center gap-2 sm:gap-3 flex-1 justify-end" onClick={(e) => e.stopPropagation()}>
+                    <Link to={`/agent/${match.player_1_id}`} className={`text-sm sm:text-lg font-bold tracking-tighter uppercase italic truncate text-right hover:text-primary transition-colors ${match.winner_id === match.player_1_id ? 'text-white' : 'text-zinc-500'}`}>
                       {match.player_1?.name}
-                    </span>
+                    </Link>
                     <img src={match.player_1?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${match.player_1?.name}`} alt="" className="w-6 h-6 sm:w-8 sm:h-8 rounded-full opacity-60" />
                   </div>
 
                   <span className="text-xs sm:text-base font-mono text-zinc-800 font-black italic px-2">VS</span>
 
-                  <div className="flex items-center gap-2 sm:gap-3 flex-1">
+                  <div className="flex items-center gap-2 sm:gap-3 flex-1" onClick={(e) => e.stopPropagation()}>
                     <img src={match.player_2?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${match.player_2?.name}`} alt="" className="w-6 h-6 sm:w-8 sm:h-8 rounded-full opacity-60" />
-                    <span className={`text-sm sm:text-lg font-bold tracking-tighter uppercase italic truncate ${match.winner_id === match.player_2_id ? 'text-white' : 'text-zinc-500'}`}>
+                    <Link to={`/agent/${match.player_2_id}`} className={`text-sm sm:text-lg font-bold tracking-tighter uppercase italic truncate hover:text-primary transition-colors ${match.winner_id === match.player_2_id ? 'text-white' : 'text-zinc-500'}`}>
                       {match.player_2?.name}
-                    </span>
+                    </Link>
                   </div>
                 </div>
 

@@ -3,6 +3,8 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { Gamepad2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ParticleBackground from './ParticleBackground';
+import { supabase } from '../lib/supabase';
+import { API_URL } from '../lib/api';
 
 // Sub-components
 import { Navbar } from './layout/Navbar';
@@ -18,8 +20,35 @@ export function Layout() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [myAgentId, setMyAgentId] = useState<string | null>(null);
   const location = useLocation();
   const [prevPathname, setPrevPathname] = useState(location.pathname);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.access_token) {
+        fetch(`${API_URL}/user/profile`, { headers: { Authorization: `Bearer ${session.access_token}` } })
+          .then((r) => r.json())
+          .then((data) => {
+            const first = data?.profile?.agents?.[0];
+            setMyAgentId(first?.id ?? null);
+          })
+          .catch(() => setMyAgentId(null));
+      } else setMyAgentId(null);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      if (session?.access_token) {
+        fetch(`${API_URL}/user/profile`, { headers: { Authorization: `Bearer ${session.access_token}` } })
+          .then((r) => r.json())
+          .then((data) => {
+            const first = data?.profile?.agents?.[0];
+            setMyAgentId(first?.id ?? null);
+          })
+          .catch(() => setMyAgentId(null));
+      } else setMyAgentId(null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Close mobile menu on route change - handled during render to avoid cascading renders
   if (location.pathname !== prevPathname) {
@@ -79,7 +108,8 @@ export function Layout() {
         scrolled={scrolled} 
         isMobileMenuOpen={isMobileMenuOpen} 
         setIsMobileMenuOpen={setIsMobileMenuOpen} 
-        navItems={navItems} 
+        navItems={navItems}
+        myAgentId={myAgentId}
       />
 
       {/* ── MOBILE MENU ── */}
@@ -88,7 +118,8 @@ export function Layout() {
           <MobileMenu 
             navH={navH} 
             setIsMobileMenuOpen={setIsMobileMenuOpen} 
-            navItems={navItems} 
+            navItems={navItems}
+            myAgentId={myAgentId}
           />
         )}
       </AnimatePresence>

@@ -1,12 +1,14 @@
 import dotenv from 'dotenv';
-// Load envs from monorepo root (../../.env relative to apps/backend)
-// On Railway, env vars are injected directly so dotenv silently skips if file not found
-dotenv.config({ path: '../../.env' });
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+
+// Load envs from monorepo root so it works regardless of cwd (e.g. "npm run dev" from root vs apps/backend)
+const __dir = dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: resolve(__dir, '..', '..', '.env') });
 
 import express from 'express';
 import cors from 'cors';
 import { readFileSync } from 'fs';
-import { resolve } from 'path';
 import './src/engine/match-worker.js'; // Ensure worker started
 import './src/engine/blockchain-worker.js'; // Blockchain ops queue (concurrency=1)
 import { supabase } from './src/lib/supabase.js';
@@ -32,6 +34,8 @@ import hubLiveRoute from './src/routes/hub/live.js';
 import hubRecentRoute from './src/routes/hub/recent.js';
 import oracleMatchesRoute from './src/routes/oracle/matches.js';
 import oracleLootRoute from './src/routes/oracle/loot.js';
+import oracleRankUpStatusRoute from './src/routes/oracle/rank-up-status.js';
+import oracleInventoryRoute from './src/routes/oracle/inventory.js';
 import leaderboardRoute from './src/routes/leaderboard.js';
 import userProfileRoute from './src/routes/user-profile.js';
 import userBindRoute from './src/routes/user-bind.js';
@@ -77,6 +81,8 @@ app.use('/api/hub/recent', hubRecentRoute);
 // Oracle endpoints
 app.use('/api/oracle/matches', oracleMatchesRoute);
 app.use('/api/oracle/loot', oracleLootRoute);
+app.use('/api/oracle/rank-up-status', oracleRankUpStatusRoute);
+app.use('/api/oracle/inventory', oracleInventoryRoute);
 
 // Leaderboard
 app.use('/api/leaderboard', leaderboardRoute);

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Shield, Fingerprint, Check } from 'lucide-react';
 import { TierBadge } from '../EloTier';
 import { AgentBalance } from './AgentBalance';
@@ -94,6 +95,13 @@ export function ProfileHeader({ agent, totalMatches }: ProfileHeaderProps) {
                   {copiedWallet ? <Check className="w-3.5 h-3.5 text-green-500" /> : <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>}
                   {copiedWallet && <span className="text-[10px] font-mono font-bold text-green-500 uppercase tracking-wider pr-1">Copied!</span>}
                 </button>
+                <a
+                  href="#loot"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-white/10 bg-black/60 font-mono text-[10px] text-zinc-400 uppercase tracking-widest hover:border-primary/30 hover:text-primary transition-colors"
+                  title="Scroll to rank-up loot"
+                >
+                  Loot
+                </a>
               </div>
             )}
 

@@ -1,0 +1,13 @@
+A high-fidelity collection of intricate artifacts and items. The design language is inspired by Lanista's arena: dark, gritty, brushed silver and zinc metals (#71717a–#a1a1aa) on near-black surfaces (#030303–#0a0a0a), with subtle red particle accents (primary #ff2d2d, glow rgba(255,45,45,0.4)) and a dark, weathered arena texture. Tier accents may appear sparingly—orange for bronze, cold zinc for silver, warm gold (#eab308), emerald for platinum, cyan (#22d3ee) for diamond, fuchsia (#d946ef) for master—but the base remains brushed silver, zinc, and black with red as the main accent. Matte, worn, colosseum-grade materials; no bright or cartoon tones.
+
+---
+
+A high-fidelity collection of elite, ultra-rare artifacts and items. The design language is an evolution of the above, utilizing dark, flawless, icy platinum metals set against Lanista's near-black surfaces (#030303–#0a0a0a) and darker textured backgrounds. Subtler, colder-toned particle accents accompany all items: faint red (#ff2d2d) or cool zinc/silver (#a1a1aa), with optional icy platinum, cyan (#22d3ee), or fuchsia (#d946ef) for highest-tier pieces. Elite, pristine, arena-legend grade; no warm or cartoon tones.
+
+---
+
+A high-fidelity collection of legendary artifacts and items. The design language features deep, dark, multi-faceted diamond-like crystal structures that refract light into a kaleidoscope of colors, all within the gritty, dark arena context of Lanista: near-black base (#030303–#0a0a0a), weathered texture, and pronounced red particle accents (primary #ff2d2d, glow rgba(255,45,45,0.4)). Prism reflections may include cool zinc, cyan (#22d3ee), or fuchsia (#d946ef) alongside the red. Square composition, 1:1 aspect ratio; subject centered; no cropping. Legendary, arena-crystal grade; no cartoon or flat styles.
+
+---
+
+A high-fidelity collection of godly and ultimate artifacts and items. The design language is the apex of Lanista's arena: ancient stone textures blended with advanced, shimmering gold (#eab308) and platinum alloys on near-black surfaces (#030303–#0a0a0a), plus powerful digital lattice patterns and pronounced red particle accents (primary #ff2d2d, glow rgba(255,45,45,0.4)). Top-tier pieces may carry fuchsia (#d946ef) or cyan (#22d3ee) highlights. Each item is a masterpiece. Square composition, 1:1 aspect ratio; subject centered; no cropping. God-tier, arena apex; no cartoon or flat styles.

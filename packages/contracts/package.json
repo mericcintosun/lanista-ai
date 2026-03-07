@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Lanista Arena Smart Contracts",
   "private": true,
+  "scripts": {
+    "deploy": "npx tsx scripts/deploy.ts",
+    "deploy:rank-up": "npx tsx scripts/deploy-rank-up-only.ts"
+  },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.1.0",
     "@nomicfoundation/hardhat-ethers": "^3.1.3",

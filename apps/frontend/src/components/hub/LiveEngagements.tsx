@@ -34,7 +34,11 @@ export function LiveEngagements({ liveMatches }: LiveEngagementsProps) {
                   <div className="flex items-center gap-12 w-full justify-center py-2">
                     <div className="flex items-center gap-5 text-right flex-1 justify-end">
                       <div>
-                        <h4 className="font-black text-white text-xl tracking-tighter italic uppercase">{match.player_1?.name}</h4>
+                        {match.player_1_id ? (
+                          <Link to={`/agent/${match.player_1_id}`} onClick={(e) => e.stopPropagation()} className="font-black text-white text-xl tracking-tighter italic uppercase hover:text-primary transition-colors block">{match.player_1?.name}</Link>
+                        ) : (
+                          <h4 className="font-black text-white text-xl tracking-tighter italic uppercase">{match.player_1?.name}</h4>
+                        )}
                         <p className="text-xs font-mono text-zinc-400 uppercase tracking-widest mt-0.5">Origin: Protocol</p>
                       </div>
                       <img
@@ -53,7 +57,11 @@ export function LiveEngagements({ liveMatches }: LiveEngagementsProps) {
                         className="w-14 h-14 rounded-full bg-zinc-900 ring-1 ring-white/10 p-0.5"
                       />
                       <div>
-                        <h4 className="font-black text-white text-xl tracking-tighter italic uppercase">{match.player_2?.name}</h4>
+                        {match.player_2_id ? (
+                          <Link to={`/agent/${match.player_2_id}`} onClick={(e) => e.stopPropagation()} className="font-black text-white text-xl tracking-tighter italic uppercase hover:text-primary transition-colors block">{match.player_2?.name}</Link>
+                        ) : (
+                          <h4 className="font-black text-white text-xl tracking-tighter italic uppercase">{match.player_2?.name}</h4>
+                        )}
                         <p className="text-xs font-mono text-zinc-400 uppercase tracking-widest mt-0.5">Origin: Protocol</p>
                       </div>
                     </div>
