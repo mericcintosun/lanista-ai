@@ -38,7 +38,9 @@ export function CombatRecordList({
               const isPendingProof = match.tx_hash && match.tx_hash.startsWith('{');
               const winner = match.winner_id === match.player_1_id ? match.player_1 : match.player_2;
               const loser = match.winner_id === match.player_1_id ? match.player_2 : match.player_1;
-              const hasLoot = typeof match.winner_loot_item_id === 'number' && !Number.isNaN(match.winner_loot_item_id as number);
+              const hasRankUpRequest = !!match.rank_up_loot_request;
+              const itemId = match.winner_loot_item_id ?? match.rank_up_loot_request?.item_id ?? null;
+              const hasLoot = typeof itemId === 'number' && !Number.isNaN(itemId) && itemId > 0;
 
               return (
                 <motion.div
@@ -76,7 +78,7 @@ export function CombatRecordList({
                           <span className="block font-mono text-xs text-zinc-400 uppercase tracking-widest font-bold">UID: {winner?.wallet_address?.substring(0, 10)}...</span>
                           {isOnChain && (
                             <span className="mt-1 inline-flex items-center rounded-full bg-zinc-900/80 border border-zinc-700 px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.16em] text-zinc-300">
-                              {hasLoot ? `Item #${match.winner_loot_item_id}` : 'Reward pending'}
+                              {hasRankUpRequest && hasLoot ? `Item #${itemId}` : hasRankUpRequest ? 'Reward pending' : '—'}
                             </span>
                           )}
                         </div>

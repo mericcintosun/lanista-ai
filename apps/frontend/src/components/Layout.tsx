@@ -11,6 +11,8 @@ import { Navbar } from './layout/Navbar';
 import { Footer } from './layout/Footer';
 import { AuthModal } from './layout/AuthModal';
 import { MobileMenu } from './layout/MobileMenu';
+import { LootDropBanner } from './notifications/LootDropBanner';
+import { useLootDropNotifications } from '../hooks/useLootDropNotifications';
 
 // ─── NAV HEIGHT CONSTANTS ────────────────────────────────────────────────────
 const NAV_H_LARGE = 80; // px — default
@@ -19,6 +21,8 @@ const NAV_H_SMALL = 56; // px — after scroll
 export function Layout() {
   const showAuthModal = useUIStore((s) => s.showAuthModal);
   const closeAuthModal = useUIStore((s) => s.closeAuthModal);
+
+  useLootDropNotifications();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
@@ -141,6 +145,8 @@ export function Layout() {
       <AnimatePresence>
         {showAuthModal && <AuthModal onClose={closeAuthModal} />}
       </AnimatePresence>
+
+      <LootDropBanner />
     </div>
   );
 }

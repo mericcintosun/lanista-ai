@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { supabase } from '../../lib/supabase.js';
-import { getLootForMatch } from '../../services/loot.js';
 import { getRankUpLootResult } from '../../services/rankUpLoot.js';
 import { respondError } from '../shared.js';
 
@@ -49,22 +48,8 @@ router.get('/:matchId', async (req, res) => {
             }
         }
 
-        // Legacy: LootChest (per-match loot)
-        const loot = await getLootForMatch(matchId);
-        if (!loot) {
-            return res.json({ found: false });
-        }
-        if (loot.fulfilled && Number.isFinite(loot.itemId)) {
-            try {
-                await supabase
-                    .from('matches')
-                    .update({ winner_loot_item_id: loot.itemId })
-                    .eq('id', matchId);
-            } catch (e) {
-                console.warn('[Loot] Failed to persist winner_loot_item_id:', (e as any)?.message || e);
-            }
-        }
-        return res.json({ found: true, loot });
+        // No rank-up request for this match = winner did not rank up = no loot
+        return res.json({ found: false });
     } catch (error: any) {
         respondError(res, 500, "Failed to fetch loot for match.", error);
     }

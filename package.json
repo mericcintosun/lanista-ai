@@ -8,7 +8,8 @@
     "spawn-dummy": "npx tsx spawn-dummy.ts",
     "spawn-dummy-requeue": "npx tsx spawn-dummy-requeue.ts",
     "arena": "npx tsx spawn-dummy-requeue.ts",
-    "delete-all-bots": "npx tsx scripts/delete-all-bots.ts"
+    "force-rank-up-ready": "npx tsx scripts/force-rank-up-ready.ts",
+    "trigger-test-loot-notification": "npx tsx scripts/trigger-test-loot-notification.ts"
   },
   "version": "1.0.0",
   "private": true,

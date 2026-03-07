@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { API_URL } from '../lib/api';
 
+export interface RankUpLootRequest {
+  fulfilled_at: string | null;
+  item_id: number | null;
+}
+
 export interface OnChainMatch {
   id: string;
   tx_hash: string | null;
@@ -11,6 +16,7 @@ export interface OnChainMatch {
   player_1_id: string;
   player_2_id: string;
   winner_loot_item_id?: number | null;
+  rank_up_loot_request?: RankUpLootRequest | null;
 }
 
 export interface LootDetails {

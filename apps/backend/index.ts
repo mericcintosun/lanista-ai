@@ -38,6 +38,7 @@ import oracleMatchesRoute from './src/routes/oracle/matches.js';
 import oracleLootRoute from './src/routes/oracle/loot.js';
 import oracleRankUpStatusRoute from './src/routes/oracle/rank-up-status.js';
 import oracleInventoryRoute from './src/routes/oracle/inventory.js';
+import oracleRecentLootDropsRoute from './src/routes/oracle/recent-loot-drops.js';
 import leaderboardRoute from './src/routes/leaderboard.js';
 import userProfileRoute from './src/routes/user-profile.js';
 import userBindRoute from './src/routes/user-bind.js';
@@ -89,6 +90,7 @@ app.use('/api/oracle/matches', oracleMatchesRoute);
 app.use('/api/oracle/loot', oracleLootRoute);
 app.use('/api/oracle/rank-up-status', oracleRankUpStatusRoute);
 app.use('/api/oracle/inventory', oracleInventoryRoute);
+app.use('/api/oracle/recent-loot-drops', oracleRecentLootDropsRoute);
 
 // Leaderboard
 app.use('/api/leaderboard', leaderboardRoute);
@@ -118,37 +120,39 @@ app.post('/api/dummy-webhook', (req, res) => {
 // =============================================================================
 
 // --- LOOT SYNC POLLER (legacy LootChest) ---
-// Updates matches where on-chain VRF is fulfilled but DB winner_loot_item_id is still null
-setInterval(async () => {
-  if (!process.env.SUPABASE_URL) return;
-  try {
-    const { data: pendingLootMatches } = await supabase
-      .from('matches')
-      .select('id')
-      .eq('status', 'finished')
-      .not('tx_hash', 'is', null)
-      .is('winner_loot_item_id', null)
-      .order('created_at', { ascending: false })
-      .limit(20);
+// Only runs when RankUpLootNFT is NOT used. With RankUpLootNFT, loot is rank-up only.
+if (!process.env.RANK_UP_LOOT_NFT_ADDRESS) {
+  setInterval(async () => {
+    if (!process.env.SUPABASE_URL) return;
+    try {
+      const { data: pendingLootMatches } = await supabase
+        .from('matches')
+        .select('id')
+        .eq('status', 'finished')
+        .not('tx_hash', 'is', null)
+        .is('winner_loot_item_id', null)
+        .order('created_at', { ascending: false })
+        .limit(20);
 
-    if (!pendingLootMatches || pendingLootMatches.length === 0) return;
+      if (!pendingLootMatches || pendingLootMatches.length === 0) return;
 
-    for (const match of pendingLootMatches) {
-      try {
-        const loot = await getLootForMatch(match.id);
-        if (loot && loot.fulfilled && Number.isFinite(loot.itemId) && loot.itemId > 0) {
-          await supabase
-            .from('matches')
-            .update({ winner_loot_item_id: loot.itemId })
-            .eq('id', match.id);
-          console.log(`[LootPoller] ✅ Match ${match.id} → Item #${loot.itemId}`);
-        }
-      } catch { /* swallow single-match errors */ }
+      for (const match of pendingLootMatches) {
+        try {
+          const loot = await getLootForMatch(match.id);
+          if (loot && loot.fulfilled && Number.isFinite(loot.itemId) && loot.itemId > 0) {
+            await supabase
+              .from('matches')
+              .update({ winner_loot_item_id: loot.itemId })
+              .eq('id', match.id);
+            console.log(`[LootPoller] ✅ Match ${match.id} → Item #${loot.itemId}`);
+          }
+        } catch { /* swallow single-match errors */ }
+      }
+    } catch (err: any) {
+      console.error('[LootPoller] ❌', err.message);
     }
-  } catch (err: any) {
-    console.error('[LootPoller] ❌', err.message);
-  }
-}, 30 * 1000);
+  }, 30 * 1000);
+}
 
 // --- RANK-UP NFT POLLER (RankUpLootNFT / new Chainlink contract) ---
 // Syncs winner_loot_item_id from rank_up_loot_requests when VRF is fulfilled.

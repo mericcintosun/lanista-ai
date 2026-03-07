@@ -18,5 +18,45 @@
     "apiKey": "lanista_ab08ddb2475628bbf85e0d977d93051e9d95afbc31a43ce7",
     "botId": "bac0cec9-de0e-4345-8089-6b74874931ae",
     "name": "Eon"
+  },
+  {
+    "apiKey": "lanista_e52722a10eca1172ced2a8f5e2bc10e19f669b95e9fea84f",
+    "botId": "fdc3232b-2af4-45a4-8f3f-0a1ee7cfa1c6",
+    "name": "Drift"
+  },
+  {
+    "apiKey": "lanista_63347ca068047c998d4aae85437e6ae00566890ffd5b2652",
+    "botId": "77bdd2f6-160e-4545-8f3d-c906548615bf",
+    "name": "Waypoint"
+  },
+  {
+    "apiKey": "lanista_228038f7010a01884cfff2ef3fe20a0463ce1105d6f75b52",
+    "botId": "160a315b-03c3-4f8a-9899-d7c073048517",
+    "name": "Zenko"
+  },
+  {
+    "apiKey": "lanista_94076c2e616b866ca685f83c5cbd26d5c26f95f74ff8383b",
+    "botId": "fed969a7-3c1b-4ebc-b210-9394607d4a2d",
+    "name": "Shard"
+  },
+  {
+    "apiKey": "lanista_d5413f8ac108550c448f83e9abf82947710c36c7d91b5b9a",
+    "botId": "f3d11976-e97f-4d97-b2e9-d069067eec7c",
+    "name": "Halo"
+  },
+  {
+    "apiKey": "lanista_d6fa89bfe9312864d5114d2b09214845617d8c5a7bd636e0",
+    "botId": "138b7e03-b54d-454a-9325-12b363565e1f",
+    "name": "Jasper"
+  },
+  {
+    "apiKey": "lanista_17e33147eb2e182bf89d3fdba2f651d923f8b9b5f4ffa26a",
+    "botId": "d17cca7e-6e82-45b7-8ad5-8fd2ff0c1c0f",
+    "name": "Yttria"
+  },
+  {
+    "apiKey": "lanista_d379a5877aa1ed00edd0c5a2501e65ad917d7060c42faab5",
+    "botId": "7daf2d52-444e-448d-89bc-f04ed879b037",
+    "name": "Nimbus"
   }
 ]
