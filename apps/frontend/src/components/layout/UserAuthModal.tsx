@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
-import { X, Mail, Lock, User, AlertCircle, ArrowRight } from 'lucide-react';
+import { X, Mail, Lock, User, AlertCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 interface UserAuthModalProps {
   onClose: () => void;
@@ -18,6 +18,7 @@ export function UserAuthModal({ onClose }: UserAuthModalProps) {
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleAuthSuccess = () => {
@@ -29,6 +30,7 @@ export function UserAuthModal({ onClose }: UserAuthModalProps) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccess(null);
 
     try {
       if (isLogin) {
@@ -47,13 +49,15 @@ export function UserAuthModal({ onClose }: UserAuthModalProps) {
               first_name: firstName,
               last_name: lastName,
             },
+            emailRedirectTo: `${window.location.origin}/profile?newAuth=true`,
           },
         });
         if (signUpError) throw signUpError;
         
         // If email confirmation is enabled, session will be null
         if (data.session === null) {
-          setError("Success! Please check your email (and spam folder) for a confirmation link to activate your account.");
+          setSuccess("Success! Please check your email (and spam folder) for a confirmation link to activate your account.");
+          setLoading(false);
           return; // Don't close modal, let them read the message
         }
         
@@ -68,6 +72,8 @@ export function UserAuthModal({ onClose }: UserAuthModalProps) {
   const handleGoogleAuth = async () => {
     try {
       setLoading(true);
+      setError(null);
+      setSuccess(null);
       const { error: googleError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -135,6 +141,18 @@ export function UserAuthModal({ onClose }: UserAuthModalProps) {
               >
                 <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
                 <p className="leading-relaxed">{error}</p>
+              </motion.div>
+            )}
+
+            {success && (
+              <motion.div 
+                layout="position"
+                initial={{ opacity: 0, height: 0 }} 
+                animate={{ opacity: 1, height: 'auto' }} 
+                className="flex items-start gap-3 p-4 mb-6 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium"
+              >
+                <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
+                <p className="leading-relaxed">{success}</p>
               </motion.div>
             )}
 

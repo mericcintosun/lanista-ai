@@ -139,10 +139,16 @@ router.post('/verify', async (req, res) => {
             return res.status(500).json({ error: "Failed to claim agent in database" });
         }
 
-        // 6. Cleanup the bind request
+        // 6. Automatically upgrade user role to 'commander' if they were an observer
+        await supabase
+            .from('profiles')
+            .update({ role: 'commander' })
+            .eq('id', user.id);
+
+        // 7. Cleanup the bind request
         await supabase.from('agent_bind_requests').delete().eq('user_id', user.id);
 
-        res.json({ message: "Agent successfully claimed! It is now bound to your account." });
+        res.json({ message: "Agent successfully claimed! You are now a recognized Tactical Commander." });
 
     } catch (error) {
         console.error("Bind verify error:", error);

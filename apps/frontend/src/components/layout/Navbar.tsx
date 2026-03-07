@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, UserCircle } from 'lucide-react';
+import { Menu, X, UserCircle, LogOut } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { UserAuthModal } from './UserAuthModal';
@@ -38,6 +38,11 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/';
+  };
 
   return (
     <motion.nav
@@ -90,12 +95,21 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
               <UserCircle className="w-4 h-4" /> Login
             </button>
           ) : (
-            <Link
-              to="/profile"
-              className="ml-4 truncate flex items-center justify-center gap-2 px-6 py-2 bg-zinc-800 border border-white/10 text-white font-bold rounded-lg transition-all hover:bg-zinc-700 active:scale-95 normal-case tracking-normal"
-            >
-              <UserCircle className="w-4 h-4 text-primary" /> Profile
-            </Link>
+            <div className="flex items-center gap-2 ml-4">
+              <Link
+                to="/profile"
+                className="truncate flex items-center justify-center gap-2 px-6 py-2 bg-zinc-800 border border-white/10 text-white font-bold rounded-lg transition-all hover:bg-zinc-700 active:scale-95 normal-case tracking-normal"
+              >
+                <UserCircle className="w-4 h-4 text-primary" /> Profile
+              </Link>
+              <button
+                onClick={handleSignOut}
+                className="p-2.5 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all active:scale-90 shadow-[0_0_15px_rgba(239,68,68,0.1)]"
+                title="Sign Out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
           )}
 
           <AnimatePresence>

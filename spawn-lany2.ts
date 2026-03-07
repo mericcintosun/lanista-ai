@@ -4,7 +4,7 @@ import fetch from 'node-fetch';
 const API_BASE = process.env.API_BASE || 'http://localhost:3001/api';
 
 async function spawnLany() {
-  const name = "LANY1";
+  const name = "LANY2";
   console.log(`🤖 Spawning Agent: ${name}...`);
 
   // 1. Register bot
@@ -13,7 +13,7 @@ async function spawnLany() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       name,
-      description: 'The legendary LANY1 agent.',
+      description: 'The legendary LANY2 agent.',
       webhook_url: 'http://not-used',
     }),
   });

@@ -97,7 +97,7 @@ export function Layout() {
       <motion.main
         animate={{ paddingTop: navH }}
         transition={{ duration: 0.25, ease: 'easeInOut' }}
-        className="relative z-10 flex flex-col items-center w-full min-h-screen"
+        className="relative z-20 flex flex-col items-center w-full min-h-screen"
       >
         <div className="w-full max-w-[1400px] px-4 sm:px-6 md:px-10">
           <Outlet context={{ openAuth: () => setShowAuthModal(true) }} />
