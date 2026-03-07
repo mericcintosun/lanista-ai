@@ -83,7 +83,7 @@ export default function Landing() {
           >
             <HorizontalScroll />
             <HowItWorks />
-            {/* Boş ekran: HowItWorks boyutunda, okuma için scroll mesafesi */}
+            {/* Empty screen: HowItWorks height, scroll distance for reading */}
             <div className="shrink-0 w-[100vw] h-[65vh] bg-transparent" aria-hidden />
             <div
               className="shrink-0 w-[12vw] max-w-[160px]"

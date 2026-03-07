@@ -52,12 +52,12 @@ export function TierBadge({ elo, hasPlayed, prominent = false }: { elo: number; 
   );
 }
 
-/** Tier progress bar — Valorant tarzı */
+/** Tier progress bar — Valorant-style */
 export function TierProgressBar({ elo, hasPlayed, compact = false }: { elo: number; hasPlayed: boolean; compact?: boolean }) {
   const tier  = getEloTier(elo, hasPlayed);
   const prog  = getTierProgress(elo, hasPlayed);
 
-  // bar rengi tier'a göre
+  // bar color based on tier
   const barColor = {
     MASTER:   'bg-fuchsia-400',
     DIAMOND:  'bg-cyan-300',

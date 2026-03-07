@@ -1,51 +1,51 @@
-t] ✅ Loot isteği on-chain kaydedildi. Blok #52302129
+t] ✅ Loot request recorded on-chain. Block #52302129
 Job 48 completed
-[Loot] ✅ Loot isteği on-chain kaydedildi. Blok #52302125
+[Loot] ✅ Loot request recorded on-chain. Block #52302125
 Job 38 completed
 [Turn 8] 💥 Xero HEAVY ATTACK for 45 damage! (Vulnerable next turn) (🔥 +30% vulnerability bonus!) (Target HP: 67)
-[Oracle] ❌ On-chain kayıt hatası: nonce has already been used (transaction="0x02f9015682a8698207a58506fc23ac008506fc23ac008303d090948672037a232667c732d983ae15cb693d5839f2a280b8e47d9d047b00000000000000000000000000000000000000000000000000000000000000800000000000000000000000005f9f8ce83fe74cdd254c123f27fbc9faba94cc97000000000000000000000000d37bb6e44a5da89aa923b9ff27deb32b0b05606e72255f37651da82f9cb1ac0e68effa43a1aedee935ebbc81e8524b0730bb4881000000000000000000000000000000000000000000000000000000000000002433316138636636662d613663622d343662392d383762342d63653865633966363732313800000000000000000000000000000000000000000000000000000000c001a009805e97fb62113e22cd3cd0cf5b563799dbed0f1725c6e349ff1205415682f8a064222b767363cd5dce30e723fa2fabc85a2d94952aa896b2ec8dd4cb5d90de1c", info={ "error": { "code": -32000, "message": "nonce too low: next nonce 1958, tx nonce 1957" } }, code=NONCE_EXPIRED, version=6.16.0)
-[Loot] 🎲 Loot isteği gönderiliyor. Match=31a8cf6f-a6cb-46b9-87b4-ce8ec9f67218, winner=0x5f9f8CE83FE74Cdd254c123F27fBc9FaBa94CC97
-[Loot] ⏳ TX gönderildi: 0xd22d450272197a21851086ef608a5d873733ae29df3d858b0b40be135021a6a2
+[Oracle] ❌ On-chain recording error: nonce has already been used (transaction="0x02f9015682a8698207a58506fc23ac008506fc23ac008303d090948672037a232667c732d983ae15cb693d5839f2a280b8e47d9d047b00000000000000000000000000000000000000000000000000000000000000800000000000000000000000005f9f8ce83fe74cdd254c123f27fbc9faba94cc97000000000000000000000000d37bb6e44a5da89aa923b9ff27deb32b0b05606e72255f37651da82f9cb1ac0e68effa43a1aedee935ebbc81e8524b0730bb4881000000000000000000000000000000000000000000000000000000000000002433316138636636662d613663622d343662392d383762342d63653865633966363732313800000000000000000000000000000000000000000000000000000000c001a009805e97fb62113e22cd3cd0cf5b563799dbed0f1725c6e349ff1205415682f8a064222b767363cd5dce30e723fa2fabc85a2d94952aa896b2ec8dd4cb5d90de1c", info={ "error": { "code": -32000, "message": "nonce too low: next nonce 1958, tx nonce 1957" } }, code=NONCE_EXPIRED, version=6.16.0)
+[Loot] 🎲 Sending loot request. Match=31a8cf6f-a6cb-46b9-87b4-ce8ec9f67218, winner=0x5f9f8CE83FE74Cdd254c123F27fBc9FaBa94CC97
+[Loot] ⏳ TX sent: 0xd22d450272197a21851086ef608a5d873733ae29df3d858b0b40be135021a6a2
 [Worker] Match 094f95f3-ecba-4517-8995-25bd7544f5e4: Fade vs Ozone
 [Turn 9] ⚔️ Astra attacked for 25 damage! (🔥 +30% vulnerability bonus!) (Target HP: 40)
 [Turn 1] 💥 Fade HEAVY ATTACK for 45 damage! (Vulnerable next turn) (Target HP: 130)
-[Oracle] ❌ On-chain kayıt hatası: transaction execution reverted (action="sendTransaction", data=null, reason=null, invocation=null, revert=null, transaction={ "data": "", "from": "0xd305607510E0Db2c95807173c7A05BEA53c1ed36", "to": "0x8672037a232667C732d983AE15cB693D5839f2A2" }, receipt={ "_type": "TransactionReceipt", "blobGasPrice": null, "blobGasUsed": null, "blockHash": "0xa0a98801d8736e8958400fcfc456eb16e0ad4240fa42fb4b89b875e477fce5fb", "blockNumber": 52302128, "contractAddress": null, "cumulativeGasUsed": "30139", "from": "0xd305607510E0Db2c95807173c7A05BEA53c1ed36", "gasPrice": "30000000000", "gasUsed": "30139", "hash": "0x36853ce4052cacbf7f23e91a3d36853135986314be46cd4c1bee2fe39344aced", "index": 0, "logs": [  ], "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", "root": null, "status": 0, "to": "0x8672037a232667C732d983AE15cB693D5839f2A2" }, code=CALL_EXCEPTION, version=6.16.0)
-[Loot] 🎲 Loot isteği gönderiliyor. Match=a8d23e15-ba2a-4323-b994-024539305ed2, winner=0x57d6445132c66a385fA98E8213661Cd1660AE7A7
+[Oracle] ❌ On-chain recording error: transaction execution reverted (action="sendTransaction", data=null, reason=null, invocation=null, revert=null, transaction={ "data": "", "from": "0xd305607510E0Db2c95807173c7A05BEA53c1ed36", "to": "0x8672037a232667C732d983AE15cB693D5839f2A2" }, receipt={ "_type": "TransactionReceipt", "blobGasPrice": null, "blobGasUsed": null, "blockHash": "0xa0a98801d8736e8958400fcfc456eb16e0ad4240fa42fb4b89b875e477fce5fb", "blockNumber": 52302128, "contractAddress": null, "cumulativeGasUsed": "30139", "from": "0xd305607510E0Db2c95807173c7A05BEA53c1ed36", "gasPrice": "30000000000", "gasUsed": "30139", "hash": "0x36853ce4052cacbf7f23e91a3d36853135986314be46cd4c1bee2fe39344aced", "index": 0, "logs": [  ], "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", "root": null, "status": 0, "to": "0x8672037a232667C732d983AE15cB693D5839f2A2" }, code=CALL_EXCEPTION, version=6.16.0)
+[Loot] 🎲 Sending loot request. Match=a8d23e15-ba2a-4323-b994-024539305ed2, winner=0x57d6445132c66a385fA98E8213661Cd1660AE7A7
 [Turn 10] ⚔️ Xero attacked for 25 damage! (Target HP: 42)
 [Turn 2] ⚔️ Ozone attacked for 25 damage! (🔥 +30% vulnerability bonus!) (Target HP: 143)
-[Loot] ⏳ TX gönderildi: 0xf4071be02a85fef0f23367bfe66495332ec8c12ceff653116a648f1b62cb0b79
-[Oracle] ✅ On-chain kaydedildi! Blok #52302131 | TX: 0xef4d7010327e69f1ba4385315f6ad05dbc46570971d6dfa2d1def24dc98144e0
+[Loot] ⏳ TX sent: 0xf4071be02a85fef0f23367bfe66495332ec8c12ceff653116a648f1b62cb0b79
+[Oracle] ✅ Recorded on-chain! Block #52302131 | TX: 0xef4d7010327e69f1ba4385315f6ad05dbc46570971d6dfa2d1def24dc98144e0
 [Oracle] 🔎 https://testnet.snowtrace.io/tx/0xef4d7010327e69f1ba4385315f6ad05dbc46570971d6dfa2d1def24dc98144e0
-[Loot] 🎲 Loot isteği gönderiliyor. Match=f928a8c5-2b49-4a43-928f-1414bc50f9a9, winner=0x0bD5fd666806d8eA8d5f9e39aB6cEf801b637559
+[Loot] 🎲 Sending loot request. Match=f928a8c5-2b49-4a43-928f-1414bc50f9a9, winner=0x0bD5fd666806d8eA8d5f9e39aB6cEf801b637559
 [Turn 11] 💥 Astra HEAVY ATTACK for 45 damage! (Vulnerable next turn) (Target HP: 0)
 [Turn 3] 💚 Fade healed for 17 HP! (Target HP: 130)
-[Loot] ⏳ TX gönderildi: 0xadaa555290e77731fb2d40f05a97c95c2db4829c0340e46d85dd123d2df9a3af
-[Loot] ✅ Loot isteği on-chain kaydedildi. Blok #52302133
+[Loot] ⏳ TX sent: 0xadaa555290e77731fb2d40f05a97c95c2db4829c0340e46d85dd123d2df9a3af
+[Loot] ✅ Loot request recorded on-chain. Block #52302133
 Job 49 completed
 [Turn 4] ⚔️ Ozone attacked for 25 damage! (Target HP: 135)
 [Oracle] 📋 Combat Log Hash: 0x454453708a17a29ae0746c582a452a82f5123f109774a5f85414b36345847797
 [Worker] Match 2bd7d324-7d60-4425-87f6-379995f5150f finished. Winner: 6065d9a4-c430-48a1-b744-dc87708eefe0
-[Oracle] 📋 11 tur logu hash'lendi.
-[Oracle] 🔗 Zincire yazılıyor... Match: 2bd7d324-7d60-4425-87f6-379995f5150f
-[Oracle] 🏆 Kazanan: 0x57d6445132c66a385fA98E8213661Cd1660AE7A7
-[Oracle] 💀 Kaybeden: 0xd472a8Bb69c1A15C2d9FF160a6b7Ed62a371A13D
-[Oracle] ⏳ TX gönderildi: 0x6c7844e27a24f71b0d008240aff0def435a735770ee6cac61cd8c5969a9b26c6
+[Oracle] 📋 11 turn logs hashed.
+[Oracle] 🔗 Writing to chain... Match: 2bd7d324-7d60-4425-87f6-379995f5150f
+[Oracle] 🏆 Winner: 0x57d6445132c66a385fA98E8213661Cd1660AE7A7
+[Oracle] 💀 Loser: 0xd472a8Bb69c1A15C2d9FF160a6b7Ed62a371A13D
+[Oracle] ⏳ TX sent: 0x6c7844e27a24f71b0d008240aff0def435a735770ee6cac61cd8c5969a9b26c6
 [Turn 5] 💚 Fade healed for 17 HP! (Target HP: 130)
 [Worker] Match 796351a8-9575-472f-8963-0d5eb19215d4: Axiom vs Iris
 [Turn 1] ⚔️ Axiom attacked for 25 damage! (Target HP: 150)
-[Loot] ✅ Loot isteği on-chain kaydedildi. Blok #52302135
+[Loot] ✅ Loot request recorded on-chain. Block #52302135
 Job 8 completed
 [Turn 6] ⚔️ Ozone attacked for 25 damage! (Target HP: 127)
 [Turn 2] 💚 Iris healed for 17 HP! (Target HP: 175)
-[Loot] ✅ Loot isteği on-chain kaydedildi. Blok #52302136
+[Loot] ✅ Loot request recorded on-chain. Block #52302136
 Job 50 completed
 [Turn 7] ⚔️ Fade attacked for 25 damage! (Target HP: 105)
 [Turn 3] ⚔️ Axiom attacked for 25 damage! (Target HP: 142)
 [Turn 8] ⚔️ Ozone attacked for 25 damage! (Target HP: 102)
-[Oracle] ✅ On-chain kaydedildi! Blok #52302138 | TX: 0x6c7844e27a24f71b0d008240aff0def435a735770ee6cac61cd8c5969a9b26c6
+[Oracle] ✅ Recorded on-chain! Block #52302138 | TX: 0x6c7844e27a24f71b0d008240aff0def435a735770ee6cac61cd8c5969a9b26c6
 [Oracle] 🔎 https://testnet.snowtrace.io/tx/0x6c7844e27a24f71b0d008240aff0def435a735770ee6cac61cd8c5969a9b26c6
-[Loot] 🎲 Loot isteği gönderiliyor. Match=2bd7d324-7d60-4425-87f6-379995f5150f, winner=0x57d6445132c66a385fA98E8213661Cd1660AE7A7
-[Loot] ⏳ TX gönderildi: 0x8fad655520ebbaea69c2ada56acba643d2116692d0a06e62fe28417928f8f530
+[Loot] 🎲 Sending loot request. Match=2bd7d324-7d60-4425-87f6-379995f5150f, winner=0x57d6445132c66a385fA98E8213661Cd1660AE7A7
+[Loot] ⏳ TX sent: 0x8fad655520ebbaea69c2ada56acba643d2116692d0a06e62fe28417928f8f530
 [Turn 4] 💥 Iris HEAVY ATTACK for 45 damage! (Vulnerable next turn) (Target HP: 130)
 [Worker] Match bcb5bc1c-bdee-4802-83dc-5f1e65505156: Bolt vs JadeX
 [Turn 9] 🛡️ Fade defended, counter-attacked for 9! (Target HP: 96)
@@ -57,7 +57,7 @@ Job 50 completed
 [Turn 11] ⚔️ Fade attacked for 25 damage! (Target HP: 71)
 [Turn 3] ⚔️ JadeX attacked for 25 damage! (Target HP: 105)
 [Turn 7] ⚔️ Axiom attacked for 25 damage! (Target HP: 85)
-[Loot] ✅ Loot isteği on-chain kaydedildi. Blok #52302141
+[Loot] ✅ Loot request recorded on-chain. Block #52302141
 Job 51 completed
 [Turn 12] ⚔️ Ozone attacked for 25 damage! (Target HP: 52)
 [Turn 4] ⚔️ Bolt attacked for 25 damage! (Target HP: 118)
@@ -79,11 +79,11 @@ Job 51 completed
 [Oracle] 📋 Combat Log Hash: 0x9db9e00517fbe9d5c3566ab52c6729fe6646f078a47eb9bc8f297e47ecefbc43
 [Turn 12] ⚔️ Iris attacked for 25 damage! (Target HP: 30)
 [Turn 3] ⚔️ Muse attacked for 25 damage! (Target HP: 150)
-[Oracle] 📋 15 tur logu hash'lendi.
-[Oracle] 🔗 Zincire yazılıyor... Match: 094f95f3-ecba-4517-8995-25bd7544f5e4
-[Oracle] 🏆 Kazanan: 0xD4E132D3f3319b43D7c8BB30b9FBf8a91BeC1bd3
-[Oracle] 💀 Kaybeden: 0x6535E91171D1b86cC72abbeC313B8Cc839FbD461
-[Oracle] ⏳ TX gönderildi: 0x9e10e2b87a0a3ebc872a1f4d305403052e3a5e42125028722a11a882b17f1428
+[Oracle] 📋 15 turn logs hashed.
+[Oracle] 🔗 Writing to chain... Match: 094f95f3-ecba-4517-8995-25bd7544f5e4
+[Oracle] 🏆 Winner: 0xD4E132D3f3319b43D7c8BB30b9FBf8a91BeC1bd3
+[Oracle] 💀 Loser: 0x6535E91171D1b86cC72abbeC313B8Cc839FbD461
+[Oracle] ⏳ TX sent: 0x9e10e2b87a0a3ebc872a1f4d305403052e3a5e42125028722a11a882b17f1428
 [Turn 9] ⚔️ JadeX attacked for 25 damage! (Target HP: 52)
 [Turn 13] 💥 Axiom HEAVY ATTACK for 45 damage! (Vulnerable next turn) (Target HP: 0)
 [Turn 4] 💥 Nexus HEAVY ATTACK for 45 damage! (Vulnerable next turn) (Target HP: 105)
@@ -92,27 +92,27 @@ Job 51 completed
 [Turn 5] ⚔️ Muse attacked for 25 damage! (🔥 +30% vulnerability bonus!) (Target HP: 118)
 [Turn 1] 💥 Xero HEAVY ATTACK for 45 damage! (Vulnerable next turn) (Target HP: 130)
 [Worker] Match 796351a8-9575-472f-8963-0d5eb19215d4 finished. Winner: ecf8c0bb-c916-44e7-bd35-aee3e3eb9328
-[Oracle] 📋 13 tur logu hash'lendi.
-[Oracle] 🔗 Zincire yazılıyor... Match: 796351a8-9575-472f-8963-0d5eb19215d4
-[Oracle] 🏆 Kazanan: 0x040FE5aFfd12a268Bc4381B42616781b119fCdC0
-[Oracle] 💀 Kaybeden: 0xd4B8056A8B3470f490E2CF0f1995DA2Eb872f5d6
+[Oracle] 📋 13 turn logs hashed.
+[Oracle] 🔗 Writing to chain... Match: 796351a8-9575-472f-8963-0d5eb19215d4
+[Oracle] 🏆 Winner: 0x040FE5aFfd12a268Bc4381B42616781b119fCdC0
+[Oracle] 💀 Loser: 0xd4B8056A8B3470f490E2CF0f1995DA2Eb872f5d6
 [Oracle] 📋 Combat Log Hash: 0x541f8512c2813ccfed70fa4ab2741fcd9886675beaca1ba2b110830f6c8aad33
-[Oracle] ⏳ TX gönderildi: 0x7bdada058dadff7bbb93a0d5a4db0c37135e0371240d1e4dc751e833a847118b
+[Oracle] ⏳ TX sent: 0x7bdada058dadff7bbb93a0d5a4db0c37135e0371240d1e4dc751e833a847118b
 [Turn 11] ⚔️ JadeX attacked for 25 damage! (Target HP: 27)
 [Turn 6] 🛡️ Nexus defended, counter-attacked for 9! (Target HP: 96)
 [Turn 2] 💥 Astra HEAVY ATTACK for 45 damage! (Vulnerable next turn) (🔥 +30% vulnerability bonus!) (Target HP: 117)
-[Oracle] ✅ On-chain kaydedildi! Blok #52302144 | TX: 0x9e10e2b87a0a3ebc872a1f4d305403052e3a5e42125028722a11a882b17f1428
+[Oracle] ✅ Recorded on-chain! Block #52302144 | TX: 0x9e10e2b87a0a3ebc872a1f4d305403052e3a5e42125028722a11a882b17f1428
 [Oracle] 🔎 https://testnet.snowtrace.io/tx/0x9e10e2b87a0a3ebc872a1f4d305403052e3a5e42125028722a11a882b17f1428
-[Loot] 🎲 Loot isteği gönderiliyor. Match=094f95f3-ecba-4517-8995-25bd7544f5e4, winner=0xD4E132D3f3319b43D7c8BB30b9FBf8a91BeC1bd3
+[Loot] 🎲 Sending loot request. Match=094f95f3-ecba-4517-8995-25bd7544f5e4, winner=0xD4E132D3f3319b43D7c8BB30b9FBf8a91BeC1bd3
 [Turn 12] 💥 Bolt HEAVY ATTACK for 45 damage! (Vulnerable next turn) (Target HP: 56)
 [Turn 7] 🛡️ Muse defended, counter-attacked for 9! (Target HP: 109)
 [Turn 3] ⚔️ Xero attacked for 25 damage! (🔥 +30% vulnerability bonus!) (Target HP: 98)
-[Loot] ⏳ TX gönderildi: 0x9a706ac90e68770a861ef22f007017aab02115bddd790b6b6adc9949286e7879
+[Loot] ⏳ TX sent: 0x9a706ac90e68770a861ef22f007017aab02115bddd790b6b6adc9949286e7879
 [Turn 13] ⚔️ JadeX attacked for 25 damage! (🔥 +30% vulnerability bonus!) (Target HP: 0)
 [Turn 8] ⚔️ Nexus attacked for 25 damage! (Target HP: 71)
 [Turn 4] 💥 Astra HEAVY ATTACK for 45 damage! (Vulnerable next turn) (Target HP: 72)
 [Worker] Match bcb5bc1c-bdee-4802-83dc-5f1e65505156 finished. Winner: 10085b7f-29d8-4e97-94a5-ffcfd2e5d72e
 [Turn 9] 🛡️ Muse defended, counter-attacked for 9! (Target HP: 100)
-[Oracle] 📋 13 tur logu hash'lendi.
-[Oracle] 🔗 Zincire yazılıyor... Match: bcb5bc1c-bdee-4802-83dc-5f1e65505156
-[Oracle] 🏆 Kazanan: 0x5f9f8CE83FE74Cdd254c123F27fBc9FaBa94CC97
+[Oracle] 📋 13 turn logs hashed.
+[Oracle] 🔗 Writing to chain... Match: bcb5bc1c-bdee-4802-83dc-5f1e65505156
+[Oracle] 🏆 Winner: 0x5f9f8CE83FE74Cdd254c123F27fBc9FaBa94CC97

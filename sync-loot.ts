@@ -18,7 +18,7 @@ const provider = new ethers.JsonRpcProvider(process.env.AVALANCHE_RPC_URL);
 const contract = new ethers.Contract(process.env.LOOT_CHEST_CONTRACT_ADDRESS!, LOOT_ABI, provider);
 
 async function main() {
-  // tx_hash olan ama loot DB'ye yazılmamış tüm maçları çek
+  // Fetch all matches that have tx_hash but loot not yet written to DB
   const { data: matches, error } = await supabase
     .from('matches')
     .select('id')
@@ -27,7 +27,7 @@ async function main() {
     .is('winner_loot_item_id', null);
 
   if (error) throw error;
-  console.log(`📋 ${matches?.length || 0} maç pending loot için kontrol edilecek.\n`);
+  console.log(`📋 ${matches?.length || 0} matches to check for pending loot.\n`);
 
   let synced = 0;
   let notReady = 0;
@@ -47,10 +47,10 @@ async function main() {
         console.log(`✅ ${match.id.slice(0, 8)} → Item #${itemId}`);
         synced++;
       } else {
-        console.log(`⏳ ${match.id.slice(0, 8)} → VRF henüz fulfill olmadı`);
+        console.log(`⏳ ${match.id.slice(0, 8)} → VRF not yet fulfilled`);
         notReady++;
       }
-      // RPC throttle için kısa bekleme
+      // Short delay for RPC throttling
       await new Promise(r => setTimeout(r, 200));
     } catch (e: any) {
       console.error(`❌ ${match.id.slice(0, 8)} → ${e.message}`);
@@ -58,7 +58,7 @@ async function main() {
     }
   }
 
-  console.log(`\n🏁 Tamamlandı: ${synced} yazıldı | ${notReady} henüz hazır değil | ${errors} hata`);
+  console.log(`\n🏁 Done: ${synced} written | ${notReady} not yet ready | ${errors} errors`);
 }
 
 main().catch(console.error);

@@ -6,7 +6,7 @@ import * as dotenv from "dotenv";
 dotenv.config({ path: ".env" });
 
 async function deployArenaOracle(wallet: ethers.Wallet) {
-  console.log("🚀 ArenaOracle v2 (with Combat Log Hash) Fuji'ye deploy ediliyor...");
+  console.log("🚀 Deploying ArenaOracle v2 (with Combat Log Hash) to Fuji...");
 
   const artifactPath = path.join(__dirname, "../artifacts/contracts/ArenaOracle.sol/ArenaOracle.json");
   const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
@@ -14,21 +14,21 @@ async function deployArenaOracle(wallet: ethers.Wallet) {
   const factory = new ethers.ContractFactory(artifact.abi, artifact.bytecode, wallet);
   const oracle = await factory.deploy();
 
-  console.log("⏳ ArenaOracle için onay bekleniyor...");
+  console.log("⏳ Waiting for ArenaOracle confirmation...");
   await oracle.waitForDeployment();
 
   const address = await oracle.getAddress();
 
-  console.log("\n✅ ArenaOracle v2 başarıyla deploy edildi!");
-  console.log("🛡️  ArenaOracle Adresi:", address);
-  console.log(`\n👉 apps/backend/.env.local dosyasında güncelleyin:\nORACLE_CONTRACT_ADDRESS=${address}`);
+  console.log("\n✅ ArenaOracle v2 deployed successfully!");
+  console.log("🛡️  ArenaOracle Address:", address);
+  console.log(`\n👉 Update in apps/backend/.env.local:\nORACLE_CONTRACT_ADDRESS=${address}`);
   console.log(`🔗 Snowtrace: https://testnet.snowtrace.io/address/${address}\n`);
 
   return address;
 }
 
 async function deployLootChest(wallet: ethers.Wallet) {
-  console.log("🎲 LootChest (Chainlink VRF, legacy per-match) Fuji'ye deploy ediliyor...");
+  console.log("🎲 Deploying LootChest (Chainlink VRF, legacy per-match) to Fuji...");
 
   const vrfCoordinator = process.env.VRF_COORDINATOR_ADDRESS;
   const vrfSubId = process.env.VRF_SUBSCRIPTION_ID;
@@ -36,8 +36,8 @@ async function deployLootChest(wallet: ethers.Wallet) {
 
   if (!vrfCoordinator || !vrfSubId || !vrfKeyHash) {
     console.warn(
-      "⚠️  VRF env değişkenleri eksik. LootChest deploy'u atlanıyor.\n" +
-        "Gerekli değişkenler: VRF_COORDINATOR_ADDRESS, VRF_SUBSCRIPTION_ID, VRF_KEY_HASH"
+      "⚠️  VRF env variables missing. Skipping LootChest deploy.\n" +
+        "Required: VRF_COORDINATOR_ADDRESS, VRF_SUBSCRIPTION_ID, VRF_KEY_HASH"
     );
     return null;
   }
@@ -59,16 +59,16 @@ async function deployLootChest(wallet: ethers.Wallet) {
     numWords
   );
 
-  console.log("⏳ LootChest için onay bekleniyor...");
+  console.log("⏳ Waiting for LootChest confirmation...");
   await loot.waitForDeployment();
 
   const address = await loot.getAddress();
 
-  console.log("\n✅ LootChest başarıyla deploy edildi!");
-  console.log("🎁 LootChest Adresi:", address);
+  console.log("\n✅ LootChest deployed successfully!");
+  console.log("🎁 LootChest Address:", address);
   console.log(
-    `\n👉 apps/backend/.env.local dosyasında güncelleyin:\nLOOT_CHEST_CONTRACT_ADDRESS=${address}\n` +
-      "Ayrıca VRF subscription'ınızı Chainlink panelinden bu kontratı consumer olarak eklemeyi unutmayın."
+    `\n👉 Update in apps/backend/.env.local:\nLOOT_CHEST_CONTRACT_ADDRESS=${address}\n` +
+      "Also add this contract as consumer to your VRF subscription in Chainlink panel."
   );
   console.log(`🔗 Snowtrace: https://testnet.snowtrace.io/address/${address}\n`);
 
@@ -76,7 +76,7 @@ async function deployLootChest(wallet: ethers.Wallet) {
 }
 
 async function deployRankUpLootNFT(wallet: ethers.Wallet) {
-  console.log("🎁 RankUpLootNFT (ERC-1155 + Chainlink VRF) Fuji'ye deploy ediliyor...");
+  console.log("🎁 Deploying RankUpLootNFT (ERC-1155 + Chainlink VRF) to Fuji...");
 
   const vrfCoordinator = process.env.VRF_COORDINATOR_ADDRESS;
   const vrfSubId = process.env.VRF_SUBSCRIPTION_ID;
@@ -85,8 +85,8 @@ async function deployRankUpLootNFT(wallet: ethers.Wallet) {
 
   if (!vrfCoordinator || !vrfSubId || !vrfKeyHash) {
     console.warn(
-      "⚠️  VRF env değişkenleri eksik. RankUpLootNFT deploy'u atlanıyor.\n" +
-        "Gerekli: VRF_COORDINATOR_ADDRESS, VRF_SUBSCRIPTION_ID, VRF_KEY_HASH"
+      "⚠️  VRF env variables missing. Skipping RankUpLootNFT deploy.\n" +
+        "Required: VRF_COORDINATOR_ADDRESS, VRF_SUBSCRIPTION_ID, VRF_KEY_HASH"
     );
     return null;
   }
@@ -109,12 +109,12 @@ async function deployRankUpLootNFT(wallet: ethers.Wallet) {
     numWords
   );
 
-  console.log("⏳ RankUpLootNFT için onay bekleniyor...");
+  console.log("⏳ Waiting for RankUpLootNFT confirmation...");
   await nft.waitForDeployment();
 
   const address = await nft.getAddress();
 
-  console.log("\n✅ RankUpLootNFT başarıyla deploy edildi!");
+  console.log("\n✅ RankUpLootNFT deployed successfully!");
   console.log("🎁 RankUpLootNFT Adresi:", address);
   console.log(
     `\n👉 Backend .env: RANK_UP_LOOT_NFT_ADDRESS=${address}` +
@@ -128,14 +128,14 @@ async function deployRankUpLootNFT(wallet: ethers.Wallet) {
 
 async function main() {
   const privateKey = process.env.DEPLOYER_PRIVATE_KEY;
-  if (!privateKey) throw new Error("DEPLOYER_PRIVATE_KEY bulunamadı!");
+  if (!privateKey) throw new Error("DEPLOYER_PRIVATE_KEY not found!");
 
   const provider = new ethers.JsonRpcProvider("https://api.avax-test.network/ext/bc/C/rpc");
   const wallet = new ethers.Wallet(privateKey, provider);
 
   console.log("📦 Deployer:", wallet.address);
   const balance = await provider.getBalance(wallet.address);
-  console.log("💰 Bakiye:", ethers.formatEther(balance), "AVAX\n");
+  console.log("💰 Balance:", ethers.formatEther(balance), "AVAX\n");
 
   await deployArenaOracle(wallet);
   await deployLootChest(wallet);
@@ -143,6 +143,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error("❌ Deploy hatası:", error.message);
+  console.error("❌ Deploy error:", error.message);
   process.exitCode = 1;
 });

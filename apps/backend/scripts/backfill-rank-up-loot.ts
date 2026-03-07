@@ -1,14 +1,14 @@
 /**
  * Rank-up Loot Backfill Script
  *
- * Botlar ELO'ya göre zaten bir rank'ta (örn. Silver) ama winnerRep hatası yüzünden
- * o rank için VRF hiç istenmemiş olabilir. Bu script, böyle botlar için eksik
- * rank-up loot isteklerini zincirde açar ve rank_up_loot_requests'e yazar.
+ * Bots may already be at a rank (e.g. Silver) by ELO but VRF was never requested for that
+ * rank due to winnerRep errors. This script opens missing rank-up loot requests on-chain
+ * for such bots and writes to rank_up_loot_requests.
  *
- * Gereken env (repo root .env): SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,
+ * Required env (repo root .env): SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,
  *   AVALANCHE_RPC_URL, DEPLOYER_PRIVATE_KEY, RANK_UP_LOOT_NFT_ADDRESS
  *
- * Çalıştır (backend dizininden):
+ * Run (from backend directory):
  *   npm run backfill-rank-up-loot
  *   DRY_RUN=1 npm run backfill-rank-up-loot
  */

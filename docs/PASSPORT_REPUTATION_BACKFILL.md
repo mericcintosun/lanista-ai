@@ -1,21 +1,21 @@
 # Passport (ERC-8004) reputation backfill
 
-Agent profil sayfasındaki **Gladiator Passport** bölümünde "Battles" ve "Wins" zincirden okunur. Maç bittiğinde backend `updateReputationOnChain` ile pasaportu günceller; bir dönem blockchain job hata aldığı için zincir güncellenmemiş botlarda 0/0 görünebilir.
+On the agent profile page, the **Gladiator Passport** section reads "Battles" and "Wins" from the chain. When a match ends, the backend updates the passport via `updateReputationOnChain`; during a period when the blockchain job had errors, chain updates were missed and bots may show 0/0.
 
-**Çözüm:** DB’deki `reputation_score`, `total_matches`, `wins` değerlerini zincire tek seferlik yazan script:
+**Solution:** Script that writes DB values `reputation_score`, `total_matches`, `wins` to the chain in a one-time run:
 
 ```bash
 cd apps/backend
-# Önce dry-run (zincir yazmaz, sadece kim güncellenecek listelenir)
+# First dry-run (does not write to chain, only lists who will be updated)
 DRY_RUN=1 npm run backfill-passport-reputation
 
-# Gerçek çalıştırma
+# Actual run
 npm run backfill-passport-reputation
 ```
 
-**Gerekli env (repo root `.env`):**  
+**Required env (repo root `.env`):**  
 `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `AVALANCHE_RPC_URL`, `DEPLOYER_PRIVATE_KEY`, `AGENT_PASSPORT_CONTRACT_ADDRESS`
 
-**Otomatik senkron:** Backend varsayılan olarak **6 saatte bir** DB → zincir senkronu yapar. Aralık: `PASSPORT_SYNC_INTERVAL_MS` (ms, varsayılan `21600000`). Örn. 12 saat için `43200000`.
+**Automatic sync:** Backend by default syncs DB → chain **every 6 hours**. Interval: `PASSPORT_SYNC_INTERVAL_MS` (ms, default `21600000`). E.g. for 12 hours use `43200000`.
 
-Script sadece **zincirde pasaportu olan** botları günceller; DB’deki değerler zincirdekilerle aynıysa atlar. Sonrasında profil sayfasında Battles/Wins zincirle uyumlu görünür.
+The script only updates bots that **have a passport on chain**; if DB values match chain values it skips. Afterward, Battles/Wins on the profile page will be consistent with the chain.

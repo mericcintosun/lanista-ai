@@ -1,10 +1,10 @@
 -- =============================================================================
 -- Lanista Spark Economy – Supabase migration
 -- =============================================================================
--- spark_balances: Kullanici basina Spark bakiyesi (auth.users ile iliskili).
--- spark_transactions: Tum Spark hareketleri (satin alma, watch_reward, spend, vb.).
--- RLS: Kullanici sadece kendi bakiyesini ve kendi islemlerini okuyabilir.
--- Backend (service_role) tum insert/update islemlerini yapar.
+-- spark_balances: Spark balance per user (linked to auth.users).
+-- spark_transactions: All Spark movements (purchase, watch_reward, spend, etc.).
+-- RLS: User can only read their own balance and their own transactions.
+-- Backend (service_role) performs all insert/update operations.
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS public.spark_balances (
 );
 
 CREATE INDEX IF NOT EXISTS idx_spark_balances_user_id ON public.spark_balances(user_id);
-COMMENT ON TABLE public.spark_balances IS 'Izleyici Spark bakiyeleri. user_id = auth.users.id; wallet_address = son odeme yapilan EVM adresi.';
+COMMENT ON TABLE public.spark_balances IS 'Viewer Spark balances. user_id = auth.users.id; wallet_address = last payment EVM address.';
 
 -- -----------------------------------------------------------------------------
 -- 2. spark_transactions
@@ -35,12 +35,12 @@ CREATE TABLE IF NOT EXISTS public.spark_transactions (
 
 CREATE INDEX IF NOT EXISTS idx_spark_transactions_user_id ON public.spark_transactions(user_id);
 CREATE INDEX IF NOT EXISTS idx_spark_transactions_created_at ON public.spark_transactions(created_at DESC);
-COMMENT ON TABLE public.spark_transactions IS 'Spark hareketleri: purchase, watch_reward, spend_tomato, prediction_win, vb. reference_id = tx_hash veya match_id.';
+COMMENT ON TABLE public.spark_transactions IS 'Spark movements: purchase, watch_reward, spend_tomato, prediction_win, etc. reference_id = tx_hash or match_id.';
 
 -- -----------------------------------------------------------------------------
--- 2b. (Tek seferlik) Aynı tx_hash ile iki kez kredi verilmişse: bakiyeyi düzelt,
---     fazla kayıtları sil, sonra idempotent unique index'i oluştur.
---     Bu 3 ifadeyi sırayla çalıştırın (duplicate yoksa da güvenlidir).
+-- 2b. (One-time) If credit was given twice with same tx_hash: fix balance,
+--     delete excess records, then create idempotent unique index.
+--     Run these 3 statements in order (safe even if no duplicates).
 -- -----------------------------------------------------------------------------
 WITH dup AS (
   SELECT user_id, reference_id, amount, count(*) AS cnt
@@ -71,7 +71,7 @@ WHERE t.transaction_type = 'purchase'
 CREATE UNIQUE INDEX IF NOT EXISTS idx_spark_transactions_purchase_idempotent
   ON public.spark_transactions(user_id, reference_id)
   WHERE transaction_type = 'purchase' AND reference_id IS NOT NULL;
-COMMENT ON COLUMN public.spark_transactions.wallet_address IS 'Satın alımda ödeme yapan EVM adresi; farklı cüzdanlardan ödeme takibi ve debug için.';
+COMMENT ON COLUMN public.spark_transactions.wallet_address IS 'EVM address that paid for purchase; for tracking payments from different wallets and debug.';
 
 -- -----------------------------------------------------------------------------
 -- 3. RLS
@@ -79,22 +79,22 @@ COMMENT ON COLUMN public.spark_transactions.wallet_address IS 'Satın alımda ö
 ALTER TABLE public.spark_balances ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.spark_transactions ENABLE ROW LEVEL SECURITY;
 
--- spark_balances: kullanici sadece kendi satirini gorebilir
+-- spark_balances: user can only see their own row
 CREATE POLICY "Users can read own spark_balances"
   ON public.spark_balances FOR SELECT
   USING (auth.uid() = user_id);
 
--- spark_balances: insert/update sadece service_role (backend) yapacak; frontend sadece okur
--- (Backend service role RLS disinda calisir, bu yuzden ek policy gerekmez.)
+-- spark_balances: insert/update only by service_role (backend); frontend only reads
+-- (Backend service role runs outside RLS, so no additional policy needed.)
 
--- spark_transactions: kullanici sadece kendi islemlerini gorebilir
+-- spark_transactions: user can only see their own transactions
 CREATE POLICY "Users can read own spark_transactions"
   ON public.spark_transactions FOR SELECT
   USING (auth.uid() = user_id);
 
 -- -----------------------------------------------------------------------------
--- 4. (Opsiyonel) updated_at tetikleyici – spark_balances
--- PostgreSQL 11+ EXECUTE FUNCTION; eski surumlerde EXECUTE PROCEDURE kullanin.
+-- 4. (Optional) updated_at trigger – spark_balances
+-- PostgreSQL 11+ EXECUTE FUNCTION; use EXECUTE PROCEDURE on older versions.
 -- -----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.set_spark_balances_updated_at()
 RETURNS TRIGGER AS $$
@@ -110,22 +110,22 @@ CREATE TRIGGER spark_balances_updated_at
   FOR EACH ROW EXECUTE FUNCTION public.set_spark_balances_updated_at();
 
 -- -----------------------------------------------------------------------------
--- 5. Realtime (Frontend canli bakiye icin)
--- Supabase Dashboard > Database > Realtime > spark_balances tablosunu ekleyin
--- veya: ALTER PUBLICATION supabase_realtime ADD TABLE public.spark_balances;
+-- 5. Realtime (for frontend live balance)
+-- Supabase Dashboard > Database > Realtime > add spark_balances table
+-- or: ALTER PUBLICATION supabase_realtime ADD TABLE public.spark_balances;
 -- -----------------------------------------------------------------------------
 
 -- -----------------------------------------------------------------------------
--- 6. (Mevcut DB için) spark_transactions'a wallet_address ekle
+-- 6. (For existing DB) Add wallet_address to spark_transactions
 -- -----------------------------------------------------------------------------
 ALTER TABLE public.spark_transactions ADD COLUMN IF NOT EXISTS wallet_address text;
-COMMENT ON COLUMN public.spark_transactions.wallet_address IS 'Satın alımda ödeme yapan EVM adresi; farklı cüzdanlardan ödeme takibi ve debug için.';
+COMMENT ON COLUMN public.spark_transactions.wallet_address IS 'EVM address that paid for purchase; for tracking payments from different wallets and debug.';
 
 -- -----------------------------------------------------------------------------
--- 7. Atomik bakiye güncelleme (race condition önleme)
--- Backend read-then-write yerine bu RPC'leri kullanmalı.
--- Purchase için idempotency: aynı reference_id (tx_hash) ile ikinci çağrıda bakiye
--- artırılmaz (backend restart sonrası aynı event'in tekrar işlenmesini önler).
+-- 7. Atomic balance update (race condition prevention)
+-- Backend should use these RPCs instead of read-then-write.
+-- Idempotency for purchase: second call with same reference_id (tx_hash) does not
+-- increase balance (prevents same event being processed again after backend restart).
 -- -----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.spark_credit(
   p_user_id uuid,
@@ -147,7 +147,7 @@ BEGIN
     RAISE EXCEPTION 'invalid_amount';
   END IF;
 
-  -- Idempotency: aynı purchase (tx_hash) daha önce işlendiyse sadece mevcut bakiyeyi döndür
+  -- Idempotency: if same purchase (tx_hash) was already processed, return current balance only
   IF p_tx_type = 'purchase' AND p_reference_id IS NOT NULL AND trim(p_reference_id) <> '' THEN
     SELECT EXISTS(
       SELECT 1 FROM public.spark_transactions
@@ -208,8 +208,8 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION public.spark_credit(uuid,int,text,text,text) IS 'Atomik Spark ekleme (satın alma, watch_reward). Race condition önler.';
-COMMENT ON FUNCTION public.spark_spend(uuid,int,text,text) IS 'Atomik Spark harcama. Yetersiz bakiye ise exception fırlatır.';
+COMMENT ON FUNCTION public.spark_credit(uuid,int,text,text,text) IS 'Atomic Spark addition (purchase, watch_reward). Prevents race condition.';
+COMMENT ON FUNCTION public.spark_spend(uuid,int,text,text) IS 'Atomic Spark spend. Throws exception if insufficient balance.';
 
 -- -----------------------------------------------------------------------------
 -- 8. Match predictions (arena betting)

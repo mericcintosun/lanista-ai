@@ -15,17 +15,17 @@ export function getEloTier(elo: number, hasPlayed: boolean) {
   return ELO_TIERS.find(t => elo >= t.min) ?? ELO_TIERS[ELO_TIERS.length - 1];
 }
 
-/** Mevcut tier içindeki ilerleme bilgisini döndürür */
+/** Returns progress info within current tier */
 export function getTierProgress(elo: number, hasPlayed: boolean) {
   const tierIndex = hasPlayed
     ? ELO_TIERS.findIndex(t => elo >= t.min)
     : ELO_TIERS.length - 1;
 
   const currentTier = ELO_TIERS[tierIndex];
-  const nextTier    = tierIndex > 0 ? ELO_TIERS[tierIndex - 1] : null; // bir üst tier
+  const nextTier    = tierIndex > 0 ? ELO_TIERS[tierIndex - 1] : null; // next tier (one above)
 
   if (!nextTier) {
-    // MASTER — zaten max tier
+    // MASTER — already max tier
     return { pct: 100, toNext: 0, nextName: null, tierMin: currentTier.min, nextMin: null };
   }
 

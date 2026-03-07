@@ -1,13 +1,13 @@
 -- =============================================================================
--- TÜM BOT VERİLERİNİ GÜVENLİ SİLME
+-- SAFE DELETE ALL BOT DATA
 -- =============================================================================
--- Kullanım: Supabase SQL Editor'da çalıştır. Önce "ÖN İZLEME" ile satır sayılarını kontrol et.
--- Zincir üzerindeki (passport, rank-up NFT) veriler ETKİLENMEZ; sadece Supabase tabloları silinir.
+-- Usage: Run in Supabase SQL Editor. First check row counts with "PREVIEW" section.
+-- On-chain data (passport, rank-up NFT) is NOT affected; only Supabase tables are deleted.
 -- =============================================================================
 
--- ÖN İZLEME (silmeden önce kaç satır silinecek görmek için çalıştır)
+-- PREVIEW (run before delete to see how many rows will be deleted)
 /*
-SELECT 'combat_logs' AS tablo, COUNT(*) AS satir FROM public.combat_logs
+SELECT 'combat_logs' AS table_name, COUNT(*) AS rows FROM public.combat_logs
 UNION ALL
 SELECT 'rank_up_loot_requests', COUNT(*) FROM public.rank_up_loot_requests
 UNION ALL
@@ -19,26 +19,26 @@ SELECT 'bots', COUNT(*) FROM public.bots;
 */
 
 -- =============================================================================
--- SİLME (transaction: hepsi başarılı olmazsa geri alınır)
+-- DELETE (transaction: rolled back if any fails)
 -- =============================================================================
 BEGIN;
 
--- 1. Maç logları (matches'e referans)
+-- 1. Match logs (references matches)
 DELETE FROM public.combat_logs;
 
--- 2. Rank-up loot istekleri (bot_id, match_id)
+-- 2. Rank-up loot requests (bot_id, match_id)
 DELETE FROM public.rank_up_loot_requests;
 
--- 3. Kullanıcı–bot bağlantı istekleri
+-- 3. User–bot binding requests
 DELETE FROM public.agent_bind_requests;
 
--- 4. Maçlar (player_1_id, player_2_id, winner_id → bots)
+-- 4. Matches (player_1_id, player_2_id, winner_id → bots)
 DELETE FROM public.matches;
 
--- 5. Botlar
+-- 5. Bots
 DELETE FROM public.bots;
 
 COMMIT;
 
--- Not: Redis'teki matchmaking pool (matchmaking:pool) backend/uygulama tarafında temizlenmeli
--- veya backend yeniden başlatılmalı. SQL ile Redis silinmez.
+-- Note: Redis matchmaking pool (matchmaking:pool) must be cleared by backend/app
+-- or backend must be restarted. Redis cannot be cleared via SQL.

@@ -9,7 +9,7 @@ dotenv.config({ path: path.join(__dirname, "../.env") });
 
 async function main() {
   const privateKey = process.env.DEPLOYER_PRIVATE_KEY;
-  if (!privateKey) throw new Error("DEPLOYER_PRIVATE_KEY bulunamadı! packages/contracts/.env içinde set et.");
+  if (!privateKey) throw new Error("DEPLOYER_PRIVATE_KEY not found! Set it in packages/contracts/.env");
 
   const provider = new ethers.JsonRpcProvider(
     process.env.AVALANCHE_RPC_URL || "https://api.avax-test.network/ext/bc/C/rpc"
@@ -18,7 +18,7 @@ async function main() {
 
   console.log("📦 Deployer:", wallet.address);
   const balance = await provider.getBalance(wallet.address);
-  console.log("💰 Bakiye:", ethers.formatEther(balance), "AVAX\n");
+  console.log("💰 Balance:", ethers.formatEther(balance), "AVAX\n");
 
   const vrfCoordinator = process.env.VRF_COORDINATOR_ADDRESS;
   const vrfSubId = process.env.VRF_SUBSCRIPTION_ID;
@@ -27,7 +27,7 @@ async function main() {
 
   if (!vrfCoordinator || !vrfSubId || !vrfKeyHash) {
     throw new Error(
-      "VRF env eksik. .env içinde set et: VRF_COORDINATOR_ADDRESS, VRF_SUBSCRIPTION_ID, VRF_KEY_HASH"
+      "VRF env missing. Set in .env: VRF_COORDINATOR_ADDRESS, VRF_SUBSCRIPTION_ID, VRF_KEY_HASH"
     );
   }
 
@@ -38,7 +38,7 @@ async function main() {
   const artifactPath = path.join(__dirname, "../artifacts/contracts/RankUpLootNFT.sol/RankUpLootNFT.json");
   const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
 
-  console.log("🎁 RankUpLootNFT (ERC-1155 + VRF) Fuji'ye deploy ediliyor...");
+  console.log("🎁 Deploying RankUpLootNFT (ERC-1155 + VRF) to Fuji...");
   console.log("   baseURI:", baseURI);
 
   const factory = new ethers.ContractFactory(artifact.abi, artifact.bytecode, wallet);
@@ -55,11 +55,11 @@ async function main() {
   await nft.waitForDeployment();
   const address = await nft.getAddress();
 
-  console.log("\n✅ RankUpLootNFT deploy edildi!");
-  console.log("   Adres:", address);
+  console.log("\n✅ RankUpLootNFT deployed!");
+  console.log("   Address:", address);
   console.log("\n👉 Backend .env:  RANK_UP_LOOT_NFT_ADDRESS=" + address);
   console.log("👉 Frontend env: VITE_RANK_UP_LOOT_NFT_ADDRESS=" + address);
-  console.log("👉 Chainlink VRF: Bu adresi subscription'a consumer ekle, LINK yükle.");
+  console.log("👉 Chainlink VRF: Add this address as consumer to subscription, fund with LINK.");
   console.log("🔗 https://testnet.snowtrace.io/address/" + address + "\n");
 }
 

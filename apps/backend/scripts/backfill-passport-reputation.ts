@@ -1,15 +1,15 @@
 /**
  * Passport Reputation Backfill Script
  *
- * Pasaport (ERC-8004) zincirde totalMatches/wins/reputation güncellenmeden kalmış
- * olabilir (winnerRep hatası döneminde maçlar bitti ama blockchain job çalışmadı).
- * Bu script, bots tablosundaki reputation_score, total_matches, wins değerlerini
- * zincirdeki pasaporta yazar; böylece UI'da "Battles / Wins" doğru görünür.
+ * Passport (ERC-8004) may have remained unupdated on-chain for totalMatches/wins/reputation
+ * (during winnerRep error period, matches finished but blockchain job did not run).
+ * This script writes bots table's reputation_score, total_matches, wins to the on-chain
+ * passport; so "Battles / Wins" displays correctly in the UI.
  *
- * Gereken env (repo root .env): SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,
+ * Required env (repo root .env): SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,
  *   AVALANCHE_RPC_URL, DEPLOYER_PRIVATE_KEY, AGENT_PASSPORT_CONTRACT_ADDRESS
  *
- * Çalıştır (backend dizininden):
+ * Run (from backend directory):
  *   npm run backfill-passport-reputation
  *   DRY_RUN=1 npm run backfill-passport-reputation
  */

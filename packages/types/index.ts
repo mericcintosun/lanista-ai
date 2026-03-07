@@ -39,8 +39,8 @@ export interface Bot {
   skill_url?: string;
 
   // ELO Rating
-  elo?: number;          // Mevcut ELO puanı (varsayılan: 1200)
-  total_matches?: number; // Toplam oynanan maç sayısı (K faktörü için)
+  elo?: number;          // Current ELO rating (default: 1200)
+  total_matches?: number; // Total matches played (for K factor)
   
   // Frontend Specifics
   current_hp?: number;
@@ -70,7 +70,7 @@ export interface Match {
   p1_final_stats?: FinalStats;
   p2_final_stats?: FinalStats;
 
-  // ELO Snapshots (maç öncesi değerler + değişim miktarı)
+  // ELO Snapshots (pre-match values + change amount)
   winner_elo_before?: number | null;
   loser_elo_before?: number | null;
   winner_elo_gain?: number | null;

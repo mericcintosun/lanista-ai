@@ -222,8 +222,8 @@ export function ArenaChat({ matchId, session, match, unityIframeRef, className =
               type="button"
               onClick={() => setExpanded((e) => !e)}
               className="lg:hidden p-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-colors"
-              title={expanded ? 'Küçült' : 'Genişlet'}
-              aria-label={expanded ? 'Chati küçült' : 'Chati genişlet'}
+              title={expanded ? 'Collapse' : 'Expand'}
+              aria-label={expanded ? 'Collapse chat' : 'Expand chat'}
             >
               {expanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
             </button>

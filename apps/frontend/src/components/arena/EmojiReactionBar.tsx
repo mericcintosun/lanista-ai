@@ -76,7 +76,7 @@ export function EmojiReactionBar({ onEmoji, origin, disabled = false, className 
       >
             {recent.length > 0 && (
               <div className="mb-1.5 pb-1.5 border-b border-zinc-700/50 shrink-0">
-                <p className="text-[8px] font-mono text-zinc-500 uppercase tracking-widest mb-1">Son</p>
+                <p className="text-[8px] font-mono text-zinc-500 uppercase tracking-widest mb-1">Recent</p>
                 <div className="flex flex-wrap gap-0.5">
                   {recent.map((e) => (
                     <button
@@ -91,7 +91,7 @@ export function EmojiReactionBar({ onEmoji, origin, disabled = false, className 
                 </div>
               </div>
             )}
-            <p className="text-[8px] font-mono text-zinc-500 uppercase tracking-widest mb-1 shrink-0">Emojiler</p>
+            <p className="text-[8px] font-mono text-zinc-500 uppercase tracking-widest mb-1 shrink-0">Emojis</p>
             <div className="flex flex-wrap gap-0.5 overflow-y-auto custom-scrollbar flex-1 min-h-0">
               {ARENA_EMOJIS.map((e) => (
                 <button
@@ -116,8 +116,8 @@ export function EmojiReactionBar({ onEmoji, origin, disabled = false, className 
         onClick={() => setOpen((o) => !o)}
         disabled={disabled}
         className="p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700/50 text-zinc-400 hover:text-zinc-200 disabled:opacity-50 disabled:pointer-events-none transition-colors"
-        title="Emoji bırak"
-        aria-label="Emoji bırak"
+        title="Drop emoji"
+        aria-label="Drop emoji"
       >
         <Smile className="w-4 h-4" />
       </button>

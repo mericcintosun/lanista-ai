@@ -1,14 +1,14 @@
 /**
  * ELO Backfill Script
  *
- * Tüm geçmiş maçları created_at sırasına göre replay eder ve
- * her botun güncel ELO'sunu hesaplayarak bots tablosunu günceller.
+ * Replays all past matches in created_at order and updates the bots table
+ * with each bot's current ELO.
  *
- * Çalıştır:
+ * Run:
  *   cd apps/backend
  *   SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... npx tsx scripts/backfill-elo.ts
  *
- * Ya da .env dosyası varsa:
+ * Or if .env file exists:
  *   npx tsx -r dotenv/config scripts/backfill-elo.ts
  */
 
@@ -19,16 +19,16 @@ const SUPABASE_URL = process.env.SUPABASE_URL!;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error('❌  SUPABASE_URL ve SUPABASE_SERVICE_ROLE_KEY env değişkenleri gerekli.');
+  console.error('❌  SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY env variables required.');
   process.exit(1);
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function main() {
-  console.log('🔄  Geçmiş maçlar çekiliyor...');
+  console.log('🔄  Fetching past matches...');
 
-  // 1. Tüm biten maçları kronolojik sırayla çek
+  // 1. Fetch all finished matches in chronological order
   const { data: matches, error: matchErr } = await supabase
     .from('matches')
     .select('id, player_1_id, player_2_id, winner_id, created_at')
@@ -36,12 +36,12 @@ async function main() {
     .not('winner_id', 'is', null)
     .order('created_at', { ascending: true });
 
-  if (matchErr) { console.error('❌  Maç çekme hatası:', matchErr); process.exit(1); }
-  if (!matches?.length) { console.log('ℹ️  Biten maç bulunamadı.'); return; }
+  if (matchErr) { console.error('❌  Match fetch error:', matchErr); process.exit(1); }
+  if (!matches?.length) { console.log('ℹ️  No finished matches found.'); return; }
 
-  console.log(`📊  ${matches.length} maç bulundu. ELO replay başlıyor...\n`);
+  console.log(`📊  ${matches.length} matches found. ELO replay starting...\n`);
 
-  // 2. Her botun in-memory ELO ve maç sayısını takip et (hepsi 0'dan başlar)
+  // 2. Track each bot's in-memory ELO and match count (all start at 0)
   const eloMap:     Record<string, number> = {};
   const matchMap:   Record<string, number> = {};
 
@@ -63,23 +63,23 @@ async function main() {
 
     const result = calculateElo(winnerEloBefore, loserEloBefore, winnerMatches, loserMatches);
 
-    // ELO güncelle
+    // Update ELO
     eloMap[winner_id] = result.newWinnerElo;
     eloMap[loserId]   = result.newLoserElo;
 
-    // Maç sayısı güncelle
+    // Update match count
     matchMap[winner_id] = winnerMatches + 1;
     matchMap[loserId]   = loserMatches  + 1;
 
     processed++;
     if (processed % 50 === 0) {
-      process.stdout.write(`  ✔  ${processed}/${matches.length} maç işlendi\r`);
+      process.stdout.write(`  ✔  ${processed}/${matches.length} matches processed\r`);
     }
   }
 
-  console.log(`\n✅  ${processed} maç işlendi. DB güncelleniyor...\n`);
+  console.log(`\n✅  ${processed} matches processed. Updating DB...\n`);
 
-  // 3. Tüm botları toplu güncelle (her bot için ayrı UPDATE)
+  // 3. Bulk update all bots (separate UPDATE per bot)
   const botIds = Object.keys(eloMap);
   let updated = 0;
 
@@ -93,16 +93,16 @@ async function main() {
       .eq('id', botId);
 
     if (error) {
-      console.error(`  ⚠️  ${botId} güncellenemedi:`, error.message);
+      console.error(`  ⚠️  Failed to update ${botId}:`, error.message);
     } else {
       updated++;
     }
   }
 
-  // 4. Sonuçları göster
-  console.log(`\n🏆  Backfill tamamlandı! ${updated}/${botIds.length} bot güncellendi.\n`);
+  // 4. Show results
+  console.log(`\n🏆  Backfill complete! ${updated}/${botIds.length} bots updated.\n`);
   console.log('─────────────────────────────────────────────────');
-  console.log('BOT ID (kısa)          ELO        MAÇLAR');
+  console.log('BOT ID (short)         ELO        MATCHES');
   console.log('─────────────────────────────────────────────────');
 
   const sorted = botIds
@@ -119,4 +119,4 @@ async function main() {
   console.log('─────────────────────────────────────────────────\n');
 }
 
-main().catch(err => { console.error('❌  Beklenmeyen hata:', err); process.exit(1); });
+main().catch(err => { console.error('❌  Unexpected error:', err); process.exit(1); });

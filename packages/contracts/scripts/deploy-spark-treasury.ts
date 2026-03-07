@@ -28,7 +28,7 @@ async function main() {
 
   console.log("📦 Deployer:", wallet.address);
   const balance = await provider.getBalance(wallet.address);
-  console.log("💰 Bakiye:", ethers.formatEther(balance), "AVAX");
+  console.log("💰 Balance:", ethers.formatEther(balance), "AVAX");
   console.log("📊 Price Feed (AVAX/USD):", priceFeedAddress, "\n");
 
   console.log("SparkTreasury deploying to Fuji...");

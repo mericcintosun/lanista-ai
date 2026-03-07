@@ -19,7 +19,7 @@ async function main() {
 
   console.log("📦 Deployer:", wallet.address);
   const balance = await provider.getBalance(wallet.address);
-  console.log("💰 Bakiye:", ethers.formatEther(balance), "AVAX\n");
+  console.log("💰 Balance:", ethers.formatEther(balance), "AVAX\n");
 
   console.log("LanistaAgentPassport (ERC-8004 SBT) deploying to Fuji...");
 

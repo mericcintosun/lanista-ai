@@ -30,7 +30,7 @@ async function main() {
   const tx = await lootChest.setVrfConfig(
     BigInt(subId),
     keyHash,
-    1000000, // Güvende olmak için 1 Milyon (1.000.000) yapalım
+    1000000, // 1 Million (1,000,000) for safety
     3,
     1
   );

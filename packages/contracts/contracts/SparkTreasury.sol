@@ -5,9 +5,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title SparkTreasury
- * @dev Izleyicilerin Spark puanı satin aldigi kasa. Chainlink AVAX/USD Price Feed
- *      (AggregatorV3Interface) ile anlik kur uzerinden USD karsiligi AVAX alinir.
- *      Backend SparksPurchased event'ini dinleyerek spark_balances / spark_transactions gunceller.
+ * @dev Treasury where viewers purchase Spark points. AVAX is received at spot rate via Chainlink
+ *      AVAX/USD Price Feed (AggregatorV3Interface). Backend listens to SparksPurchased event
+ *      and updates spark_balances / spark_transactions.
  *      Fuji testnet price feed: 0x5498BB86BC934c8D34FDA08E81D444153d0D06aD
  */
 contract SparkTreasury is Ownable {
@@ -55,9 +55,9 @@ contract SparkTreasury is Ownable {
     }
 
     /**
-     * @dev Kullanici AVAX gonderir; packageId'ye gore gerekli tutar anlik kur ile hesaplanir.
-     * @param packageId Paket no (ornegin 1 = 1000 Spark = $5)
-     * @param userId Supabase auth.users.id (backend event'ten kimin bakiyesine yatirilacak)
+     * @dev User sends AVAX; required amount calculated from packageId at spot rate.
+     * @param packageId Package number (e.g. 1 = 1000 Spark = $5)
+     * @param userId Supabase auth.users.id (backend event determines whose balance to credit)
      */
     function buySparks(uint256 packageId, string calldata userId) external payable {
         SparkPackage memory pkg = packages[packageId];
@@ -73,7 +73,7 @@ contract SparkTreasury is Ownable {
     }
 
     /**
-     * @dev Sadece owner biriken AVAX'i cekebilir.
+     * @dev Only owner can withdraw accumulated AVAX.
      */
     function withdrawFunds() external onlyOwner {
         uint256 balance = address(this).balance;
@@ -84,7 +84,7 @@ contract SparkTreasury is Ownable {
     }
 
     /**
-     * @dev Yeni paket ekle veya guncelle.
+     * @dev Add or update package.
      */
     function setPackage(uint256 packageId, uint256 sparkAmount, uint256 priceUsd8) external onlyOwner {
         _setPackage(packageId, sparkAmount, priceUsd8);
