@@ -27,7 +27,7 @@ export function LanyTable({ agents }: LanyTableProps) {
             <div className="absolute top-full right-0 mt-2 w-56 p-3 bg-black/90 backdrop-blur-md border border-white/10 rounded-lg shadow-2xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-[60] pointer-events-none text-left">
               <p className="font-mono text-[10px] text-zinc-300 normal-case tracking-normal leading-relaxed">
                 <span className="text-white font-bold mb-1 block">Standard ELO System:</span>
-                Beating <span className="text-red-400">strong opponents</span> grants more points. Losing to them deducts fewer.<br /><br />
+                Beating <span className="text-primary">strong opponents</span> grants more points. Losing to them deducts fewer.<br /><br />
                 <span className="text-zinc-500 italic">Match quality matters more than quantity.</span>
               </p>
             </div>
@@ -51,20 +51,20 @@ export function LanyTable({ agents }: LanyTableProps) {
               <div
                 onClick={() => navigate(`/agent/${agent.id}`)}
                 key={agent.id}
-                className="grid grid-cols-1 lg:grid-cols-12 gap-4 px-6 lg:px-8 py-6 items-center group hover:bg-white/[0.03] transition-all cursor-pointer border-l-2 border-l-transparent hover:border-l-red-500 relative"
+                className={`grid grid-cols-1 lg:grid-cols-12 gap-4 px-6 lg:px-8 py-6 items-center group hover:bg-white/[0.03] transition-all cursor-pointer border-l-2 border-l-transparent relative min-w-0 ${rank === 1 ? 'hover:border-l-blue-500' : 'hover:border-l-primary'}`}
               >
                 <div className="hidden lg:flex col-span-1 items-center gap-2">
-                  <span className="font-mono text-base lg:text-lg font-black italic text-zinc-600 group-hover:text-white transition-colors">#{rank}</span>
+                  <span className={`font-mono text-base lg:text-lg font-black italic transition-colors ${rank === 1 ? 'text-blue-400 group-hover:text-blue-300' : 'text-zinc-600 group-hover:text-white'}`}>#{rank}</span>
                   {rank > 3 && trendDirection !== 'none' && (
-                    <span className={`text-[10px] font-mono flex items-center ${trendDirection === 'up' ? 'text-[#00FF00]' : 'text-red-500'}`}>
+                    <span className={`text-[10px] font-mono flex items-center ${trendDirection === 'up' ? 'text-secondary' : 'text-primary'}`}>
                       {trendDirection === 'up' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       {Math.abs(trendDelta)}
                     </span>
                   )}
                 </div>
 
-                <div className="col-span-1 lg:col-span-11 flex flex-col lg:grid lg:grid-cols-11 gap-4 items-center text-center lg:text-left">
-                  <div className="lg:col-span-4 flex flex-col lg:flex-row items-center gap-3 lg:gap-4 w-full">
+                <div className="col-span-1 lg:col-span-11 flex flex-col lg:grid lg:grid-cols-11 gap-4 items-center text-center lg:text-left min-w-0">
+                  <div className="lg:col-span-4 flex flex-col lg:flex-row items-center gap-3 lg:gap-4 w-full min-w-0">
                     <div className="relative">
                       <div className="lg:hidden absolute -top-2 -left-2 z-20 bg-black/80 text-zinc-500 px-1.5 py-0.5 rounded text-[10px] font-mono font-black border border-white/5">
                         #{rank}
@@ -76,8 +76,8 @@ export function LanyTable({ agents }: LanyTableProps) {
                       />
                     </div>
 
-                    <div className="min-w-0 flex flex-col items-center lg:items-start w-full">
-                      <h4 className="font-black text-white text-base lg:text-lg tracking-tighter italic uppercase group-hover:text-red-500 transition-colors truncate max-w-[200px] lg:max-w-none">{agent.name}</h4>
+                    <div className="min-w-0 flex flex-col items-center lg:items-start w-full flex-1">
+                      <h4 className={`font-black text-base lg:text-lg tracking-tighter italic uppercase transition-colors truncate w-full min-w-0 ${rank === 1 ? 'text-blue-400 group-hover:text-blue-300' : 'text-white group-hover:text-primary'}`}>{agent.name}</h4>
                       <div className="flex flex-col lg:flex-row items-center gap-1.5 lg:gap-2 mt-1 lg:mt-0.5">
                         <p className="text-[10px] lg:text-xs font-mono text-zinc-500 uppercase tracking-widest font-bold truncate">ID: {agent.id.substring(0, 10)}</p>
                         <TierBadge elo={agent.elo ?? 0} hasPlayed={agent.totalMatches > 0} />

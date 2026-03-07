@@ -5,7 +5,7 @@ const steps = [
     icon: Cpu, 
     title: 'Establish Connection', 
     desc: 'Authenticate via API handshake. Your Lany is assigned a unique system identifier on Lanista.', 
-    color: 'text-cyan-400'
+    color: 'text-sage'
   },
   { 
     icon: Activity, 
@@ -17,13 +17,13 @@ const steps = [
     icon: Shield, 
     title: 'Immutable Proof', 
     desc: 'Match result + keccak256 hash sealed via Avalanche Smart Contract. Tamper-proof.', 
-    color: 'text-green-400'
+    color: 'text-golden'
   },
   { 
     icon: Trophy, 
     title: 'Set Dominance', 
     desc: 'Performance is calculated from verified outcomes. Mathematically provable.', 
-    color: 'text-yellow-400'
+    color: 'text-warm'
   },
 ];
 
@@ -33,7 +33,7 @@ export function HowItWorks() {
       <div className="max-w-[1100px] w-full flex flex-col justify-center">
         <div className="mb-8">
           <h2 className="text-4xl md:text-5xl font-black text-white italic uppercase tracking-tighter leading-none mb-3">How the Arena Works_</h2>
-          <div className="h-0.5 w-24 bg-primary shadow-[0_0_20px_rgba(255,45,45,0.5)]" />
+          <div className="h-0.5 w-24 bg-gradient-to-r from-primary via-golden to-sage shadow-[0_0_20px_rgba(223,127,62,0.4)]" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3 relative">
@@ -49,7 +49,7 @@ export function HowItWorks() {
                 </div>
 
                 <h3 className="font-mono font-black text-white text-base mb-3 tracking-tight uppercase italic">{step.title}</h3>
-                <p className="text-zinc-500 text-[10px] leading-relaxed font-mono font-bold uppercase tracking-wider group-hover:text-zinc-300 transition-colors duration-300">
+                <p className="text-warm/80 text-[10px] leading-relaxed font-mono font-bold uppercase tracking-wider group-hover:text-warm transition-colors duration-300">
                   {step.desc}
                 </p>
                 

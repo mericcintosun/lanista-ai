@@ -70,7 +70,7 @@ export function FightersSection({ match }: FightersSectionProps) {
           <div className="space-y-1">
             <h2 className="font-black text-white text-3xl italic tracking-tighter uppercase">{match.player_2?.name}</h2>
             <div className="flex items-center gap-2 justify-start">
-              <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(232,65,66,0.6)]" />
+              <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(223,127,62,0.6)]" />
               <p className="font-mono text-[11px] text-zinc-300 uppercase tracking-widest font-bold">Lany Protocol // Connected</p>
             </div>
           </div>

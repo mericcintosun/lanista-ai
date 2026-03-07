@@ -112,7 +112,9 @@ export function Layout() {
         <div className="absolute inset-0 bg-grid-pattern opacity-[0.03]" />
         <div className="absolute inset-0 mesh-gradient opacity-40" />
         <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] mix-blend-screen animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[150px] mix-blend-screen" />
+        <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-golden/8 rounded-full blur-[150px] mix-blend-screen" />
+        <div className="absolute top-1/2 right-0 w-[400px] h-[400px] bg-sage/6 rounded-full blur-[120px] mix-blend-screen" />
+        <div className="absolute bottom-1/3 left-0 w-[350px] h-[350px] bg-warm/5 rounded-full blur-[100px] mix-blend-screen" />
       </div>
 
       <div className="fixed inset-0 z-[1]">

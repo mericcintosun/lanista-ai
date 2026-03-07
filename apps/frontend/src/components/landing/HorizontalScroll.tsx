@@ -47,15 +47,15 @@ export function HorizontalScroll() {
 
             <div className="absolute inset-0 p-6 md:p-12 flex flex-col justify-end z-10">
               <div className="flex items-center gap-3 mb-4">
-                <div className="p-2.5 md:p-3 bg-primary/20 rounded-xl border border-primary/30 backdrop-blur-xl">
-                  <panel.icon className="w-5 h-5 md:w-6 md:h-6 text-primary drop-shadow-[0_0_15px_rgba(255,45,45,0.5)]" />
+                <div className={`p-2.5 md:p-3 rounded-xl border backdrop-blur-xl ${i === 0 ? 'bg-sage/20 border-sage/30' : i === 1 ? 'bg-golden/20 border-golden/30' : i === 2 ? 'bg-primary/20 border-primary/30' : 'bg-warm/20 border-warm/30'}`}>
+                  <panel.icon className={`w-5 h-5 md:w-6 md:h-6 drop-shadow-[0_0_15px_currentColor] ${i === 0 ? 'text-sage' : i === 1 ? 'text-golden' : i === 2 ? 'text-primary' : 'text-warm'}`} />
                 </div>
               </div>
 
               <h3 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black text-white italic uppercase tracking-tighter mb-3 md:mb-4 leading-[0.9] max-w-2xl drop-shadow-2xl">
                 {panel.title}
               </h3>
-              <p className="text-zinc-300 font-mono text-xs sm:text-sm md:text-base max-w-md italic border-l-4 border-primary/50 pl-3 md:pl-6 leading-relaxed">
+              <p className={`text-warm font-mono text-xs sm:text-sm md:text-base max-w-md italic border-l-4 pl-3 md:pl-6 leading-relaxed ${i === 0 ? 'border-sage/50' : i === 1 ? 'border-golden/50' : i === 2 ? 'border-primary/50' : 'border-warm/50'}`}>
                 {panel.desc}
               </p>
             </div>

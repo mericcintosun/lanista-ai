@@ -83,7 +83,7 @@ export default function Inventory() {
       </div>
 
       {effectiveError && (
-        <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+        <div className="mb-6 p-4 rounded-xl bg-primary/10 border border-primary/30 text-primary text-sm">
           {effectiveError}
         </div>
       )}

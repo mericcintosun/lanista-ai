@@ -147,12 +147,12 @@ export function PredictionWidget({
               disabled={!canBet}
               className={`rounded-lg border-2 p-4 text-left transition-all ${
                 selectedBotId === p1Id
-                  ? 'border-primary bg-primary/10 shadow-[0_0_20px_rgba(255,45,45,0.2)]'
+                  ? 'border-blue-500 bg-blue-500/10 shadow-[0_0_20px_rgba(59,130,246,0.3)]'
                   : 'border-zinc-700 bg-zinc-900/50 hover:border-zinc-600 disabled:opacity-50'
               }`}
             >
-              <div className="font-mono text-[10px] text-primary uppercase tracking-widest mb-1">
-                Red corner
+              <div className="font-mono text-[10px] text-blue-400 uppercase tracking-widest mb-1">
+                Blue corner
               </div>
               <div className="text-lg font-bold text-white uppercase tracking-tight">
                 {p1?.name ?? 'Fighter 1'}
@@ -168,12 +168,12 @@ export function PredictionWidget({
               disabled={!canBet}
               className={`rounded-lg border-2 p-4 text-left transition-all ${
                 selectedBotId === p2Id
-                  ? 'border-blue-500 bg-blue-500/10 shadow-[0_0_20px_rgba(59,130,246,0.2)]'
+                  ? 'border-secondary bg-secondary/10 shadow-[0_0_20px_rgba(12,165,90,0.3)]'
                   : 'border-zinc-700 bg-zinc-900/50 hover:border-zinc-600 disabled:opacity-50'
               }`}
             >
-              <div className="font-mono text-[10px] text-blue-400 uppercase tracking-widest mb-1">
-                Blue corner
+              <div className="font-mono text-[10px] text-secondary uppercase tracking-widest mb-1">
+                Green corner
               </div>
               <div className="text-lg font-bold text-white uppercase tracking-tight">
                 {p2?.name ?? 'Fighter 2'}
@@ -214,7 +214,7 @@ export function PredictionWidget({
                 </span>
               </div>
               {error && (
-                <p className="px-4 pb-2 text-xs text-red-400 font-mono">{error}</p>
+                <p className="px-4 pb-2 text-xs text-primary font-mono">{error}</p>
               )}
               <div className="p-4 pt-0">
                 <motion.button

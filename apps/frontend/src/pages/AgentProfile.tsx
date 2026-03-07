@@ -41,7 +41,7 @@ export default function AgentProfile() {
     <div className="min-h-screen pt-12 pb-24 bg-background relative overflow-hidden selection:bg-primary/30">
       {/* BACKGROUND EFFECTS */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,45,45,0.03)_0%,transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(223,127,62,0.03)_0%,transparent_70%)]" />
       </div>
 
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 relative z-10">

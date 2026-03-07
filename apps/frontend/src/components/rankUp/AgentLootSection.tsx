@@ -42,7 +42,7 @@ function LootCard({
       whileHover={{ scale: 1.02, y: -2 }}
       whileTap={{ scale: 0.98 }}
       onClick={onSelect}
-      className="group relative rounded-xl border border-white/10 bg-black/40 overflow-hidden text-left transition-all hover:border-primary/30 hover:shadow-[0_0_30px_rgba(255,45,45,0.08)]"
+      className="group relative rounded-xl border border-white/10 bg-black/40 overflow-hidden text-left transition-all hover:border-primary/30 hover:shadow-[0_0_30px_rgba(223,127,62,0.08)]"
     >
       <div className="aspect-square bg-gradient-to-b from-white/5 to-transparent relative flex items-center justify-center p-4">
         {!imgLoaded && (
@@ -104,7 +104,7 @@ export function AgentLootSection({ walletAddress, agentName }: AgentLootSectionP
         animate={{ opacity: 1, y: 0 }}
         className="rounded-2xl border border-white/10 bg-gradient-to-b from-zinc-900/80 to-black/60 backdrop-blur-xl overflow-hidden relative"
       >
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(255,45,45,0.08),transparent)] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(223,127,62,0.08),transparent)] pointer-events-none" />
         <div className="relative z-10 p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <div className="flex items-center gap-2.5">

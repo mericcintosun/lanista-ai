@@ -79,8 +79,13 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
   }, [hoveredIdx, location.pathname, navItems]);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    window.location.href = '/';
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error('Sign out failed:', err);
+    } finally {
+      window.location.href = '/';
+    }
   };
 
   return (
@@ -110,7 +115,7 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
           {/* Animated GSAP Underline */}
           <div 
             ref={underlineRef}
-            className="absolute bottom-[20%] h-[2px] bg-primary opacity-0 pointer-events-none rounded-full shadow-[0_0_10px_rgba(255,45,45,0.8)] z-0"
+            className="absolute bottom-[20%] h-[2px] bg-primary opacity-0 pointer-events-none rounded-full shadow-[0_0_10px_rgba(223,127,62,0.8)] z-0"
           />
 
           <div className="flex items-center gap-8 font-mono text-xs uppercase tracking-[0.3em] font-bold">
@@ -163,8 +168,9 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
                 </Link>
 
                 <button
+                  type="button"
                   onClick={handleSignOut}
-                  className="p-2.5 bg-red-500/5 border border-red-500/10 text-red-500/60 rounded-lg hover:bg-red-500/20 hover:text-red-500 transition-all active:scale-90 shadow-[0_0_15px_rgba(239,68,68,0.05)]"
+                  className="p-2.5 bg-primary/5 border border-primary/10 text-primary/60 rounded-lg hover:bg-primary/20 hover:text-primary transition-all active:scale-90 shadow-[0_0_15px_rgba(223,127,62,0.05)]"
                   title="Sign Out"
                 >
                   <LogOut className="w-4 h-4" />

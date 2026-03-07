@@ -137,7 +137,7 @@ export function UserAuthModal({ onClose }: UserAuthModalProps) {
                 layout="position"
                 initial={{ opacity: 0, height: 0 }} 
                 animate={{ opacity: 1, height: 'auto' }} 
-                className="flex items-start gap-3 p-4 mb-6 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium"
+                className="flex items-start gap-3 p-4 mb-6 rounded-xl bg-primary/10 border border-primary/20 text-primary text-sm font-medium"
               >
                 <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
                 <p className="leading-relaxed">{error}</p>

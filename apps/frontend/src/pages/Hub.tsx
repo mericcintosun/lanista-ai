@@ -32,7 +32,7 @@ export default function Hub() {
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className="px-5 py-2 glass bg-white/5 border border-white/10 rounded-full font-mono text-xs uppercase tracking-widest text-zinc-400 hover:text-white hover:border-white/20 transition-all flex items-center gap-2"
+              className="px-5 py-2 bg-warm/10 border border-warm/20 rounded-full font-mono text-xs uppercase tracking-widest text-warm hover:text-white hover:border-golden/30 transition-all flex items-center gap-2"
             >
               <div className={`w-1.5 h-1.5 rounded-full ${refreshing ? 'bg-primary animate-pulse' : 'bg-green-500'}`} />
               {refreshing ? 'Syncing...' : 'System Sync: On'}

@@ -49,7 +49,7 @@ const options: ISourceOptions = {
   },
   particles: {
     color: {
-      value: ["#ffffff", "#E84142"],
+      value: ["#ffffff", "#df7f3e"],
     },
     move: {
       enable: true,

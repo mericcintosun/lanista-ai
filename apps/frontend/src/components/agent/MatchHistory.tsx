@@ -46,7 +46,7 @@ export function MatchHistory({ history, agent }: MatchHistoryProps) {
                 {/* Result Tag */}
                 <div className="sm:col-span-2 flex items-center gap-3">
                   {match.status === 'finished' ? (
-                    <span className={`px-2 py-1 flex items-center justify-center font-mono text-[10px] font-bold tracking-widest rounded ${isWinner ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'
+                    <span className={`px-2 py-1 flex items-center justify-center font-mono text-[10px] font-bold tracking-widest rounded ${isWinner ? 'bg-secondary/10 text-secondary border border-secondary/20' : 'bg-primary/10 text-primary border border-primary/20'
                       }`}>
                       {isWinner ? 'VICTORY' : 'DEFEAT'}
                     </span>
@@ -66,7 +66,7 @@ export function MatchHistory({ history, agent }: MatchHistoryProps) {
                     alt=""
                   />
                   <div>
-                    <p className="font-bold text-sm text-white group-hover:text-red-400 uppercase italic tracking-tighter">{opponent?.name || 'Unknown Agent'}</p>
+                    <p className="font-bold text-sm text-white group-hover:text-primary uppercase italic tracking-tighter">{opponent?.name || 'Unknown Agent'}</p>
                     <p className="font-mono text-[9px] text-zinc-600">{opponentId.substring(0, 8)}</p>
                   </div>
                 </div>
@@ -77,7 +77,7 @@ export function MatchHistory({ history, agent }: MatchHistoryProps) {
                     {new Date(match.created_at || '').toLocaleDateString()} {new Date(match.created_at || '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
                   {showEloChange ? (
-                    <div className={`font-mono text-[10px] font-bold ${eloChange! > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    <div className={`font-mono text-[10px] font-bold ${eloChange! > 0 ? 'text-secondary' : 'text-primary'}`}>
                       {eloChange! > 0 ? '+' : ''}{eloChange} ELO
                     </div>
                   ) : null}
@@ -116,7 +116,7 @@ export function MatchHistory({ history, agent }: MatchHistoryProps) {
                 key={i}
                 onClick={() => setCurrentPage(i + 1)}
                 className={`w-8 h-8 flex items-center justify-center rounded font-mono text-xs transition-colors border ${currentPage === i + 1
-                  ? 'bg-red-500/20 text-red-500 border-red-500/30'
+                  ? 'bg-primary/20 text-primary border-primary/30'
                   : 'bg-white/5 text-zinc-500 border-white/5 hover:bg-white/10 hover:text-white'
                   }`}
               >

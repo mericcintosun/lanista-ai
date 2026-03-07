@@ -39,7 +39,7 @@ export function HubHeader({ refreshing, onRefresh }: HubHeaderProps) {
           </Link>
           <button
             onClick={onRefresh}
-            className="group min-w-[200px] py-4 glass border-primary/30 text-primary font-black tracking-[0.3em] text-[10px] uppercase transition-all hover:bg-primary/10 flex items-center justify-center gap-4 active:scale-95 rounded-sm shadow-[0_0_20px_rgba(255,45,45,0.1)] hover:shadow-[0_0_30px_rgba(255,45,45,0.2)]"
+            className="group min-w-[200px] py-4 glass border-primary/30 text-primary font-black tracking-[0.3em] text-[10px] uppercase transition-all hover:bg-primary/10 flex items-center justify-center gap-4 active:scale-95 rounded-sm shadow-[0_0_20px_rgba(223,127,62,0.1)] hover:shadow-[0_0_30px_rgba(223,127,62,0.2)]"
           >
             <RefreshCw className={`w-3.5 h-3.5 transition-transform group-hover:rotate-180 duration-700 ${refreshing ? 'animate-spin border-primary/40' : ''}`} /> 
             {refreshing ? 'Syncing...' : 'Sync Telemetry'}

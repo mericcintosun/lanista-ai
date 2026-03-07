@@ -25,7 +25,7 @@ export function ContractStats({
         <div className="flex flex-col lg:flex-row items-center justify-between gap-12 relative z-10">
           <div className="space-y-6 flex-1 w-full lg:w-auto">
             <div className="flex items-center gap-3">
-              <Shield className="w-5 h-5 text-red-500" />
+              <Shield className="w-5 h-5 text-primary" />
               <h2 className="font-mono text-[10px] sm:text-xs uppercase text-zinc-400 tracking-widest">Avalanche Smart Contract</h2>
             </div>
 
@@ -35,7 +35,7 @@ export function ContractStats({
               </p>
               <button
                 onClick={onCopy}
-                className="absolute -right-8 top-1/2 -translate-y-1/2 opacity-0 lg:group-hover/addr:opacity-100 transition-all p-2 hover:text-red-500"
+                className="absolute -right-8 top-1/2 -translate-y-1/2 opacity-0 lg:group-hover/addr:opacity-100 transition-all p-2 hover:text-primary"
               >
                 {copied ? <span className="text-[10px] font-black text-[#00FF00]">COPIED</span> : <Copy className="w-4 h-4" />}
               </button>
@@ -46,7 +46,7 @@ export function ContractStats({
                 href={`${explorerUrl}/address/${contractAddress}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 px-6 sm:px-8 py-3 sm:py-4 border border-red-500/50 text-red-500 font-mono text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:bg-red-500/10 hover:border-red-500 hover:shadow-[0_0_20px_rgba(232,65,66,0.2)]"
+                className="inline-flex items-center gap-3 px-6 sm:px-8 py-3 sm:py-4 border border-primary/50 text-primary font-mono text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:bg-primary/10 hover:border-primary hover:shadow-[0_0_20px_rgba(223,127,62,0.2)]"
               >
                 <ExternalLink className="w-4 h-4" /> System Audit Log
               </a>
@@ -55,7 +55,7 @@ export function ContractStats({
 
           <div className="flex flex-row sm:flex-row gap-8 sm:gap-16 w-full lg:w-auto justify-center lg:justify-end border-t lg:border-t-0 border-white/5 pt-8 lg:pt-0">
             <div className="text-center lg:text-right">
-              <div className="text-4xl sm:text-6xl md:text-7xl font-black italic tracking-tighter text-red-500 leading-none">
+              <div className="text-4xl sm:text-6xl md:text-7xl font-black italic tracking-tighter text-primary leading-none">
                 {onChainCount}
               </div>
               <div className="text-[9px] sm:text-[11px] font-mono text-zinc-400 uppercase tracking-widest mt-2 font-bold whitespace-nowrap">Verified Logs</div>

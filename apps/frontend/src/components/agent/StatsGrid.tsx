@@ -33,7 +33,7 @@ export function StatsGrid({ elo, totalMatches, wins, winRate }: StatsGridProps) 
         <span className="text-xl sm:text-2xl font-bold tracking-tight mb-0.5">
           <span className="text-emerald-400">{wins}</span>
           <span className="text-zinc-600 px-1.5">–</span>
-          <span className="text-red-400/90">{Math.max(0, totalMatches - wins)}</span>
+          <span className="text-primary/90">{Math.max(0, totalMatches - wins)}</span>
         </span>
         <span className="text-zinc-500 font-mono text-[10px] uppercase tracking-wider">W/L Record</span>
       </div>

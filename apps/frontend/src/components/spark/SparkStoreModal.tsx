@@ -181,7 +181,7 @@ export function SparkStoreModal({ onClose, session, onPurchased }: SparkStoreMod
             )}
 
             {error && (
-              <p className="text-sm text-red-400 font-mono bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+              <p className="text-sm text-primary font-mono bg-primary/10 border border-primary/20 rounded-lg px-3 py-2">
                 {error}
               </p>
             )}

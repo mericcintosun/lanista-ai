@@ -4,7 +4,7 @@ export function NetworkTelemetry() {
   const monitors = [
     { icon: Database, label: 'Host Network', value: 'Avalanche C-Chain', dot: 'bg-zinc-800' },
     { icon: Cpu, label: 'Environment', value: 'Fuji Testnet', dot: 'bg-[#00FF00]' },
-    { icon: Link2, label: 'Uplink ID', value: '43113', dot: 'bg-red-500' },
+    { icon: Link2, label: 'Uplink ID', value: '43113', dot: 'bg-primary' },
   ];
 
   return (

@@ -31,7 +31,7 @@ export function CombatTimeline({ match, logs }: CombatTimelineProps) {
 
       <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between relative z-10">
         <div className="space-y-1">
-          <p className="font-mono text-[10px] text-red-500 uppercase tracking-[0.3em]">
+          <p className="font-mono text-[10px] text-primary uppercase tracking-[0.3em]">
             Combat Feed
           </p>
           <p className="text-xs text-zinc-400 uppercase tracking-[0.18em]">
@@ -42,7 +42,7 @@ export function CombatTimeline({ match, logs }: CombatTimelineProps) {
 
       <div
         ref={scrollRef}
-        className="h-[380px] overflow-y-auto px-6 py-6 selection:bg-red-500/20"
+        className="h-[380px] overflow-y-auto px-6 py-6 selection:bg-primary/20"
       >
         <div className="relative pl-5">
           <div className="absolute left-[6px] top-0 bottom-0 w-px bg-zinc-800/80" />
@@ -112,7 +112,7 @@ export function CombatTimeline({ match, logs }: CombatTimelineProps) {
                     <div className="relative mt-2">
                       <div
                         className={`w-2.5 h-2.5 rounded-full border-2 ${isCritical
-                          ? 'border-red-500 bg-red-500/30'
+                          ? 'border-primary bg-primary/30'
                           : isP1
                             ? 'border-cyan-400 bg-cyan-400/20'
                             : 'border-zinc-400 bg-zinc-400/20'
@@ -138,7 +138,7 @@ export function CombatTimeline({ match, logs }: CombatTimelineProps) {
                         {log.action_type && (
                           <span
                             className={`inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.18em] ${isCritical
-                              ? 'bg-red-500/20 text-red-400 border border-red-500/40'
+                              ? 'bg-primary/20 text-primary border border-primary/40'
                               : 'bg-zinc-900/80 text-zinc-400 border border-zinc-700'
                               }`}
                           >
@@ -160,7 +160,7 @@ export function CombatTimeline({ match, logs }: CombatTimelineProps) {
                           <span
                             className={`px-2 py-0.5 rounded-full border font-bold ${log.action_type?.includes('HEAL')
                               ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40'
-                              : 'bg-red-500/15 text-red-400 border-red-500/40'
+                              : 'bg-primary/15 text-primary border-primary/40'
                               }`}
                           >
                             {log.action_type?.includes('HEAL') ? '+' : '-'}

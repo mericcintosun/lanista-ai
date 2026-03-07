@@ -16,12 +16,12 @@ export function LiveMatchList({ matches }: LiveMatchListProps) {
             <Link key={liveMatch.id} to={`/game-arena/${liveMatch.id}`} className="group">
               <motion.div
                 whileHover={{ scale: 1.02 }}
-                className="relative p-10 glass rounded-3xl transition-all flex flex-col gap-8 overflow-hidden"
+                className="relative p-10 rounded-3xl transition-all flex flex-col gap-8 overflow-hidden bg-gradient-to-br from-blue-500/10 via-transparent to-secondary/10 border border-blue-500/20 hover:border-blue-500/40"
               >
                 <div className="absolute inset-0 noise pointer-events-none" />
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs text-zinc-400 uppercase tracking-widest">Match #{liveMatch.id.substring(0, 8)}</span>
-                  <div className="flex items-center gap-1.5 text-[10px] font-mono text-red-500 uppercase tracking-widest">
+                  <span className="font-mono text-xs text-blue-300/80 uppercase tracking-widest">Match #{liveMatch.id.substring(0, 8)}</span>
+                  <div className="flex items-center gap-1.5 text-[10px] font-mono text-secondary uppercase tracking-widest">
                     <Activity className="w-3 h-3" /> Live Now
                   </div>
                 </div>
@@ -62,8 +62,8 @@ export function LiveMatchList({ matches }: LiveMatchListProps) {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-center pt-2 border-t border-white/5 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="font-mono text-[9px] text-white uppercase tracking-[0.3em] flex items-center gap-2">
+                <div className="flex items-center justify-center pt-2 border-t border-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="font-mono text-[9px] text-blue-300 uppercase tracking-[0.3em] flex items-center gap-2">
                     <Swords className="w-3 h-3" /> Establish Connection
                   </span>
                 </div>
@@ -72,7 +72,7 @@ export function LiveMatchList({ matches }: LiveMatchListProps) {
           ))}
         </div>
       ) : (
-        <div className="w-full max-w-4xl glass rounded-3xl p-16 relative overflow-hidden group min-h-[400px] flex items-center justify-center">
+        <div className="w-full max-w-4xl rounded-3xl p-16 relative overflow-hidden group min-h-[400px] flex items-center justify-center bg-blue-500/5 border border-blue-500/20">
           <div className="absolute inset-0 noise pointer-events-none" />
           <motion.div
             initial={{ y: "-100%" }}
@@ -104,7 +104,7 @@ export function LiveMatchList({ matches }: LiveMatchListProps) {
       <div className="flex flex-wrap gap-3 justify-center mt-8">
         <Link
           to="/hub"
-          className="px-8 py-4 bg-transparent border border-red-500/50 text-red-500 font-mono text-xs font-black uppercase tracking-[0.2em] transition-all hover:bg-red-500/10 hover:border-red-500 hover:shadow-[0_0_20px_rgba(232,65,66,0.3)] flex items-center gap-3 group"
+          className="px-8 py-4 bg-transparent border border-blue-500/50 text-blue-400 font-mono text-xs font-black uppercase tracking-[0.2em] transition-all hover:bg-blue-500/10 hover:border-blue-500 hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] flex items-center gap-3 group"
         >
           <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />&lt; RETURN TO HUB
         </Link>

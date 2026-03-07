@@ -115,11 +115,11 @@ export function AgentHero({ agent, history }: AgentHeroProps) {
           <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.2em] mt-1">Win Rate</span>
         </div>
         <div className="p-6 flex flex-col items-center text-center group hover:bg-white/[0.02] transition-colors">
-          <Shield className="w-4 h-4 text-zinc-500 mb-3 group-hover:text-red-400 transition-colors" />
+          <Shield className="w-4 h-4 text-zinc-500 mb-3 group-hover:text-primary transition-colors" />
           <div className="flex items-center gap-2">
             <span className="text-2xl font-black text-emerald-400">{wins}</span>
             <span className="text-zinc-600 font-black text-xl">-</span>
-            <span className="text-2xl font-black text-red-400/80">{totalMatches - wins}</span>
+            <span className="text-2xl font-black text-primary/80">{totalMatches - wins}</span>
           </div>
           <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.2em] mt-1">W/L Record</span>
         </div>

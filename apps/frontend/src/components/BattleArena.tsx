@@ -41,7 +41,7 @@ export function BattleArena() {
   return (
     <div className="min-h-[90vh] flex flex-col items-center relative overflow-hidden px-6 pb-24">
       {/* Background Flair */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-red-500/5 blur-[150px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-primary/5 blur-[150px] rounded-full pointer-events-none" />
 
       <div className="z-10 w-full max-w-6xl flex flex-col items-center">
         <BattleArenaHeader />
@@ -50,15 +50,15 @@ export function BattleArena() {
           <LiveMatchList matches={liveMatches} />
         ) : !match ? (
           <div className="flex flex-col items-center justify-center gap-8 min-h-[50vh]">
-            <div className="w-16 h-16 border-2 border-zinc-900 border-t-red-500 rounded-full animate-spin" />
+            <div className="w-16 h-16 border-2 border-zinc-900 border-t-primary rounded-full animate-spin" />
             <div className="space-y-2 text-center">
-              <p className="font-mono text-xs text-red-500 uppercase tracking-[0.2em]">Establishing Combat Link</p>
+              <p className="font-mono text-xs text-primary uppercase tracking-[0.2em]">Establishing Combat Link</p>
               <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest">Bridging Avalanche RPC :: Fuji-Testnet</p>
             </div>
           </div>
         ) : match.status === 'aborted' ? (
-          <div className="w-full max-w-2xl bg-red-500/[0.03] border border-red-500/20 p-12 flex flex-col items-center text-center gap-8">
-            <ShieldAlert className="w-16 h-16 text-red-500 opacity-50" />
+          <div className="w-full max-w-2xl bg-primary/[0.03] border border-primary/20 p-12 flex flex-col items-center text-center gap-8">
+            <ShieldAlert className="w-16 h-16 text-primary opacity-50" />
             <div className="space-y-4">
               <h2 className="text-3xl font-black italic tracking-tighter text-white uppercase">Signal Lost // Aborted</h2>
               <p className="font-mono text-xs text-zinc-500 max-w-sm leading-relaxed uppercase tracking-widest">

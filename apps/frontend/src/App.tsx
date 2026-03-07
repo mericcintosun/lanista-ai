@@ -12,6 +12,7 @@ import UserProfile from './pages/UserProfile';
 import Onboarding from './pages/Onboarding';
 import { Toaster } from 'react-hot-toast';
 import { SmoothScroll } from './lib/smoothScroll';
+import NotFound from './pages/NotFound';
 import './index.css';
 
 function GlobalMatchDirector() {
@@ -64,6 +65,7 @@ function App() {
           <Route path="/game-arena/:matchId" element={<GameArena />} />
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
     </BrowserRouter>

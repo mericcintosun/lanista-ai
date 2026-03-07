@@ -25,6 +25,8 @@ export function MobileMenu({ navH, setIsMobileMenuOpen, navItems, myAgentId = nu
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => setSession(session));
+    return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -44,8 +46,14 @@ export function MobileMenu({ navH, setIsMobileMenuOpen, navItems, myAgentId = nu
   }, []);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    window.location.href = '/';
+    try {
+      setIsMobileMenuOpen(false);
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error('Sign out failed:', err);
+    } finally {
+      window.location.href = '/';
+    }
   };
 
   return (
@@ -126,8 +134,9 @@ export function MobileMenu({ navH, setIsMobileMenuOpen, navItems, myAgentId = nu
         <div className="pt-4 border-t border-white/5" ref={el => itemsRef.current[20] = el}>
           {session ? (
             <button
+              type="button"
               onClick={handleSignOut}
-              className="flex items-center justify-center gap-3 w-full p-5 rounded-2xl bg-red-500/5 border border-red-500/10 text-red-500 font-black uppercase tracking-widest italic text-sm"
+              className="flex items-center justify-center gap-3 w-full p-5 rounded-2xl bg-primary/5 border border-primary/10 text-primary font-black uppercase tracking-widest italic text-sm"
             >
               <LogOut className="w-5 h-5" /> Terminate Session
             </button>

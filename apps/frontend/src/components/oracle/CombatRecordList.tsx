@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { Zap, ExternalLink, Link2 } from 'lucide-react';
 import type { OnChainMatch } from '../../hooks/useOracleData';
 
@@ -18,7 +19,7 @@ export function CombatRecordList({
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-4">
-        <Zap className="w-5 h-5 text-red-500" />
+        <Zap className="w-5 h-5 text-primary" />
         <h2 className="text-xs font-black tracking-[0.4em] uppercase text-white">Verified Battle Log</h2>
       </div>
 
@@ -65,7 +66,13 @@ export function CombatRecordList({
                     <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 flex-1 justify-center w-full">
                       <div className="flex items-center justify-end gap-2 sm:gap-3 w-full md:flex-1">
                         <div>
-                          <span className="block font-black text-white text-lg sm:text-xl tracking-tighter uppercase italic">{winner?.name}</span>
+                          <Link
+                            to={`/agent/${match.winner_id}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="block font-black text-white text-lg sm:text-xl tracking-tighter uppercase italic hover:text-primary transition-colors truncate max-w-[180px] sm:max-w-[220px]"
+                          >
+                            {winner?.name}
+                          </Link>
                           <span className="block font-mono text-xs text-zinc-400 uppercase tracking-widest font-bold">UID: {winner?.wallet_address?.substring(0, 10)}...</span>
                           {isOnChain && (
                             <span className="mt-1 inline-flex items-center rounded-full bg-zinc-900/80 border border-zinc-700 px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.16em] text-zinc-300">
@@ -89,7 +96,13 @@ export function CombatRecordList({
                           className="w-8 h-8 rounded-full bg-zinc-900 border border-white/10 p-0.5 opacity-40"
                         />
                         <div>
-                          <span className="block font-black text-zinc-300 text-lg sm:text-xl tracking-tighter uppercase italic">{loser?.name}</span>
+                          <Link
+                            to={`/agent/${match.winner_id === match.player_1_id ? match.player_2_id : match.player_1_id}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="block font-black text-zinc-300 text-lg sm:text-xl tracking-tighter uppercase italic hover:text-primary transition-colors truncate max-w-[180px] sm:max-w-[220px]"
+                          >
+                            {loser?.name}
+                          </Link>
                           <span className="block font-mono text-xs text-zinc-600 uppercase tracking-widest font-bold">UID: {loser?.wallet_address?.substring(0, 10)}...</span>
                         </div>
                       </div>

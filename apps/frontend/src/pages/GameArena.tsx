@@ -58,7 +58,7 @@ export default function GameArena() {
         particleCount: 150,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#FF2D2D', '#FFFFFF', '#000000']
+        colors: ['#df7f3e', '#FFFFFF', '#000000']
       });
     }
     
@@ -77,7 +77,10 @@ export default function GameArena() {
     return (
       <div className="py-8 space-y-8">
         <Reveal>
-          <PageHeader title="ARENA" subtitle="// ACTIVE ENGAGEMENTS" />
+          <div>
+            <PageHeader title="ARENA" subtitle="// ACTIVE ENGAGEMENTS" />
+            <div className="h-px w-24 mx-auto mt-4 bg-gradient-to-r from-blue-500 via-secondary to-transparent" />
+          </div>
         </Reveal>
         <div className="max-w-6xl mx-auto w-full px-4">
           <Reveal delay={0.2} direction="up">
@@ -91,7 +94,7 @@ export default function GameArena() {
   if (!match) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
-        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin shadow-[0_0_30px_rgba(255,45,45,0.3)]" />
+        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin shadow-[0_0_30px_rgba(59,130,246,0.3)]" />
         <div className="font-mono text-xs text-zinc-500 uppercase tracking-[0.3em] animate-pulse text-center">
           Establishing Neural Link...<br/>
           <span className="text-[10px] opacity-50">Syncing with Arena Oracle</span>
@@ -113,10 +116,10 @@ export default function GameArena() {
       </Reveal>
       
       {/* ── INTEGRATED TOOLBAR ── */}
-      <Reveal className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 glass border-white/5 bg-white/[0.02] rounded-xl" delay={0.1}>
+      <Reveal className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-xl border border-blue-500/20 bg-gradient-to-r from-blue-500/10 via-transparent to-secondary/10" delay={0.1}>
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
-            <Swords className="w-5 h-5 text-primary" />
+          <div className="w-10 h-10 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
+            <Swords className="w-5 h-5 text-blue-400" />
           </div>
           <div>
             <h1 className="font-mono text-xl font-black text-white italic uppercase tracking-tighter leading-none">Combat Feed</h1>
@@ -130,7 +133,7 @@ export default function GameArena() {
              <span className="font-mono text-xs text-white uppercase tabular-nums">#{matchId?.substring(0, 12)}</span>
           </div>
           <div className={`px-4 py-1.5 border rounded font-mono text-[10px] tracking-widest font-black ${
-            isFinished ? 'bg-zinc-800 border-zinc-700 text-zinc-500' : 'bg-primary/20 border-primary/30 text-primary animate-pulse'
+            isFinished ? 'bg-zinc-800 border-zinc-700 text-zinc-500' : 'bg-secondary/20 border-secondary/30 text-secondary animate-pulse'
           }`}>
             {isFinished ? 'STATUS: ARCHIVED' : 'STATUS: LIVE_ENGAGEMENT'}
           </div>
@@ -141,7 +144,7 @@ export default function GameArena() {
         {/* Main: Unity & Stats — mobile: 2nd, desktop: left 8 cols */}
         <Reveal className="lg:col-span-8 flex flex-col gap-4 sm:gap-6 order-2 lg:order-1" direction="left" delay={0.2}>
           <div className="relative group">
-            <div className="absolute -inset-[1px] bg-gradient-to-r from-primary/20 via-primary/5 to-cyan-500/20 rounded-2xl blur-sm opacity-50" />
+            <div className="absolute -inset-[1px] bg-gradient-to-r from-blue-500/20 via-transparent to-secondary/20 rounded-2xl blur-sm opacity-50" />
             <div className="relative">
               <UnityFrame
                 ref={iframeRef}

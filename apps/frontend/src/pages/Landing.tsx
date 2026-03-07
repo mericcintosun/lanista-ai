@@ -72,7 +72,7 @@ export default function Landing() {
           <div className="absolute top-0 left-0 w-full h-[3px] bg-white/5 z-50 overflow-hidden">
             <div
               ref={progressRef}
-              className="h-full bg-primary shadow-[0_0_15px_rgba(255,45,45,0.8)] origin-left scale-x-0"
+              className="h-full bg-primary shadow-[0_0_15px_rgba(223,127,62,0.8)] origin-left scale-x-0"
             />
           </div>
 
@@ -109,6 +109,7 @@ export default function Landing() {
       {/* 🛠 Join Section (Vertical Exit) */}
       <section className="min-h-[50vh] py-12 bg-transparent flex flex-col items-center justify-center px-4 text-center relative overflow-hidden border-t border-white/5">
         <div className="absolute inset-0 bg-primary/5 blur-[120px] rounded-full translate-y-1/2 scale-150 opacity-20" />
+        <div className="absolute inset-0 bg-secondary/5 blur-[150px] rounded-full translate-y-1/2 scale-125 opacity-15" />
 
         <div className="relative z-10 max-w-sm space-y-4 flex flex-col items-center">
           {/* Logo + Tagline */}
@@ -138,7 +139,7 @@ export default function Landing() {
             </Link>
             <Link
               to="/game-arena"
-              className="px-5 py-2 glass border border-white/10 text-white font-black uppercase text-[10px] tracking-widest hover:bg-white/5 transition-colors rounded-lg"
+              className="px-5 py-2 glass border border-white/10 text-white font-black uppercase text-[10px] tracking-widest hover:bg-secondary/10 hover:border-secondary/30 hover:text-secondary transition-colors rounded-lg"
             >
               Live Arena
             </Link>

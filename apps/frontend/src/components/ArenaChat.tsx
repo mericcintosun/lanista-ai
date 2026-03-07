@@ -27,8 +27,8 @@ function MegaphoneBanner({ message }: { message: ArenaChatMessage }) {
       style={{ top: '5rem' }}
     >
       <div className="relative mx-4 rounded-lg border border-amber-500/40 bg-gradient-to-b from-zinc-900/98 to-zinc-950/98 shadow-[0_4px_24px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.06),inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
-        <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-amber-500/5 via-transparent to-red-500/5 pointer-events-none" aria-hidden />
-        <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg bg-gradient-to-b from-amber-500 via-amber-400 to-red-500" aria-hidden />
+        <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-amber-500/5 via-transparent to-primary/5 pointer-events-none" aria-hidden />
+        <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg bg-gradient-to-b from-amber-500 via-amber-400 to-primary" aria-hidden />
         <div className="flex items-center h-14">
           <div className="flex items-center gap-3 pl-4 pr-6 shrink-0 border-r border-amber-500/20">
             <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-amber-500/20 border border-amber-400/30">
@@ -79,29 +79,23 @@ function MessageRow({ msg }: { msg: ArenaChatMessage }) {
 
   if (msg.type === 'normal') {
     return (
-      <div className="flex flex-col gap-0.5 sm:gap-1 rounded-r-lg">
-        <div className="flex items-baseline gap-1.5 sm:gap-2">
-          <span className="text-[9px] sm:text-[10px] font-mono text-zinc-500 shrink-0">{formatTime(msg.timestamp)}</span>
-          <span className="text-xs sm:text-sm font-bold text-zinc-200 truncate">{msg.username}:</span>
-        </div>
-        <p className="text-xs sm:text-sm leading-relaxed text-zinc-400 break-words pl-0">{msg.text}</p>
+      <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0 rounded-r-lg">
+        <span className="text-[9px] sm:text-[10px] font-mono text-zinc-500 shrink-0">{formatTime(msg.timestamp)}</span>
+        <span className="text-xs sm:text-sm font-bold text-zinc-200 shrink-0">{msg.username}:</span>
+        <span className="text-xs sm:text-sm leading-relaxed text-zinc-400 break-words min-w-0">{msg.text}</span>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-1 sm:gap-1.5 rounded-r-lg p-2 sm:p-3 border-l-2 border-primary bg-gradient-to-r from-primary/10 to-transparent shadow-[inset_4px_0_0_0_rgba(255,45,45,0.15)]">
-      <div className="flex items-baseline justify-between gap-1.5 sm:gap-2 flex-wrap">
-        <div className="flex items-baseline gap-1.5 sm:gap-2 min-w-0">
-          <span className="text-xs sm:text-sm font-bold text-zinc-100 truncate">{msg.username}:</span>
-          {sparkSpent != null && (
-            <span className="text-[9px] sm:text-[10px] bg-amber-500/10 text-amber-500 px-1.5 sm:px-2 py-0.5 rounded border border-amber-500/30 font-bold uppercase tracking-tighter shrink-0">
-              {sparkSpent} Spark
-            </span>
-          )}
-        </div>
-      </div>
-      <p className="text-xs sm:text-sm leading-relaxed text-amber-50/95 font-medium break-words">{msg.text}</p>
+    <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 rounded-r-lg p-2 sm:p-3 border-l-2 border-primary bg-gradient-to-r from-primary/10 to-transparent shadow-[inset_4px_0_0_0_rgba(223,127,62,0.15)]">
+      <span className="text-xs sm:text-sm font-bold text-zinc-100 shrink-0">{msg.username}:</span>
+      {sparkSpent != null && (
+        <span className="text-[9px] sm:text-[10px] bg-amber-500/10 text-amber-500 px-1.5 sm:px-2 py-0.5 rounded border border-amber-500/30 font-bold uppercase tracking-tighter shrink-0">
+          {sparkSpent} Spark
+        </span>
+      )}
+      <span className="text-xs sm:text-sm leading-relaxed text-amber-50/95 font-medium break-words min-w-0">{msg.text}</span>
     </div>
   );
 }
@@ -188,14 +182,14 @@ export function ArenaChat({ matchId, session, match, unityIframeRef, className =
       />
 
       <main
-        className={`w-full min-h-[160px] sm:min-h-[360px] lg:min-h-[560px] max-h-[38vh] sm:max-h-[55vh] lg:max-h-[700px] flex flex-col bg-black/60 backdrop-blur-md border border-zinc-800 rounded-xl overflow-hidden shadow-2xl transition-[max-height] duration-300 ${expanded ? 'max-lg:!max-h-[85vh]' : ''} ${className}`}
+        className={`w-full min-h-[160px] sm:min-h-[360px] lg:min-h-[560px] max-h-[38vh] sm:max-h-[55vh] lg:max-h-[700px] flex flex-col bg-black/60 backdrop-blur-md border border-blue-500/20 rounded-xl overflow-hidden shadow-2xl transition-[max-height] duration-300 ${expanded ? 'max-lg:!max-h-[85vh]' : ''} ${className}`}
       >
         {/* Header */}
-        <header className="p-2.5 sm:p-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/50 shrink-0">
+        <header className="p-2.5 sm:p-4 border-b border-blue-500/20 flex items-center justify-between bg-gradient-to-r from-blue-500/10 to-secondary/10 shrink-0">
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-primary rounded-full animate-pulse shadow-[0_0_8px_var(--primary-glow)]" />
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-blue-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
             <h1 className="text-sm sm:text-lg font-bold tracking-wider uppercase italic text-zinc-100">
-              Lanista <span className="text-primary drop-shadow-[0_0_5px_var(--primary-glow)]">Arena</span>
+              Lanista <span className="text-secondary drop-shadow-[0_0_5px_rgba(12,165,90,0.4)]">Arena</span>
             </h1>
           </div>
           <div className="flex items-center gap-2">
@@ -242,7 +236,7 @@ export function ArenaChat({ matchId, session, match, unityIframeRef, className =
         </section>
 
         {error && (
-          <div className="px-4 py-2 bg-red-950/50 border-t border-red-500/20 text-red-400 text-xs font-mono shrink-0">
+          <div className="px-4 py-2 bg-primary/10 border-t border-primary/20 text-primary text-xs font-mono shrink-0">
             {error}
           </div>
         )}
@@ -287,7 +281,7 @@ export function ArenaChat({ matchId, session, match, unityIframeRef, className =
                 type="button"
                 onClick={() => handleSend('megaphone')}
                 disabled={!session || !input.trim() || sending !== null}
-                className="flex items-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 transition-colors text-primary disabled:opacity-50 disabled:pointer-events-none group"
+                className="flex items-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg bg-primary/10 border border-primary/30 hover:bg-primary/20 transition-colors text-primary disabled:opacity-50 disabled:pointer-events-none group"
                 title="Megaphone (500 Spark) — banner to all viewers"
               >
                 <Megaphone className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform" />
