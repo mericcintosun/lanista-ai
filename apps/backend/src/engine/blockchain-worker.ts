@@ -74,6 +74,7 @@ const blockchainWorker = new Worker('blockchain-queue', async (job) => {
         }
 
         // 3. Rank-up loot — Chainlink VRF NFT only when winner ranked up; once per bot per rank
+        console.log(`[Blockchain] winnerRankedUp=${winnerRankedUp} winnerNewRankIndex=${winnerNewRankIndex} winnerId=${winnerId}`);
         if (winnerRankedUp && typeof winnerNewRankIndex === 'number' && winnerId) {
             const { data: existing } = await supabase
                 .from('rank_up_loot_requests')

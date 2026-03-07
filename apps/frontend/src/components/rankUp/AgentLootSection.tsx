@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, ExternalLink, X, Sparkles } from 'lucide-react';
+import { Package, ExternalLink, X, Sparkles, RefreshCw } from 'lucide-react';
 import { Skeleton } from '../common/Skeleton';
 import { API_URL } from '../../lib/api';
 import { tokenIdToImagePath, tokenIdToName, tokenIdToDescription, tokenIdToRankAndSlot } from '../../lib/rankUpItems';
 
 const FUJI_EXPLORER = 'https://testnet.snowtrace.io';
-const RANK_UP_LOOT_NFT_ADDRESS = '0xde15a54ef5f3d993352532faca843889ec2072b2';
+const RANK_UP_LOOT_NFT_ADDRESS =
+  import.meta.env.VITE_RANK_UP_LOOT_NFT_ADDRESS || '0xaE1Aa40228A5eeD0e0D0218f6402C4911b97efd8';
 
 interface InventoryItem {
   tokenId: number;
@@ -87,6 +88,18 @@ export function AgentLootSection({ walletAddress, agentName, initialInventory }:
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const effectiveItems = hasValidWallet ? items : [];
 
+  const fetchInventory = useCallback(() => {
+    if (!hasValidWallet || !walletAddress) return;
+    setLoading(true);
+    fetch(`${API_URL}/oracle/inventory/${encodeURIComponent(walletAddress)}`, { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((data) => {
+        setItems(Array.isArray(data?.items) ? data.items : []);
+      })
+      .catch(() => setItems([]))
+      .finally(() => setLoading(false));
+  }, [walletAddress, hasValidWallet]);
+
   useEffect(() => {
     if (Array.isArray(initialInventory)) {
       setItems(initialInventory);
@@ -94,17 +107,8 @@ export function AgentLootSection({ walletAddress, agentName, initialInventory }:
       return;
     }
     if (!hasValidWallet) return;
-    setLoading(true);
-    const ac = new AbortController();
-    fetch(`${API_URL}/oracle/inventory/${encodeURIComponent(walletAddress!)}`, { signal: ac.signal })
-      .then((r) => r.json())
-      .then((data) => {
-        setItems(Array.isArray(data?.items) ? data.items : []);
-      })
-      .catch(() => setItems([]))
-      .finally(() => setLoading(false));
-    return () => ac.abort();
-  }, [walletAddress, hasValidWallet, initialInventory]);
+    fetchInventory();
+  }, [walletAddress, hasValidWallet, initialInventory, fetchInventory]);
 
   if (!walletAddress) return null;
 
@@ -134,16 +138,28 @@ export function AgentLootSection({ walletAddress, agentName, initialInventory }:
                 </p>
               </div>
             </div>
-            {RANK_UP_LOOT_NFT_ADDRESS && (
-              <a
-                href={`${FUJI_EXPLORER}/address/${RANK_UP_LOOT_NFT_ADDRESS}?a=${walletAddress}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-zinc-500 hover:text-red-400 transition-colors border border-red-900/30 hover:border-red-700/50 px-3 py-2 rounded-lg"
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={fetchInventory}
+                disabled={loading}
+                className="inline-flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-zinc-500 hover:text-red-400 transition-colors border border-red-900/30 hover:border-red-700/50 px-3 py-2 rounded-lg disabled:opacity-50"
+                title="Refresh inventory"
               >
-                View on Snowtrace <ExternalLink className="w-3 h-3" />
-              </a>
-            )}
+                <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+              </button>
+              {RANK_UP_LOOT_NFT_ADDRESS && (
+                <a
+                  href={`${FUJI_EXPLORER}/address/${RANK_UP_LOOT_NFT_ADDRESS}?a=${walletAddress}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-zinc-500 hover:text-red-400 transition-colors border border-red-900/30 hover:border-red-700/50 px-3 py-2 rounded-lg"
+                >
+                  View on Snowtrace <ExternalLink className="w-3 h-3" />
+                </a>
+              )}
+            </div>
           </div>
 
           {loading && (

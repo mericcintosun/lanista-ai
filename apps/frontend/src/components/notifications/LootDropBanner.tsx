@@ -9,7 +9,7 @@ const BANNER_DURATION_MS = 8000;
 
 function LootDropBannerInner({ notification, onDismiss }: { notification: LootDropNotification; onDismiss: () => void }) {
   const { botName, rankName, itemName, itemId, botId } = notification;
-  const displayText = `${botName} ${rankName}'A ÇIKARAK … ${itemName}'INI DÜŞÜRDÜ.`;
+  const displayText = `${botName} ranked up to ${rankName} and dropped … ${itemName}.`;
 
   const [imgError, setImgError] = useState(false);
   useEffect(() => {

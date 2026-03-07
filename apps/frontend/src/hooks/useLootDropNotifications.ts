@@ -5,7 +5,7 @@ import { useLootDropStore } from '../lib/loot-drop-store';
 import { RANK_NAMES, tokenIdToName } from '../lib/rankUpItems';
 
 const POLL_INTERVAL_MS = 30_000;
-const POLL_LOOKBACK_MS = 5 * 60 * 1000;
+const POLL_LOOKBACK_MS = 10 * 60 * 1000;
 
 type LootDropRow = {
   id: string;
@@ -130,6 +130,22 @@ export function useLootDropNotifications() {
 
     poll();
     const id = setInterval(poll, POLL_INTERVAL_MS);
-    return () => clearInterval(id);
+
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') poll();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
+    if (typeof window !== 'undefined') {
+      (window as unknown as { __refreshLootDrops?: () => void }).__refreshLootDrops = poll;
+    }
+
+    return () => {
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', onVisible);
+      if (typeof window !== 'undefined') {
+        delete (window as unknown as { __refreshLootDrops?: () => void }).__refreshLootDrops;
+      }
+    };
   }, [push]);
 }

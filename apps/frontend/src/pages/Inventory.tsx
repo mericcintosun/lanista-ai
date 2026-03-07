@@ -13,7 +13,8 @@ interface InventoryItem {
 }
 
 const FUJI_EXPLORER = 'https://testnet.snowtrace.io';
-const RANK_UP_LOOT_NFT_ADDRESS = '0xde15a54ef5f3d993352532faca843889ec2072b2';
+const RANK_UP_LOOT_NFT_ADDRESS =
+  import.meta.env.VITE_RANK_UP_LOOT_NFT_ADDRESS || '0xaE1Aa40228A5eeD0e0D0218f6402C4911b97efd8';
 
 export default function Inventory() {
   const [searchParams] = useSearchParams();

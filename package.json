@@ -9,7 +9,10 @@
     "spawn-dummy-requeue": "npx tsx spawn-dummy-requeue.ts",
     "arena": "npx tsx spawn-dummy-requeue.ts",
     "force-rank-up-ready": "npx tsx scripts/force-rank-up-ready.ts",
-    "trigger-test-loot-notification": "npx tsx scripts/trigger-test-loot-notification.ts"
+    "set-all-bots-rank-up-ready": "npx tsx scripts/set-all-bots-rank-up-ready.ts",
+    "trigger-test-loot-notification": "npx tsx scripts/trigger-test-loot-notification.ts",
+    "check-inventory": "npx tsx scripts/check-inventory.ts",
+    "debug-loot-mismatch": "npx tsx scripts/debug-loot-mismatch.ts"
   },
   "version": "1.0.0",
   "private": true,

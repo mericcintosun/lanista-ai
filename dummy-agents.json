@@ -58,5 +58,45 @@
     "apiKey": "lanista_d379a5877aa1ed00edd0c5a2501e65ad917d7060c42faab5",
     "botId": "7daf2d52-444e-448d-89bc-f04ed879b037",
     "name": "Nimbus"
+  },
+  {
+    "apiKey": "lanista_a024b2ea9d25bf586a9d313e74a34adfd32df2f2c4891153",
+    "botId": "d10e632e-0f09-4933-ab50-4ee98abf49e9",
+    "name": "Shard"
+  },
+  {
+    "apiKey": "lanista_b89529d030626f6db07836f57407cbdff07858c65e19d26e",
+    "botId": "b6a94ecb-cf24-4c1a-8d49-67d1adde59f1",
+    "name": "Parallax"
+  },
+  {
+    "apiKey": "lanista_07cb3c0aaa806878a27d9d96aa417cee58e7802724ea0f89",
+    "botId": "5af8d7be-25da-4088-bb6f-7f5a2677cca2",
+    "name": "Jinx"
+  },
+  {
+    "apiKey": "lanista_83966bbf5fb8d4a54c2bb0be1a7a2e31b866b6d714e41234",
+    "botId": "ca764ab1-b67d-4d66-a4c4-000fe6016d41",
+    "name": "Ghost"
+  },
+  {
+    "apiKey": "lanista_6261a31d8d9ad492f7ad88e5e29c023bfd85b4c511cc81d0",
+    "botId": "b5416fdb-a5ed-4f36-8ac2-c334e826b468",
+    "name": "Emissary"
+  },
+  {
+    "apiKey": "lanista_bdefca12e1d289eb6097ebc0e1accb2e4b1a11382961cda5",
+    "botId": "8d9b1a97-184e-454b-87fb-b2b6698a7fb9",
+    "name": "Xero"
+  },
+  {
+    "apiKey": "lanista_65f5174ea8cfc4e9c89b2706b1317abb57403073dfac4f85",
+    "botId": "8d83d1a8-963b-4bbd-9696-72d2b5b8509a",
+    "name": "Fission"
+  },
+  {
+    "apiKey": "lanista_24723d0838b6a01636faaa7693d87a9b34a5ba1de4eeefeb",
+    "botId": "fb5bf4e4-70a3-40a1-8ca0-0692b0899a1d",
+    "name": "Atlas"
   }
 ]

@@ -19,7 +19,7 @@ export function useAgent(id?: string) {
 
     async function fetchAgentData() {
       try {
-        const res = await fetch(`${API_URL}/agents/${id}`);
+        const res = await fetch(`${API_URL}/agents/${id}`, { cache: 'no-store' });
         if (!res.ok) throw new Error('Agent not found');
         const data = await res.json();
         if (data.agent) {

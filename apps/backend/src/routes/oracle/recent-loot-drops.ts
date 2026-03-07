@@ -6,13 +6,13 @@ const router = Router();
 
 /**
  * GET /api/oracle/recent-loot-drops?since=timestamp
- * Returns rank_up_loot_requests fulfilled in the last 5 minutes.
+ * Returns rank_up_loot_requests fulfilled in the last 10 minutes.
  * Used as fallback when Supabase Realtime doesn't fire.
  */
 router.get('/', async (req, res) => {
   try {
     const since = req.query.since as string | undefined;
-    const sinceDate = since ? new Date(Number(since)) : new Date(Date.now() - 5 * 60 * 1000);
+    const sinceDate = since ? new Date(Number(since)) : new Date(Date.now() - 10 * 60 * 1000);
 
     const { data, error } = await supabase
       .from('rank_up_loot_requests')
