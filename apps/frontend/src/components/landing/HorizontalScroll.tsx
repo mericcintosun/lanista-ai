@@ -43,6 +43,7 @@ export function HorizontalScroll() {
               decoding="async"
               className="absolute inset-0 w-full h-full object-cover opacity-30"
             />
+            <div className="absolute inset-0 bg-primary/15" aria-hidden />
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
 
             <div className="absolute inset-0 p-6 md:p-12 flex flex-col justify-end z-10">

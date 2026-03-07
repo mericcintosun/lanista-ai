@@ -1,9 +1,4 @@
-interface HofHeaderProps {
-  liveUpdates?: boolean;
-  onToggleLive?: () => void;
-}
-
-export function HofHeader({ liveUpdates, onToggleLive }: HofHeaderProps) {
+export function HofHeader() {
   return (
     <section className="text-center space-y-8 pt-12 px-4 flex flex-col items-center justify-center min-h-[30vh] relative overflow-hidden">
       <div className="space-y-4 w-full">
