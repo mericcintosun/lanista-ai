@@ -28,6 +28,15 @@ export interface ThrowablePayload {
   target: ThrowableTarget;
 }
 
+export type EmojiOrigin = 'left' | 'right';
+
+export interface EmojiPayload {
+  id: string;
+  emoji: string;
+  offsetX: number;
+  origin?: EmojiOrigin;
+}
+
 async function spendSpark(
   accessToken: string,
   amount: number,
@@ -58,8 +67,11 @@ export function useArenaChat(
   }
 ) {
   const [messages, setMessages] = useState<ArenaChatMessage[]>([]);
+  const [floatingEmojis, setFloatingEmojis] = useState<EmojiPayload[]>([]);
   const [sending, setSending] = useState<'normal' | 'highlight' | 'megaphone' | 'tomato' | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const MAX_FLOATING_EMOJIS = 12;
   const channelRef = useRef<RealtimeChannel | null>(null);
   const onThrowableRef = useRef(options?.onThrowable);
   const onSpendRef = useRef(options?.onSpend);
@@ -93,6 +105,13 @@ export function useArenaChat(
       const p = payload as ThrowablePayload;
       if (p?.type === 'throwable' && p?.item === 'tomato' && (p?.target === 'player_1' || p?.target === 'player_2')) {
         onThrowableRef.current?.(p);
+      }
+    });
+
+    channel.on('broadcast', { event: 'emoji' }, ({ payload }) => {
+      const p = payload as EmojiPayload;
+      if (p?.id && typeof p?.emoji === 'string' && typeof p?.offsetX === 'number') {
+        setFloatingEmojis((prev) => [...prev.slice(-(MAX_FLOATING_EMOJIS - 1)), { ...p, origin: p.origin || 'left' }]);
       }
     });
 
@@ -199,8 +218,31 @@ export function useArenaChat(
     [session, matchId]
   );
 
+  const sendEmoji = useCallback(
+    (emoji: string, origin: EmojiOrigin = 'left') => {
+      const ch = channelRef.current;
+      if (!matchId || !ch) return;
+      const payload: EmojiPayload = {
+        id: crypto.randomUUID(),
+        emoji,
+        offsetX: (Math.random() - 0.5) * 60,
+        origin,
+      };
+      ch.send({ type: 'broadcast', event: 'emoji', payload });
+      setFloatingEmojis((prev) => [...prev.slice(-(MAX_FLOATING_EMOJIS - 1)), payload]);
+    },
+    [matchId]
+  );
+
+  const removeFloatingEmoji = useCallback((id: string) => {
+    setFloatingEmojis((prev) => prev.filter((e) => e.id !== id));
+  }, []);
+
   return {
     messages,
+    floatingEmojis,
+    removeFloatingEmoji,
+    sendEmoji,
     sendNormalMessage,
     sendHighlightMessage,
     sendMegaphoneMessage,

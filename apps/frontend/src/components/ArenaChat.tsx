@@ -5,6 +5,8 @@ import { useArenaChat, type ArenaChatMessage } from '../hooks/useArenaChat';
 import { useSparkBalance } from '../hooks/useSparkBalance';
 import { sendThrowableToUnity } from '../lib/unity';
 import { InteractionBar } from './arena/InteractionBar';
+import { EmojiReactionBar } from './arena/EmojiReactionBar';
+import { EmojiBubble } from './arena/EmojiBubble';
 import type { Match } from '@lanista/types';
 
 const MEGAPHONE_BANNER_DURATION_MS = 8000;
@@ -115,6 +117,9 @@ export function ArenaChat({ matchId, session, match, unityIframeRef, className =
 
   const {
     messages,
+    floatingEmojis,
+    removeFloatingEmoji,
+    sendEmoji,
     sendNormalMessage,
     sendHighlightMessage,
     sendMegaphoneMessage,
@@ -172,14 +177,30 @@ export function ArenaChat({ matchId, session, match, unityIframeRef, className =
         )}
       </AnimatePresence>
 
-      <InteractionBar
-        onThrowTomato={throwTomato}
-        sending={sending === 'tomato'}
-        session={session}
-        player1Name={match?.player_1?.name ?? 'Red'}
-        player2Name={match?.player_2?.name ?? 'Blue'}
-        className="mb-2 sm:mb-3"
-      />
+      <div className="flex items-center gap-2 mb-2 sm:mb-3">
+        <InteractionBar
+          onThrowTomato={throwTomato}
+          onEmoji={sendEmoji}
+          sending={sending === 'tomato'}
+          session={session}
+          player1Name={match?.player_1?.name ?? 'Red'}
+          player2Name={match?.player_2?.name ?? 'Blue'}
+          className="flex-1"
+        />
+      </div>
+
+      <AnimatePresence>
+        {floatingEmojis.map((e) => (
+          <EmojiBubble
+            key={e.id}
+            id={e.id}
+            emoji={e.emoji}
+            offsetX={e.offsetX}
+            origin={e.origin}
+            onComplete={() => removeFloatingEmoji(e.id)}
+          />
+        ))}
+      </AnimatePresence>
 
       <main
         className={`w-full min-h-[160px] sm:min-h-[360px] lg:min-h-[560px] max-h-[38vh] sm:max-h-[55vh] lg:max-h-[700px] flex flex-col bg-black/60 backdrop-blur-md border border-blue-500/20 rounded-xl overflow-hidden shadow-2xl transition-[max-height] duration-300 ${expanded ? 'max-lg:!max-h-[85vh]' : ''} ${className}`}
@@ -243,7 +264,8 @@ export function ArenaChat({ matchId, session, match, unityIframeRef, className =
 
         {/* Footer: textarea + actions */}
         <footer className="p-2 sm:p-3 lg:p-4 border-t border-zinc-800 bg-zinc-900/50 shrink-0">
-          <div className="relative mb-2 sm:mb-3">
+          <div className="relative mb-2 sm:mb-3 flex items-end gap-2">
+            <EmojiReactionBar origin="left" onEmoji={sendEmoji} disabled={!session} className="shrink-0" />
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value.slice(0, MAX_MESSAGE_CHARS))}
@@ -252,7 +274,7 @@ export function ArenaChat({ matchId, session, match, unityIframeRef, className =
               disabled={!session}
               maxLength={MAX_MESSAGE_CHARS}
               rows={1}
-              className="w-full h-[2.25rem] sm:h-[3rem] lg:h-[4.5rem] min-h-[2.25rem] sm:min-h-[3rem] lg:min-h-[4.5rem] max-h-[2.25rem] sm:max-h-[3rem] lg:max-h-[4.5rem] bg-black/40 border border-zinc-700 rounded-lg px-2.5 py-1.5 sm:px-3 sm:py-2 lg:p-3 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-primary transition-colors resize-none overflow-y-auto"
+              className="flex-1 min-w-0 h-[2.25rem] sm:h-[3rem] lg:h-[4.5rem] min-h-[2.25rem] sm:min-h-[3rem] lg:min-h-[4.5rem] max-h-[2.25rem] sm:max-h-[3rem] lg:max-h-[4.5rem] bg-black/40 border border-zinc-700 rounded-lg px-2.5 py-1.5 sm:px-3 sm:py-2 lg:p-3 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-primary transition-colors resize-none overflow-y-auto"
             />
           </div>
 

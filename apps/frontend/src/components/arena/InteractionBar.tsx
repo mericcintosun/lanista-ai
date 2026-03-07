@@ -2,9 +2,11 @@ import { motion } from 'framer-motion';
 import { Target } from 'lucide-react';
 import type { ThrowableTarget } from '../../hooks/useArenaChat';
 import { TOMATO_COST } from '../../hooks/useArenaChat';
+import { EmojiReactionBar } from './EmojiReactionBar';
 
 interface InteractionBarProps {
   onThrowTomato: (target: ThrowableTarget) => void;
+  onEmoji: (emoji: string, origin: 'left' | 'right') => void;
   sending: boolean;
   session: { user: { id: string } } | null;
   player1Name?: string;
@@ -14,6 +16,7 @@ interface InteractionBarProps {
 
 export function InteractionBar({
   onThrowTomato,
+  onEmoji,
   sending,
   session,
   player1Name = 'Red',
@@ -24,6 +27,7 @@ export function InteractionBar({
     <div
       className={`flex items-center justify-center gap-2 sm:gap-3 py-2 sm:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl bg-black/60 backdrop-blur-md border border-blue-500/20 shadow-lg ${className}`}
     >
+      <EmojiReactionBar origin="left" onEmoji={onEmoji} disabled={!session} className="shrink-0" />
       <span className="text-[9px] sm:text-[10px] font-mono text-zinc-500 uppercase tracking-widest mr-0.5 sm:mr-1">
         Throw
       </span>
@@ -53,6 +57,7 @@ export function InteractionBar({
         <span className="text-[10px] sm:text-xs font-bold uppercase tracking-tighter">{player2Name}</span>
         <span className="text-[9px] sm:text-[10px] opacity-80 hidden sm:inline">-{TOMATO_COST}</span>
       </motion.button>
+      <EmojiReactionBar origin="right" onEmoji={onEmoji} disabled={!session} className="shrink-0" />
     </div>
   );
 }
