@@ -14,10 +14,6 @@ function ScanLines() {
   );
 }
 
-function GlowOrb({ className }: { className?: string }) {
-  return <div className={`absolute rounded-full blur-[120px] pointer-events-none ${className}`} />;
-}
-
 export function Hero() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [session, setSession] = useState<any>(null);
@@ -60,9 +56,6 @@ export function Hero() {
 
   return (
     <section className="relative min-h-[70vh] flex flex-col items-center justify-center text-center px-4 md:px-12 pt-8 md:pt-12 bg-transparent overflow-hidden">
-      <GlowOrb className="w-[400px] h-[400px] bg-primary/15 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-      <GlowOrb className="w-[300px] h-[300px] bg-golden/10 top-1/3 right-1/4 -translate-x-1/2 -translate-y-1/2" />
-      <GlowOrb className="w-[250px] h-[250px] bg-sage/8 bottom-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2" />
       <ScanLines />
 
       {/* Headline */}

@@ -3,6 +3,71 @@ import { supabase } from '../lib/supabase.js';
 
 const router = express.Router();
 
+router.get('/public/:username', async (req, res) => {
+    try {
+        const { username } = req.params;
+        if (!username || username.length < 2) return res.status(400).json({ error: "Invalid username" });
+
+        const { data: profile, error: profileErr } = await supabase
+            .from('profiles')
+            .select('id, callsign, bio, sector, role, avatar_url, banner_url, x_url, discord_url, website_url, public_username')
+            .eq('public_username', username)
+            .single();
+
+        if (profileErr || !profile) return res.status(404).json({ error: "Profile not found" });
+
+        const { data: bots } = await supabase
+            .from('bots')
+            .select('id, name, avatar_url, elo, total_matches, wins, losses')
+            .eq('owner_id', profile.id);
+
+        let highestElo = 0;
+        let totalWins = 0;
+        let totalLosses = 0;
+        (bots || []).forEach((bot: { elo?: number; wins?: number; losses?: number }) => {
+            if ((bot.elo ?? 1200) > highestElo) highestElo = bot.elo ?? 1200;
+            totalWins += bot.wins ?? 0;
+            totalLosses += bot.losses ?? 0;
+        });
+        const totalMatches = totalWins + totalLosses;
+        const winRate = totalMatches > 0 ? (totalWins / totalMatches) * 100 : 0;
+
+        const getRankName = (elo: number, played: boolean) => {
+            if (!played) return 'IRON';
+            if (elo >= 1000) return 'MASTER';
+            if (elo >= 600) return 'DIAMOND';
+            if (elo >= 350) return 'PLATINUM';
+            if (elo >= 200) return 'GOLD';
+            if (elo >= 100) return 'SILVER';
+            if (elo >= 30) return 'BRONZE';
+            return 'IRON';
+        };
+
+        return res.json({
+            profile: {
+                callsign: profile.callsign,
+                bio: profile.bio,
+                sector: profile.sector,
+                role: profile.role,
+                avatarUrl: profile.avatar_url,
+                bannerUrl: profile.banner_url,
+                xUrl: profile.x_url,
+                discordUrl: profile.discord_url,
+                websiteUrl: profile.website_url,
+                publicUsername: profile.public_username,
+                activeAgents: bots?.length ?? 0,
+                totalMatches,
+                winRate,
+                rank: getRankName(highestElo, totalMatches > 0),
+                agents: bots || []
+            }
+        });
+    } catch (error) {
+        console.error("Public profile fetch error:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
 router.get('/', async (req, res) => {
     try {
         const authHeader = req.headers.authorization;
@@ -70,6 +135,12 @@ router.get('/', async (req, res) => {
                 callsign: profile?.callsign || '',
                 bio: profile?.bio || '',
                 sector: profile?.sector || '',
+                avatarUrl: profile?.avatar_url || null,
+                bannerUrl: profile?.banner_url || null,
+                xUrl: profile?.x_url || null,
+                discordUrl: profile?.discord_url || null,
+                websiteUrl: profile?.website_url || null,
+                publicUsername: profile?.public_username || null,
                 onboardingCompleted: profile?.onboarding_completed === true,
                 agents: bots || []
             }
@@ -79,6 +150,45 @@ router.get('/', async (req, res) => {
     } catch (error) {
         console.error("Profile fetch error:", error);
         res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+router.patch('/', async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) return res.status(401).json({ error: "No token provided" });
+        const token = authHeader.replace('Bearer ', '');
+
+        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+        if (authError || !user) return res.status(401).json({ error: "Invalid token" });
+
+        const { role, callsign, bio, sector, avatarUrl, bannerUrl, xUrl, discordUrl, websiteUrl, publicUsername } = req.body;
+
+        const updates: Record<string, unknown> = {
+            updated_at: new Date().toISOString()
+        };
+        if (role !== undefined) updates.role = role;
+        if (callsign !== undefined) updates.callsign = callsign;
+        if (bio !== undefined) updates.bio = bio;
+        if (sector !== undefined) updates.sector = sector;
+        if (avatarUrl !== undefined) updates.avatar_url = avatarUrl;
+        if (bannerUrl !== undefined) updates.banner_url = bannerUrl;
+        if (xUrl !== undefined) updates.x_url = xUrl;
+        if (discordUrl !== undefined) updates.discord_url = discordUrl;
+        if (websiteUrl !== undefined) updates.website_url = websiteUrl;
+        if (publicUsername !== undefined) updates.public_username = publicUsername;
+
+        const { error } = await supabase
+            .from('profiles')
+            .update(updates)
+            .eq('id', user.id);
+
+        if (error) throw error;
+
+        return res.json({ message: "Profile updated.", success: true });
+    } catch (error: any) {
+        console.error("Profile update error:", error);
+        res.status(500).json({ error: error.message || "Internal server error" });
     }
 });
 

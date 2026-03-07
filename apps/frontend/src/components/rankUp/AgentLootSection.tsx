@@ -42,7 +42,7 @@ function LootCard({
       whileHover={{ scale: 1.02, y: -2 }}
       whileTap={{ scale: 0.98 }}
       onClick={onSelect}
-      className="group relative rounded-xl border border-white/10 bg-black/40 overflow-hidden text-left transition-all hover:border-primary/30 hover:shadow-[0_0_30px_rgba(223,127,62,0.08)]"
+      className="group relative rounded-xl border border-red-900/30 bg-transparent overflow-hidden text-left transition-all hover:border-red-700/50 hover:shadow-[0_0_30px_rgba(127,29,29,0.15)]"
     >
       <div className="aspect-square bg-gradient-to-b from-white/5 to-transparent relative flex items-center justify-center p-4">
         {!imgLoaded && (
@@ -60,11 +60,11 @@ function LootCard({
             setImgLoaded(true);
           }}
         />
-        <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-black/70 border border-white/10 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-300">
+        <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-red-900/40 border border-red-900/30 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-300">
           {rankName}
         </div>
       </div>
-      <div className="p-3 border-t border-white/5">
+      <div className="p-3 border-t border-red-900/30">
         <p className="font-black text-white text-sm italic uppercase tracking-tight truncate">{name}</p>
         {balance > 1 && (
           <p className="text-xs text-zinc-500 font-mono mt-0.5">× {balance}</p>
@@ -102,14 +102,14 @@ export function AgentLootSection({ walletAddress, agentName }: AgentLootSectionP
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl border border-white/10 bg-gradient-to-b from-zinc-900/80 to-black/60 backdrop-blur-xl overflow-hidden relative"
+        className="rounded-2xl border border-red-900/30 bg-transparent overflow-hidden relative"
       >
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(223,127,62,0.08),transparent)] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(127,29,29,0.06),transparent)] pointer-events-none" />
         <div className="relative z-10 p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
-                <Package className="w-4 h-4 text-primary" />
+              <div className="w-9 h-9 rounded-lg bg-red-900/20 border border-red-900/30 flex items-center justify-center">
+                <Package className="w-4 h-4 text-red-400" />
               </div>
               <div>
                 <h2 className="text-base font-bold text-white uppercase tracking-tight flex items-center gap-2">
@@ -128,7 +128,7 @@ export function AgentLootSection({ walletAddress, agentName }: AgentLootSectionP
                 href={`${FUJI_EXPLORER}/address/${RANK_UP_LOOT_NFT_ADDRESS}?a=${walletAddress}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-zinc-500 hover:text-primary transition-colors border border-white/5 hover:border-primary/30 px-3 py-2 rounded-lg"
+                className="inline-flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-zinc-500 hover:text-red-400 transition-colors border border-red-900/30 hover:border-red-700/50 px-3 py-2 rounded-lg"
               >
                 View on Snowtrace <ExternalLink className="w-3 h-3" />
               </a>
@@ -143,7 +143,7 @@ export function AgentLootSection({ walletAddress, agentName }: AgentLootSectionP
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="rounded-xl border border-white/10 bg-black/40 overflow-hidden">
+                  <div key={i} className="rounded-xl border border-red-900/30 bg-transparent overflow-hidden">
                     <Skeleton className="aspect-square" />
                     <div className="p-3 space-y-2">
                       <Skeleton className="h-4 w-3/4" />
@@ -156,7 +156,7 @@ export function AgentLootSection({ walletAddress, agentName }: AgentLootSectionP
           )}
 
           {!loading && effectiveItems.length === 0 && (
-            <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] py-16 px-6 text-center">
+            <div className="rounded-xl border border-dashed border-red-900/30 bg-transparent py-16 px-6 text-center">
               <Package className="w-12 h-12 text-zinc-600 mx-auto mb-3" />
               <p className="font-mono text-sm text-zinc-500 uppercase tracking-widest">No rank-up loot yet</p>
               <p className="text-xs text-zinc-600 mt-2 max-w-xs mx-auto">Win matches and rank up to earn Oracle-verified loot.</p>

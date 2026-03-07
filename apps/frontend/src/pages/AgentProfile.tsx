@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Reveal } from '../components/common/Reveal';
 import { MagneticButton } from '../components/common/MagneticButton';
@@ -7,11 +8,22 @@ import { AgentHero, MatchHistory } from '../components/agent';
 import { AgentLootSection } from '../components/rankUp/AgentLootSection';
 
 import { useAgent } from '../hooks/useAgent';
+import { fireTierConfetti } from '../lib/confettiTier';
 
 export default function AgentProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { agent, history, loading } = useAgent(id);
+  const lastConfettiAgentId = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (agent && lastConfettiAgentId.current !== agent.id) {
+      lastConfettiAgentId.current = agent.id;
+      const elo = agent.elo ?? 0;
+      const hasPlayed = (agent.true_total_matches ?? agent.total_matches ?? 0) > 0;
+      fireTierConfetti(elo, hasPlayed);
+    }
+  }, [agent]);
 
   if (loading) {
     return (
@@ -38,12 +50,7 @@ export default function AgentProfile() {
   }
 
   return (
-    <div className="min-h-screen pt-12 pb-24 bg-background relative overflow-hidden selection:bg-primary/30">
-      {/* BACKGROUND EFFECTS */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(223,127,62,0.03)_0%,transparent_70%)]" />
-      </div>
-
+    <div className="min-h-screen pt-12 pb-24 bg-transparent relative overflow-hidden selection:bg-primary/30">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 relative z-10">
         <div className="space-y-12">
           <Reveal delay={0.1}>

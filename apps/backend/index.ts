@@ -54,7 +54,7 @@ const allowedOrigins = corsOrigin === '*'
 
 app.use(cors({
   origin: allowedOrigins,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: corsOrigin !== '*' // Wildcard origins don't allow credentials
 }));

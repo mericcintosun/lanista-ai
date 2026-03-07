@@ -9,6 +9,7 @@ import Oracle from './pages/Oracle';
 import AgentProfile from './pages/AgentProfile';
 import GameArena from './pages/GameArena';
 import UserProfile from './pages/UserProfile';
+import PublicProfile from './pages/PublicProfile';
 import Onboarding from './pages/Onboarding';
 import { Toaster } from 'react-hot-toast';
 import { SmoothScroll } from './lib/smoothScroll';
@@ -64,6 +65,7 @@ function App() {
           <Route path="/game-arena" element={<GameArena />} />
           <Route path="/game-arena/:matchId" element={<GameArena />} />
           <Route path="/profile" element={<UserProfile />} />
+          <Route path="/profile/:username" element={<PublicProfile />} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="*" element={<NotFound />} />
         </Route>

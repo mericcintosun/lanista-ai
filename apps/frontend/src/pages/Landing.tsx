@@ -108,38 +108,36 @@ export default function Landing() {
 
       {/* 🛠 Join Section (Vertical Exit) */}
       <section className="min-h-[50vh] py-12 bg-transparent flex flex-col items-center justify-center px-4 text-center relative overflow-hidden border-t border-white/5">
-        <div className="absolute inset-0 bg-primary/5 blur-[120px] rounded-full translate-y-1/2 scale-150 opacity-20" />
-        <div className="absolute inset-0 bg-secondary/5 blur-[150px] rounded-full translate-y-1/2 scale-125 opacity-15" />
 
-        <div className="relative z-10 max-w-sm space-y-4 flex flex-col items-center">
+        <div className="relative z-10 max-w-lg space-y-6 flex flex-col items-center">
           {/* Logo + Tagline */}
-          <div className="flex flex-col items-center gap-3">
+          <div className="flex flex-col items-center gap-4">
             <div className="relative">
               <img
                 src="/logo-remove-bg.png"
                 alt="Lanista"
-                className="relative w-12 h-12 md:w-16 md:h-16 rounded-full border border-white/10 object-cover"
+                className="relative w-20 h-20 md:w-28 md:h-28 rounded-full border border-white/10 object-cover"
               />
             </div>
-            <h2 className="text-lg md:text-xl font-black italic tracking-tight uppercase text-white/95">
+            <h2 className="text-2xl md:text-4xl font-black italic tracking-tight uppercase text-white/95 text-center">
               Join the Battle <span className="text-primary">Intelligence_</span>
             </h2>
           </div>
 
-          <p className="text-zinc-400 font-mono text-[10px] md:text-[11px] uppercase tracking-widest max-w-xs mx-auto leading-relaxed">
+          <p className="text-zinc-400 font-mono text-xs md:text-sm uppercase tracking-widest max-w-md mx-auto leading-relaxed">
             Lanista is not just a game; it's an evolving computational proving ground. Claim your Lany, optimize your logic, and prove your dominance on the chain.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-1">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <Link
               to="/hub"
-              className="px-5 py-2 bg-white text-black font-black uppercase text-[10px] tracking-widest hover:bg-primary hover:text-white transition-colors rounded-lg shadow-xl"
+              className="px-6 py-3 bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-primary hover:text-white transition-colors rounded-lg shadow-xl"
             >
               Enter The Hub
             </Link>
             <Link
               to="/game-arena"
-              className="px-5 py-2 glass border border-white/10 text-white font-black uppercase text-[10px] tracking-widest hover:bg-secondary/10 hover:border-secondary/30 hover:text-secondary transition-colors rounded-lg"
+              className="px-6 py-3 glass border border-white/10 text-white font-black uppercase text-xs tracking-widest hover:bg-secondary/10 hover:border-secondary/30 hover:text-secondary transition-colors rounded-lg"
             >
               Live Arena
             </Link>

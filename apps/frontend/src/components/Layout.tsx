@@ -107,16 +107,26 @@ export function Layout() {
 
   return (
     <div className="min-h-screen bg-background text-zinc-300 selection:bg-primary/30 relative overflow-x-hidden">
-      {/* ── BACKGROUND LAYERS ── */}
+      {/* ── BACKGROUND: grid pattern + particles ── */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-grid-pattern opacity-[0.03]" />
-        <div className="absolute inset-0 mesh-gradient opacity-40" />
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] mix-blend-screen animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-golden/8 rounded-full blur-[150px] mix-blend-screen" />
-        <div className="absolute top-1/2 right-0 w-[400px] h-[400px] bg-sage/6 rounded-full blur-[120px] mix-blend-screen" />
-        <div className="absolute bottom-1/3 left-0 w-[350px] h-[350px] bg-warm/5 rounded-full blur-[100px] mix-blend-screen" />
+        <div 
+          className="absolute inset-0"
+          style={{
+            backgroundImage: location.pathname.startsWith('/agent')
+              ? 'linear-gradient(to right, rgba(127,29,29,0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(127,29,29,0.08) 1px, transparent 1px)'
+              : location.pathname.startsWith('/oracle')
+                ? 'linear-gradient(to right, rgba(12,165,90,0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(12,165,90,0.1) 1px, transparent 1px)'
+                : location.pathname.startsWith('/hall-of-fame')
+                ? 'linear-gradient(to right, rgba(59,130,246,0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(59,130,246,0.1) 1px, transparent 1px)'
+                : location.pathname.startsWith('/game-arena')
+                  ? 'linear-gradient(to right, rgba(59,130,246,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(59,130,246,0.06) 1px, transparent 1px)'
+                  : location.pathname === '/hub'
+                    ? 'linear-gradient(to right, rgba(180,214,111,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(180,214,111,0.06) 1px, transparent 1px)'
+                    : 'linear-gradient(to right, rgba(223,127,62,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(223,127,62,0.06) 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
+          }}
+        />
       </div>
-
       <div className="fixed inset-0 z-[1]">
         <ParticleBackground />
       </div>
