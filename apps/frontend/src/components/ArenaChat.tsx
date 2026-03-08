@@ -274,8 +274,8 @@ export function ArenaChat({ matchId, match, unityIframeRef, gameEmojiContainerRe
           </footer>
         ) : (
           <footer className="p-2 sm:p-3 border-t border-white/5 bg-black shrink-0 space-y-2 sm:space-y-3">
-            {/* Row 1: full-width input */}
-            <div className="flex items-stretch gap-1.5 w-full h-9">
+            {/* Row 1: input + send button inside */}
+            <div className="relative flex w-full h-10">
               <input
                 type="text"
                 value={input}
@@ -283,11 +283,23 @@ export function ArenaChat({ matchId, match, unityIframeRef, gameEmojiContainerRe
                 onKeyDown={handleKeyDown}
                 placeholder="Send message..."
                 maxLength={MAX_MESSAGE_CHARS}
-                className="w-full min-w-0 bg-white border border-zinc-300 rounded-lg px-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-primary transition-colors"
+                className="w-full min-w-0 bg-white border border-zinc-300 rounded-lg pl-3 pr-20 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-primary transition-colors"
               />
+              <span className={`absolute right-10 top-1/2 -translate-y-1/2 text-[11px] font-mono tabular-nums pointer-events-none select-none ${input.length >= MAX_MESSAGE_CHARS ? 'text-red-500' : input.length >= MAX_MESSAGE_CHARS * 0.8 ? 'text-amber-500' : 'text-zinc-400'}`}>
+                {MAX_MESSAGE_CHARS - input.length}
+              </span>
+              <button
+                type="button"
+                onClick={() => handleSend('normal')}
+                disabled={!input.trim()}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 rounded-md bg-primary hover:bg-primary/90 text-white disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                title="Send"
+              >
+                <Send className="w-3.5 h-3.5" />
+              </button>
             </div>
 
-            {/* Row 2: Spark | send buttons | Emoji + Throw */}
+            {/* Row 2: Spark | Highlight | Megaphone  ·  emoji on far right */}
             <div className="flex items-center gap-1.5 w-full h-9">
               <div className="flex items-center gap-1.5 px-2.5 bg-zinc-800 border border-zinc-700 rounded-lg shrink-0 h-full">
                 <Flame className="w-3.5 h-3.5 text-amber-500 shrink-0" />
@@ -314,16 +326,8 @@ export function ArenaChat({ matchId, match, unityIframeRef, gameEmojiContainerRe
                 >
                   <Megaphone className="w-4 h-4" />
                 </button>
-                <button
-                  type="button"
-                  onClick={() => handleSend('normal')}
-                  disabled={!input.trim()}
-                  className="px-2.5 rounded-lg bg-primary hover:bg-primary/90 text-white disabled:opacity-50 disabled:pointer-events-none transition-colors"
-                  title="Send"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
               </div>
+              <div className="flex-1" />
               <InteractionBar
                 onThrowTomato={throwTomato}
                 onEmoji={sendEmoji}
@@ -331,7 +335,7 @@ export function ArenaChat({ matchId, match, unityIframeRef, gameEmojiContainerRe
                 session={session}
                 player1Name={match?.player_1?.name ?? 'Red'}
                 player2Name={match?.player_2?.name ?? 'Blue'}
-                className="flex-1 h-full"
+                className="shrink-0 h-full"
               />
             </div>
           </footer>

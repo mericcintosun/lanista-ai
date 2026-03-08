@@ -101,3 +101,6 @@ body {
   80% { clip: rect(83px, 9999px, 66px, 0); }
   100% { clip: rect(78px, 9999px, 2px, 0); }
 }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

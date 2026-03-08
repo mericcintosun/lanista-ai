@@ -1,20 +1,31 @@
 import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target } from 'lucide-react';
-import type { ThrowableTarget } from '../../hooks/useArenaChat';
+import { Smile, Target, Clock } from 'lucide-react';
+import type { ThrowableTarget, EmojiOrigin } from '../../hooks/useArenaChat';
 import { TOMATO_COST } from '../../hooks/useArenaChat';
-import { EmojiReactionBar } from './EmojiReactionBar';
+import {
+  EMOJI_CATEGORIES,
+  getRecentEmojis,
+  pushRecentEmoji,
+  type ArenaEmoji,
+  type EmojiCategoryId,
+} from '../../lib/arenaEmojis';
+
+type MainTab = 'tomato' | 'emoji';
+type EmojiTab = 'recent' | EmojiCategoryId;
 
 interface InteractionBarProps {
   onThrowTomato: (target: ThrowableTarget) => void;
-  onEmoji: (emoji: string, origin: 'left' | 'right') => void;
+  onEmoji: (emoji: string, origin: EmojiOrigin) => void;
   sending: boolean;
   session: { user: { id: string } } | null;
   player1Name?: string;
   player2Name?: string;
   className?: string;
 }
+
+const POPUP_WIDTH = 300;
 
 export function InteractionBar({
   onThrowTomato,
@@ -25,98 +36,234 @@ export function InteractionBar({
   player2Name = 'Blue',
   className = '',
 }: InteractionBarProps) {
-  const [throwOpen, setThrowOpen] = useState(false);
-  const [position, setPosition] = useState({ top: 0, left: 0, width: 0 });
-  const throwButtonRef = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(false);
+  const [mainTab, setMainTab] = useState<MainTab>('tomato');
+  const [emojiTab, setEmojiTab] = useState<EmojiTab>('recent');
+  const [emojiTarget, setEmojiTarget] = useState<ThrowableTarget | null>(null);
+  const [position, setPosition] = useState({ bottom: 0, left: 0 });
+  const [recent, setRecent] = useState<ArenaEmoji[]>([]);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
+  const categoryTabsRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
-    if (!throwOpen || !throwButtonRef.current) return;
-    const rect = throwButtonRef.current.getBoundingClientRect();
-    const popupWidth = 220;
+    if (!open || !buttonRef.current) return;
+    const rect = buttonRef.current.getBoundingClientRect();
     const padding = 8;
-    let left = rect.left + rect.width / 2 - popupWidth / 2;
-    left = Math.max(padding, Math.min(left, window.innerWidth - popupWidth - padding));
-    setPosition({ top: rect.bottom + 6, left, width: popupWidth });
-  }, [throwOpen]);
+    let left = rect.left + rect.width / 2 - POPUP_WIDTH / 2;
+    left = Math.max(padding, Math.min(left, window.innerWidth - POPUP_WIDTH - padding));
+    setPosition({ bottom: window.innerHeight - rect.top + 6, left });
+  }, [open]);
 
   useEffect(() => {
-    if (!throwOpen) return;
+    if (open) {
+      const r = getRecentEmojis();
+      setRecent(r);
+      setEmojiTab(r.length > 0 ? 'recent' : EMOJI_CATEGORIES[0].id);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
     const handleClickOutside = (e: MouseEvent) => {
       const t = e.target as Node;
       if (
         popupRef.current && !popupRef.current.contains(t) &&
-        throwButtonRef.current && !throwButtonRef.current.contains(t)
+        buttonRef.current && !buttonRef.current.contains(t)
       ) {
-        setThrowOpen(false);
+        setOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [throwOpen]);
+  }, [open]);
 
   const handleThrow = (target: ThrowableTarget) => {
     onThrowTomato(target);
-    setThrowOpen(false);
+    setOpen(false);
   };
 
-  const popup = throwOpen && (
+  const handleEmojiPick = (emoji: ArenaEmoji) => {
+    if (!emojiTarget) return;
+    pushRecentEmoji(emoji);
+    setRecent(getRecentEmojis());
+    onEmoji(emoji, emojiTarget === 'player_1' ? 'left' : 'right');
+    setOpen(false);
+    setEmojiTarget(null);
+  };
+
+  const handleMainTabChange = (next: MainTab) => {
+    setMainTab(next);
+    setEmojiTarget(null);
+  };
+
+  const activeEmojis: ArenaEmoji[] =
+    emojiTab === 'recent'
+      ? recent
+      : (EMOJI_CATEGORIES.find((c) => c.id === emojiTab)?.emojis as ArenaEmoji[]) ?? [];
+
+  const playerButtons = (
+    <div className="flex gap-2 mb-3">
+      <button
+        type="button"
+        onClick={() =>
+          mainTab === 'tomato' ? handleThrow('player_1') : setEmojiTarget('player_1')
+        }
+        className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-bold uppercase tracking-tight truncate transition-colors ${
+          mainTab === 'emoji' && emojiTarget === 'player_1'
+            ? 'bg-blue-500/25 border-blue-400 text-blue-300'
+            : 'bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/20 text-blue-400'
+        }`}
+      >
+        <Target className="w-3 h-3 shrink-0" />
+        <span className="truncate">{player1Name}</span>
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          mainTab === 'tomato' ? handleThrow('player_2') : setEmojiTarget('player_2')
+        }
+        className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-bold uppercase tracking-tight truncate transition-colors ${
+          mainTab === 'emoji' && emojiTarget === 'player_2'
+            ? 'bg-secondary/25 border-secondary/80 text-secondary'
+            : 'bg-secondary/10 border-secondary/30 hover:bg-secondary/20 text-secondary'
+        }`}
+      >
+        <Target className="w-3 h-3 shrink-0" />
+        <span className="truncate">{player2Name}</span>
+      </button>
+    </div>
+  );
+
+  const popup = open && (
     <AnimatePresence>
       <motion.div
         ref={popupRef}
-        initial={{ opacity: 0, y: -6, scale: 0.96 }}
+        initial={{ opacity: 0, y: 6, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: -6, scale: 0.96 }}
+        exit={{ opacity: 0, y: 6, scale: 0.96 }}
         transition={{ duration: 0.15 }}
-        style={{ top: position.top, left: position.left, width: position.width }}
+        style={{ bottom: position.bottom, left: position.left, width: POPUP_WIDTH }}
         className="fixed p-3 rounded-xl bg-zinc-900/98 border border-zinc-700/80 shadow-[0_8px_32px_rgba(0,0,0,0.7)] backdrop-blur-xl z-[300]"
       >
-        <p className="text-xs font-mono text-zinc-500 uppercase tracking-widest mb-2.5 text-center">
-          Target — {TOMATO_COST} Spark
-        </p>
-        <div className="flex gap-2">
+        {/* Main tab bar: Tomato | Emoji */}
+        <div className="flex gap-1 mb-3 p-0.5 bg-zinc-800/80 rounded-lg">
           <button
             type="button"
-            onClick={() => handleThrow('player_1')}
-            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/20 text-blue-400 transition-colors"
+            onClick={() => handleMainTabChange('tomato')}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-bold transition-colors ${
+              mainTab === 'tomato' ? 'bg-zinc-700 text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-200'
+            }`}
           >
-            <Target className="w-3.5 h-3.5 shrink-0" />
-            <span className="text-xs font-bold uppercase tracking-tight truncate">{player1Name}</span>
+            <span className="text-sm leading-none">🍅</span>
+            <span>Tomato</span>
+            <span className="text-amber-400 font-mono text-[10px]">-{TOMATO_COST}</span>
           </button>
           <button
             type="button"
-            onClick={() => handleThrow('player_2')}
-            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-secondary/10 border border-secondary/30 hover:bg-secondary/20 text-secondary transition-colors"
+            onClick={() => handleMainTabChange('emoji')}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-bold transition-colors ${
+              mainTab === 'emoji' ? 'bg-zinc-700 text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-200'
+            }`}
           >
-            <Target className="w-3.5 h-3.5 shrink-0" />
-            <span className="text-xs font-bold uppercase tracking-tight truncate">{player2Name}</span>
+            <span className="text-sm leading-none">😊</span>
+            <span>Emoji</span>
           </button>
         </div>
+
+        {/* Player target buttons (both tabs) */}
+        {playerButtons}
+
+        {/* Emoji section */}
+        {mainTab === 'emoji' && (
+          <div>
+            {!emojiTarget && (
+              <p className="text-[11px] font-mono text-zinc-500 text-center mb-2">
+                Select a target above
+              </p>
+            )}
+
+            {/* Category tab bar — horizontal scroll */}
+            <div
+              ref={categoryTabsRef}
+              className="flex gap-0.5 mb-2 overflow-x-auto no-scrollbar"
+            >
+              {/* Recent tab */}
+              {recent.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setEmojiTab('recent')}
+                  className={`shrink-0 flex items-center justify-center gap-1 px-2 py-1 rounded-md text-xs font-bold transition-colors ${
+                    emojiTab === 'recent'
+                      ? 'bg-zinc-700 text-white'
+                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+                  }`}
+                  title="Recent"
+                >
+                  <Clock className="w-3 h-3" />
+                </button>
+              )}
+              {EMOJI_CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setEmojiTab(cat.id as EmojiCategoryId)}
+                  title={cat.label}
+                  className={`shrink-0 px-2 py-1 rounded-md text-base leading-none transition-colors ${
+                    emojiTab === cat.id
+                      ? 'bg-zinc-700'
+                      : 'opacity-60 hover:opacity-100 hover:bg-zinc-800'
+                  }`}
+                >
+                  {cat.icon}
+                </button>
+              ))}
+            </div>
+
+            {/* Emoji grid */}
+            <div
+              className={`flex flex-wrap gap-0.5 h-[156px] overflow-y-auto custom-scrollbar ${
+                !emojiTarget ? 'opacity-40 pointer-events-none' : ''
+              }`}
+            >
+              {activeEmojis.length === 0 ? (
+                <p className="text-[11px] font-mono text-zinc-600 w-full text-center pt-4">
+                  No emojis yet
+                </p>
+              ) : (
+                activeEmojis.map((e, idx) => (
+                  <button
+                    key={`${emojiTab}-${idx}-${e}`}
+                    type="button"
+                    onClick={() => handleEmojiPick(e)}
+                    className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-zinc-700/80 text-lg transition-colors"
+                  >
+                    {e}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        )}
       </motion.div>
     </AnimatePresence>
   );
 
   return (
-    <div
-      className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-black border border-white/5 ${className}`}
-    >
-      <EmojiReactionBar origin="left" onEmoji={onEmoji} disabled={!session} className="shrink-0" />
-
-      <div className="relative shrink-0">
-        <motion.button
-          ref={throwButtonRef}
-          type="button"
-          onClick={() => setThrowOpen((o) => !o)}
-          disabled={!session || sending}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700/50 text-zinc-400 hover:text-zinc-200 disabled:opacity-50 disabled:pointer-events-none transition-colors"
-          title={`Throw tomato (-${TOMATO_COST} Spark)`}
-          aria-label="Throw tomato"
-        >
-          <span className="text-base leading-none select-none">🍅</span>
-        </motion.button>
-      </div>
+    <div className={`flex items-center justify-center ${className}`}>
+      <motion.button
+        ref={buttonRef}
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        disabled={!session || sending}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className="p-1.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700/50 text-zinc-400 hover:text-zinc-200 disabled:opacity-50 disabled:pointer-events-none transition-colors"
+        title="Reactions"
+        aria-label="Reactions"
+      >
+        <Smile className="w-4 h-4" />
+      </motion.button>
 
       {popup && createPortal(popup, document.body)}
     </div>
