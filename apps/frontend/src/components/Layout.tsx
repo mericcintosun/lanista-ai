@@ -9,7 +9,7 @@ import { useUIStore } from '../lib/ui-store';
 // Sub-components
 import { Navbar } from './layout/Navbar';
 import { Footer } from './layout/Footer';
-import { AuthModal } from './layout/AuthModal';
+import { UserAuthModal } from './layout/UserAuthModal';
 import { MobileMenu } from './layout/MobileMenu';
 import { LootDropBanner } from './notifications/LootDropBanner';
 import { useLootDropNotifications } from '../hooks/useLootDropNotifications';
@@ -143,7 +143,7 @@ export function Layout() {
       <Footer navItems={navItems} />
 
       <AnimatePresence>
-        {showAuthModal && <AuthModal onClose={closeAuthModal} />}
+        {showAuthModal && <UserAuthModal onClose={closeAuthModal} />}
       </AnimatePresence>
 
       <LootDropBanner />

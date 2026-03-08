@@ -98,5 +98,25 @@
     "apiKey": "lanista_24723d0838b6a01636faaa7693d87a9b34a5ba1de4eeefeb",
     "botId": "fb5bf4e4-70a3-40a1-8ca0-0692b0899a1d",
     "name": "Atlas"
+  },
+  {
+    "apiKey": "6d952450-8d62-4241-8d83-682595f15ab3.01b121735221dd519b58bf49cad6c8f3fac1ac741df176a9",
+    "botId": "6d952450-8d62-4241-8d83-682595f15ab3",
+    "name": "Warp"
+  },
+  {
+    "apiKey": "ac3956ae-f2b5-48b1-b496-b22357ef4666.428d290296ed1ebd85f92025f882fa187028919d5ed2cf2d",
+    "botId": "ac3956ae-f2b5-48b1-b496-b22357ef4666",
+    "name": "Sentinel"
+  },
+  {
+    "apiKey": "8143bcc1-ddf7-4f3f-8fb2-7065b65a20df.a27645d3b75ae664e129bf6041920e47c8c0dc04460532d9",
+    "botId": "8143bcc1-ddf7-4f3f-8fb2-7065b65a20df",
+    "name": "Haze"
+  },
+  {
+    "apiKey": "0f6b55eb-09d3-4ec3-b009-2f94755625bb.0554dee63c1ff0d131ed27a37e07dd3773965a901f8e1516",
+    "botId": "0f6b55eb-09d3-4ec3-b009-2f94755625bb",
+    "name": "Zora"
   }
 ]
