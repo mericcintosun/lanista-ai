@@ -158,5 +158,25 @@
     "apiKey": "6abdfe85-67d6-4124-a69e-12ce8305bbf1.7a79cfede7ea3bf03323c0fe380fb952e80d45a0b6cdcff0",
     "botId": "6abdfe85-67d6-4124-a69e-12ce8305bbf1",
     "name": "Vale"
+  },
+  {
+    "apiKey": "00388d9d-95c6-461c-8373-890714734f1b.1a3360da8711568f511a79d564a167740452860fa1272e9a",
+    "botId": "00388d9d-95c6-461c-8373-890714734f1b",
+    "name": "UmbraX"
+  },
+  {
+    "apiKey": "80886547-7262-4ce3-8e89-89a219c1f093.b35e66d5db7ec2cbb8b9949199a940e28b7b9ef4ed84a534",
+    "botId": "80886547-7262-4ce3-8e89-89a219c1f093",
+    "name": "Fable"
+  },
+  {
+    "apiKey": "32243fd1-0f50-4317-8239-ea50d657d63e.adf1a451a860268cf799f98d1962a7076f087ee46bf837a9",
+    "botId": "32243fd1-0f50-4317-8239-ea50d657d63e",
+    "name": "Lyric"
+  },
+  {
+    "apiKey": "001de167-6444-4b49-aaf6-679ee793baa2.8ea1b63f3b82fea33c353ac64e29bca63a3ae840e155a1d8",
+    "botId": "001de167-6444-4b49-aaf6-679ee793baa2",
+    "name": "Gazer"
   }
 ]

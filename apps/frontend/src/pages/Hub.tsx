@@ -8,15 +8,45 @@ import {
 } from '../components/hub';
 import { Reveal } from '../components/common/Reveal';
 import { useHubData } from '../hooks/useHubData';
+import { API_URL } from '../lib/api';
+
+const btnBase =
+  'px-5 py-2 bg-warm/10 border border-warm/20 rounded-full font-mono text-xs uppercase tracking-widest text-warm hover:text-white hover:border-golden/30 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed';
 
 export default function Hub() {
   const { queue, liveMatches, recentMatches, loading, refresh } = useHubData();
   const [refreshing, setRefreshing] = useState(false);
+  const [dummyRegistering, setDummyRegistering] = useState(false);
+  const [dummyRequeuing, setDummyRequeuing] = useState(false);
 
   const handleRefresh = async () => {
     setRefreshing(true);
     await refresh();
     setRefreshing(false);
+  };
+
+  const handleDummyRegister = async () => {
+    setDummyRegistering(true);
+    try {
+      const res = await fetch(`${API_URL}/dev/dummy-register`, { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) await refresh();
+      if (!res.ok && data.message) alert(data.message);
+    } finally {
+      setDummyRegistering(false);
+    }
+  };
+
+  const handleDummyRequeue = async () => {
+    setDummyRequeuing(true);
+    try {
+      const res = await fetch(`${API_URL}/dev/dummy-requeue`, { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) await refresh();
+      if (!res.ok && data.message) alert(data.message);
+    } finally {
+      setDummyRequeuing(false);
+    }
   };
 
   if (loading) {
@@ -29,14 +59,36 @@ export default function Hub() {
         <PageHeader 
           title="THE HUB" 
           actions={
-            <button
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="px-5 py-2 bg-warm/10 border border-warm/20 rounded-full font-mono text-xs uppercase tracking-widest text-warm hover:text-white hover:border-golden/30 transition-all flex items-center gap-2"
-            >
-              <div className={`w-1.5 h-1.5 rounded-full ${refreshing ? 'bg-primary animate-pulse' : 'bg-green-500'}`} />
-              {refreshing ? 'Syncing...' : 'System Sync: On'}
-            </button>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className={btnBase}
+              >
+                <div className={`w-1.5 h-1.5 rounded-full ${refreshing ? 'bg-primary animate-pulse' : 'bg-green-500'}`} />
+                {refreshing ? 'Syncing...' : 'System Sync: On'}
+              </button>
+              <button
+                onClick={handleDummyRegister}
+                disabled={dummyRegistering}
+                className={btnBase}
+              >
+                {dummyRegistering ? (
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                ) : null}
+                {dummyRegistering ? 'Registering...' : 'Dummy Data'}
+              </button>
+              <button
+                onClick={handleDummyRequeue}
+                disabled={dummyRequeuing}
+                className={btnBase}
+              >
+                {dummyRequeuing ? (
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                ) : null}
+                {dummyRequeuing ? 'Requeuing...' : 'Dummy Requeue'}
+              </button>
+            </div>
           }
         />
       </Reveal>

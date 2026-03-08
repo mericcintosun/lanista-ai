@@ -3,7 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { Gamepad2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ParticleBackground from './ParticleBackground';
-import { getLenis } from '../lib/smoothScroll';
+import { getLenis } from '../lib/lenis-instance';
 import { useUIStore } from '../lib/ui-store';
 
 // Sub-components

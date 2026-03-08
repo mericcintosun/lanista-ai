@@ -34,6 +34,8 @@ import combatViewerReadyRoute from './src/routes/combat/viewer-ready.js';
 import hubQueueRoute from './src/routes/hub/queue.js';
 import hubLiveRoute from './src/routes/hub/live.js';
 import hubRecentRoute from './src/routes/hub/recent.js';
+import dummyRegisterRoute from './src/routes/dev/dummy-register.js';
+import dummyRequeueRoute from './src/routes/dev/dummy-requeue.js';
 import oracleMatchesRoute from './src/routes/oracle/matches.js';
 import oracleLootRoute from './src/routes/oracle/loot.js';
 import oracleRankUpStatusRoute from './src/routes/oracle/rank-up-status.js';
@@ -84,6 +86,10 @@ app.use('/api/combat/viewer-ready', combatViewerReadyRoute);
 app.use('/api/hub/queue', hubQueueRoute);
 app.use('/api/hub/live', hubLiveRoute);
 app.use('/api/hub/recent', hubRecentRoute);
+
+// Dev: dummy scripts (spawn-dummy / spawn-dummy-requeue)
+app.use('/api/dev/dummy-register', dummyRegisterRoute);
+app.use('/api/dev/dummy-requeue', dummyRequeueRoute);
 
 // Oracle endpoints
 app.use('/api/oracle/matches', oracleMatchesRoute);
