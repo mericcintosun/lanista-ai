@@ -17,6 +17,7 @@ import { UnityFrame, CombatStats } from '../components/game';
 export default function GameArena() {
   const { matchId } = useParams<{ matchId: string }>();
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const emojiOverlayRef = useRef<HTMLDivElement>(null);
 
   const { match, logs, signalReady } = useCombatRealtime(matchId || null);
   const { liveMatches } = useHubData();
@@ -123,7 +124,7 @@ export default function GameArena() {
         </div>
       </Reveal>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-stretch">
         {/* Main: Unity & Stats — mobile: 2nd, desktop: left 8 cols */}
         <Reveal className="lg:col-span-8 flex flex-col gap-4 sm:gap-6 order-2 lg:order-1" direction="left" delay={0.2}>
           <div className="relative group">
@@ -135,21 +136,26 @@ export default function GameArena() {
                 onFullscreen={() => iframeRef.current?.requestFullscreen()}
                 isLoading={!match}
               />
+              <div
+                ref={emojiOverlayRef}
+                className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl"
+                aria-hidden
+              />
             </div>
           </div>
           
           <CombatStats match={match} />
         </Reveal>
 
-        {/* Chat — mobile: 1st (priority), desktop: right 4 cols */}
-        <Reveal className="lg:col-span-4 flex flex-col h-full order-1 lg:order-2" direction="right" delay={0.3}>
-          <div className="lg:sticky lg:top-24 flex flex-col gap-4 sm:gap-6">
-            <ArenaChat
-              matchId={matchId}
-              match={match}
-              unityIframeRef={iframeRef}
-            />
-          </div>
+        {/* Chat — same height as game column (Twitch/Kick style) */}
+        <Reveal className="lg:col-span-4 flex flex-col min-h-[400px] lg:min-h-0 order-1 lg:order-2" direction="right" delay={0.3}>
+          <ArenaChat
+            matchId={matchId}
+            match={match}
+            unityIframeRef={iframeRef}
+            gameEmojiContainerRef={emojiOverlayRef}
+            className="flex-1 min-h-[400px] lg:min-h-0 w-full"
+          />
         </Reveal>
       </div>
     </div>

@@ -1,12 +1,11 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Sparkles, Megaphone, Users, Flame, Maximize2, Minimize2 } from 'lucide-react';
+import { Send, Sparkles, Megaphone, Flame, Maximize2, Minimize2 } from 'lucide-react';
 import { useArenaChat, type ArenaChatMessage } from '../hooks/useArenaChat';
 import { useSparkBalance } from '../hooks/useSparkBalance';
 import { useAuthStore } from '../lib/auth-store';
 import { sendThrowableToUnity } from '../lib/unity';
 import { InteractionBar } from './arena/InteractionBar';
-import { EmojiReactionBar } from './arena/EmojiReactionBar';
 import { EmojiBubble } from './arena/EmojiBubble';
 import type { Match } from '@lanista/types';
 
@@ -69,6 +68,7 @@ interface ArenaChatProps {
   matchId: string | null;
   match?: Match | null;
   unityIframeRef?: React.RefObject<HTMLIFrameElement | null>;
+  gameEmojiContainerRef?: React.RefObject<HTMLElement | null>;
   className?: string;
 }
 
@@ -99,7 +99,7 @@ function MessageRow({ msg }: { msg: ArenaChatMessage }) {
   );
 }
 
-export function ArenaChat({ matchId, match, unityIframeRef, className = '' }: ArenaChatProps) {
+export function ArenaChat({ matchId, match, unityIframeRef, gameEmojiContainerRef, className = '' }: ArenaChatProps) {
   const session = useAuthStore((s) => s.session);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [bannerMegaphone, setBannerMegaphone] = useState<ArenaChatMessage | null>(null);
@@ -175,18 +175,6 @@ export function ArenaChat({ matchId, match, unityIframeRef, className = '' }: Ar
         )}
       </AnimatePresence>
 
-      <div className="flex items-center gap-2 mb-2 sm:mb-3">
-        <InteractionBar
-          onThrowTomato={throwTomato}
-          onEmoji={sendEmoji}
-          sending={sending === 'tomato'}
-          session={session}
-          player1Name={match?.player_1?.name ?? 'Red'}
-          player2Name={match?.player_2?.name ?? 'Blue'}
-          className="flex-1"
-        />
-      </div>
-
       <AnimatePresence>
         {floatingEmojis.map((e) => (
           <EmojiBubble
@@ -196,45 +184,37 @@ export function ArenaChat({ matchId, match, unityIframeRef, className = '' }: Ar
             offsetX={e.offsetX}
             origin={e.origin}
             onComplete={() => removeFloatingEmoji(e.id)}
+            containerRef={gameEmojiContainerRef}
           />
         ))}
       </AnimatePresence>
 
       <main
-        className={`w-full min-h-[160px] sm:min-h-[360px] lg:min-h-[560px] max-h-[38vh] sm:max-h-[55vh] lg:max-h-[700px] flex flex-col bg-black/60 backdrop-blur-md border border-blue-500/20 rounded-xl overflow-hidden shadow-2xl transition-[max-height] duration-300 ${expanded ? 'max-lg:!max-h-[85vh]' : ''} ${className}`}
+        className={`w-full flex flex-col bg-black border border-blue-500/20 rounded-xl overflow-hidden shadow-2xl transition-[max-height] duration-300 ${expanded ? 'max-lg:!max-h-[85vh]' : ''} ${className}`}
       >
-        {/* Header */}
-        <header className="p-2.5 sm:p-4 border-b border-blue-500/20 flex items-center justify-between bg-gradient-to-r from-blue-500/10 to-secondary/10 shrink-0">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-blue-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
-            <h1 className="text-sm sm:text-lg font-bold tracking-wider uppercase italic text-zinc-100">
-              Lanista <span className="text-secondary drop-shadow-[0_0_5px_rgba(12,165,90,0.4)]">Arena</span>
-            </h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-zinc-400 font-mono">
-              <Users className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span>Arena Chat</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setExpanded((e) => !e)}
-              className="lg:hidden p-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-colors"
-              title={expanded ? 'Collapse' : 'Expand'}
-              aria-label={expanded ? 'Collapse chat' : 'Expand chat'}
-            >
-              {expanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-            </button>
-          </div>
+        {/* Header — minimal: only expand on mobile, no title text */}
+        <header className="p-2 sm:p-3 border-b border-white/5 flex items-center justify-end bg-black shrink-0">
+          <button
+            type="button"
+            onClick={() => setExpanded((e) => !e)}
+            className="lg:hidden p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-zinc-200 transition-colors"
+            title={expanded ? 'Collapse' : 'Expand'}
+            aria-label={expanded ? 'Collapse chat' : 'Expand chat'}
+          >
+            {expanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+          </button>
         </header>
 
-        {/* Message list */}
+        {/* Message list — fills space like Twitch/Kick */}
         <section
           ref={scrollRef}
           data-lenis-prevent
-          className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-2.5 sm:p-4 space-y-2 sm:space-y-4 min-h-0 custom-scrollbar"
+          className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-2.5 sm:p-4 space-y-2 sm:space-y-4 min-h-0 custom-scrollbar bg-black"
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
+          <h2 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-zinc-500 pb-2 sm:pb-3 border-b border-white/5 shrink-0">
+            Arena Chat
+          </h2>
           {messages.length === 0 && (
             <p className="text-zinc-500 text-xs sm:text-sm font-mono py-6 sm:py-10 text-center">
               No messages yet. Join the fight.
@@ -260,61 +240,68 @@ export function ArenaChat({ matchId, match, unityIframeRef, className = '' }: Ar
           </div>
         )}
 
-        {/* Footer: textarea + actions */}
-        <footer className="p-2 sm:p-3 lg:p-4 border-t border-zinc-800 bg-zinc-900/50 shrink-0">
-          <div className="relative mb-2 sm:mb-3 flex items-end gap-2">
-            <EmojiReactionBar origin="left" onEmoji={sendEmoji} disabled={!session} className="shrink-0" />
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value.slice(0, MAX_MESSAGE_CHARS))}
-              onKeyDown={handleKeyDown}
-              placeholder={session ? `Message (${MAX_MESSAGE_CHARS})` : 'Sign in to chat'}
-              disabled={!session}
-              maxLength={MAX_MESSAGE_CHARS}
-              rows={1}
-              className="flex-1 min-w-0 h-[2.25rem] sm:h-[3rem] lg:h-[4.5rem] min-h-[2.25rem] sm:min-h-[3rem] lg:min-h-[4.5rem] max-h-[2.25rem] sm:max-h-[3rem] lg:max-h-[4.5rem] bg-black/40 border border-zinc-700 rounded-lg px-2.5 py-1.5 sm:px-3 sm:py-2 lg:p-3 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-primary transition-colors resize-none overflow-y-auto"
-            />
-          </div>
-
-          <div className="flex items-center justify-between gap-1.5 sm:gap-2 flex-wrap">
-            <div className="flex items-center gap-1 sm:gap-2">
-              <button
-                type="button"
-                onClick={() => handleSend('normal')}
-                disabled={!session || !input.trim()}
-                className="p-1.5 sm:p-2 lg:p-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors text-zinc-300 disabled:opacity-50 disabled:pointer-events-none group"
-                title="Send (free)"
-              >
-                <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform" />
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSend('highlight')}
-                disabled={!session || !input.trim() || sending !== null}
-                className="flex items-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 transition-colors text-amber-500 disabled:opacity-50 disabled:pointer-events-none group"
-                title="Highlight (50 Spark)"
-              >
-                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform" />
-                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-tighter hidden sm:inline">50</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSend('megaphone')}
-                disabled={!session || !input.trim() || sending !== null}
-                className="flex items-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg bg-primary/10 border border-primary/30 hover:bg-primary/20 transition-colors text-primary disabled:opacity-50 disabled:pointer-events-none group"
-                title="Megaphone (500 Spark) — banner to all viewers"
-              >
-                <Megaphone className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform" />
-                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-tighter hidden sm:inline">500</span>
-              </button>
-            </div>
-
-            <div className="flex items-center gap-1 sm:gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 bg-zinc-800 border border-zinc-700 rounded-full">
+        {/* Footer: input row (Spark left, input center, Send right) + actions below — same bg as chat */}
+        <footer className="p-2 sm:p-3 border-t border-white/5 bg-black shrink-0 space-y-2 sm:space-y-3">
+          {/* Row 1: Spark (left) | input | Send (right) — Twitch/Kick style */}
+          <div className="flex items-end gap-2 w-full">
+            <div className="flex items-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 bg-zinc-800 border border-zinc-700 rounded-lg shrink-0">
               <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-500" />
               <span className="text-[10px] sm:text-xs font-bold text-amber-500 uppercase tracking-tighter">
                 {sparkLoading ? '…' : `${sparkBalance.toLocaleString()}`}
               </span>
             </div>
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value.slice(0, MAX_MESSAGE_CHARS))}
+              onKeyDown={handleKeyDown}
+              placeholder={session ? `Send message (max ${MAX_MESSAGE_CHARS} characters)` : 'Sign in to chat'}
+              disabled={!session}
+              maxLength={MAX_MESSAGE_CHARS}
+              rows={1}
+              className="flex-1 min-w-0 h-[2.25rem] sm:h-[2.5rem] min-h-[2.25rem] sm:min-h-[2.5rem] max-h-20 bg-black/40 border border-zinc-700 rounded-lg px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-primary transition-colors resize-none overflow-y-auto"
+            />
+            <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+              <button
+                type="button"
+                onClick={() => handleSend('highlight')}
+                disabled={!session || !input.trim() || sending !== null}
+                className="p-1.5 sm:p-2 rounded-lg bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 text-amber-500 disabled:opacity-50 disabled:pointer-events-none"
+                title="Highlight (50 Spark)"
+              >
+                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSend('megaphone')}
+                disabled={!session || !input.trim() || sending !== null}
+                className="p-1.5 sm:p-2 rounded-lg bg-primary/10 border border-primary/30 hover:bg-primary/20 text-primary disabled:opacity-50 disabled:pointer-events-none"
+                title="Megaphone (500 Spark)"
+              >
+                <Megaphone className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSend('normal')}
+                disabled={!session || !input.trim()}
+                className="p-1.5 sm:p-2 rounded-lg bg-primary hover:bg-primary/90 text-white disabled:opacity-50 disabled:pointer-events-none group"
+                title="Send"
+              >
+                <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Row 2: Emoji + Domates fırlat (actions below chat input) */}
+          <div className="flex items-center justify-center gap-2 sm:gap-3 py-1">
+            <InteractionBar
+              onThrowTomato={throwTomato}
+              onEmoji={sendEmoji}
+              sending={sending === 'tomato'}
+              session={session}
+              player1Name={match?.player_1?.name ?? 'Red'}
+              player2Name={match?.player_2?.name ?? 'Blue'}
+              className="flex-1"
+            />
           </div>
         </footer>
       </main>

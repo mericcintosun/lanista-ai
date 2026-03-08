@@ -25,7 +25,7 @@ export function InteractionBar({
 }: InteractionBarProps) {
   return (
     <div
-      className={`flex items-center justify-center gap-2 sm:gap-3 py-2 sm:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl bg-black/60 backdrop-blur-md border border-blue-500/20 shadow-lg ${className}`}
+      className={`flex items-center justify-center gap-2 sm:gap-3 py-2 sm:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl bg-black border border-white/5 ${className}`}
     >
       <EmojiReactionBar origin="left" onEmoji={onEmoji} disabled={!session} className="shrink-0" />
       <span className="text-[9px] sm:text-[10px] font-mono text-zinc-500 uppercase tracking-widest mr-0.5 sm:mr-1">

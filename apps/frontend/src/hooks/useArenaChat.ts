@@ -72,7 +72,6 @@ export function useArenaChat(
   const [sending, setSending] = useState<'normal' | 'highlight' | 'megaphone' | 'tomato' | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const MAX_FLOATING_EMOJIS = 12;
   const channelRef = useRef<RealtimeChannel | null>(null);
   const onThrowableRef = useRef(options?.onThrowable);
   const onSpendRef = useRef(options?.onSpend);
@@ -115,7 +114,7 @@ export function useArenaChat(
       if (p?.id && typeof p?.emoji === 'string' && typeof p?.offsetX === 'number') {
         setFloatingEmojis((prev) => {
           if (prev.some((e) => e.id === p.id)) return prev;
-          return [...prev.slice(-(MAX_FLOATING_EMOJIS - 1)), { ...p, origin: p.origin || 'left' }];
+          return [...prev, { ...p, origin: p.origin || 'left' }];
         });
       }
     });
@@ -233,8 +232,13 @@ export function useArenaChat(
         offsetX: (Math.random() - 0.5) * 60,
         origin,
       };
+      // Add locally first; the broadcast listener deduplicates by id
+      // so the self-echo from the server won't create a duplicate.
+      setFloatingEmojis((prev) => {
+        if (prev.some((e) => e.id === payload.id)) return prev;
+        return [...prev, payload];
+      });
       ch.send({ type: 'broadcast', event: 'emoji', payload });
-      setFloatingEmojis((prev) => [...prev.slice(-(MAX_FLOATING_EMOJIS - 1)), payload]);
     },
     [matchId]
   );
