@@ -13,6 +13,8 @@ contract LanistaAgentPassport is ERC721, AccessControl {
     bytes32 public constant ORACLE_ROLE = keccak256("ORACLE_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
+    uint256 public constant MAX_REPUTATION = 10_000;
+
     struct AgentPassport {
         address botWallet;
         address ownerWallet;
@@ -29,6 +31,8 @@ contract LanistaAgentPassport is ERC721, AccessControl {
 
     event PassportMinted(uint256 indexed tokenId, address indexed botWallet, address indexed ownerWallet);
     event ReputationUpdated(uint256 indexed tokenId, address indexed botWallet, uint256 reputationScore, uint32 totalMatches, uint32 wins);
+    event OwnerWalletSet(uint256 indexed tokenId, address indexed botWallet, address indexed newOwnerWallet);
+    event PassportBurned(uint256 indexed tokenId, address indexed botWallet);
 
     constructor() ERC721("Lanista Agent Passport", "LAP") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -36,7 +40,7 @@ contract LanistaAgentPassport is ERC721, AccessControl {
         _grantRole(MINTER_ROLE, msg.sender);
     }
 
-    /// @dev Soulbound: block transfers (only mint from zero and burn to zero allowed). OZ v5: _update(to, tokenId, auth).
+    /// @dev Soulbound: block transfers. Only mint (from == address(0)) and burn (to == address(0)) allowed.
     function _update(address to, uint256 tokenId, address auth) internal override returns (address from) {
         from = _ownerOf(tokenId);
         if (from != address(0) && to != address(0)) {
@@ -48,8 +52,8 @@ contract LanistaAgentPassport is ERC721, AccessControl {
     /**
      * @dev Mint a new passport for a bot. Only MINTER_ROLE (relayer). Gas sponsored by platform.
      * @param botWallet   Bot's EVM address (receives the SBT)
-     * @param ownerWallet Creator/player wallet (0x0 until user binds)
-     * @param metadataURI Link to passport metadata (e.g. Supabase/API or IPFS)
+     * @param ownerWallet Creator/player wallet (address(0) until user binds)
+     * @param metadataURI Link to passport metadata
      */
     function mint(address botWallet, address ownerWallet, string calldata metadataURI)
         external
@@ -78,7 +82,23 @@ contract LanistaAgentPassport is ERC721, AccessControl {
     }
 
     /**
-     * @dev Update reputation after a match. Only ORACLE_ROLE (same relayer as ArenaOracle).
+     * @dev Burn a passport — revokes a bot's on-chain identity. Only DEFAULT_ADMIN_ROLE.
+     *      Clears all storage and the bot→tokenId mapping.
+     */
+    function burn(uint256 tokenId) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        address botWallet = passports[tokenId].botWallet;
+        require(botWallet != address(0), "Passport does not exist");
+
+        delete tokenIdByBot[botWallet];
+        delete passports[tokenId];
+        _burn(tokenId);
+
+        emit PassportBurned(tokenId, botWallet);
+    }
+
+    /**
+     * @dev Update reputation after a match. Only ORACLE_ROLE.
+     *      Enforces wins <= totalMatches and reputationScore <= MAX_REPUTATION.
      */
     function updateReputation(
         address botWallet,
@@ -86,6 +106,9 @@ contract LanistaAgentPassport is ERC721, AccessControl {
         uint32 totalMatches,
         uint32 wins
     ) external onlyRole(ORACLE_ROLE) {
+        require(wins <= totalMatches, "wins cannot exceed totalMatches");
+        require(reputationScore <= MAX_REPUTATION, "reputationScore exceeds maximum");
+
         uint256 tokenId = tokenIdByBot[botWallet];
         require(tokenId != 0, "No passport for this bot");
 
@@ -97,11 +120,17 @@ contract LanistaAgentPassport is ERC721, AccessControl {
         emit ReputationUpdated(tokenId, botWallet, reputationScore, totalMatches, wins);
     }
 
-    /// @dev Optional: set owner wallet when user binds bot to their account (can be called by oracle or admin)
+    /**
+     * @dev Set the owner wallet binding for a bot. Only ORACLE_ROLE.
+     *      newOwnerWallet can be address(0) only if intentionally clearing the binding
+     *      (explicit zero check is skipped here to allow unlinking; callers must be deliberate).
+     */
     function setOwnerWallet(address botWallet, address newOwnerWallet) external onlyRole(ORACLE_ROLE) {
+        require(newOwnerWallet != address(0), "Invalid owner wallet address");
         uint256 tokenId = tokenIdByBot[botWallet];
         require(tokenId != 0, "No passport for this bot");
         passports[tokenId].ownerWallet = newOwnerWallet;
+        emit OwnerWalletSet(tokenId, botWallet, newOwnerWallet);
     }
 
     function getPassportByBotWallet(address botWallet)

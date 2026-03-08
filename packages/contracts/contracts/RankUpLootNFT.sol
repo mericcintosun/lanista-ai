@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
 import "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
 
@@ -12,13 +13,15 @@ import "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
  * Only owner (relayer) can call requestRankUpLoot; gas is sponsored by the platform.
  */
 contract RankUpLootNFT is ERC1155, VRFConsumerBaseV2Plus {
+    using Strings for uint256;
+
     uint256 public subscriptionId;
     bytes32 public keyHash;
     uint32 public callbackGasLimit;
     uint16 public requestConfirmations;
     uint32 public numWords;
 
-    string private _baseURI;
+    string private _baseMetaURI;
 
     struct PendingRequest {
         address botWallet;
@@ -26,6 +29,9 @@ contract RankUpLootNFT is ERC1155, VRFConsumerBaseV2Plus {
         bool exists;
     }
     mapping(uint256 => PendingRequest) public pending;
+
+    /// @dev Tracks how many VRF requests are currently outstanding (not yet fulfilled).
+    uint256 public pendingCount;
 
     struct FulfilledResult {
         address botWallet;
@@ -40,12 +46,31 @@ contract RankUpLootNFT is ERC1155, VRFConsumerBaseV2Plus {
 
     event RankUpLootRequested(uint256 indexed requestId, address indexed botWallet, uint8 rankIndex);
     event RankUpLootAwarded(uint256 indexed requestId, address indexed botWallet, uint8 rankIndex, uint256 itemId, uint256 randomness);
+    event RewardFlagReset(address indexed botWallet, uint8 rankIndex);
 
     uint8 public totalRanks = 7;
     uint8 public constant ITEMS_PER_RANK = 5;
+    uint8 public constant MIN_TOTAL_RANKS = 1;
 
+    /**
+     * @dev Update totalRanks. Cannot be set below MIN_TOTAL_RANKS or below
+     *      the current number of ranks already in use.
+     */
     function setTotalRanks(uint8 _newTotalRanks) external onlyOwner {
+        require(_newTotalRanks >= MIN_TOTAL_RANKS, "totalRanks must be >= 1");
+        require(_newTotalRanks >= totalRanks || pendingCount == 0,
+            "Cannot reduce ranks while VRF requests are pending");
         totalRanks = _newTotalRanks;
+    }
+
+    /**
+     * @dev Emergency reset for a stuck reward flag (e.g. VRF request was never fulfilled).
+     *      Only callable by owner. Allows the bot to re-request the rank reward.
+     */
+    function resetRewardFlag(address botWallet, uint8 rankIndex) external onlyOwner {
+        require(hasRequestedRankReward[botWallet][rankIndex], "Flag not set");
+        hasRequestedRankReward[botWallet][rankIndex] = false;
+        emit RewardFlagReset(botWallet, rankIndex);
     }
 
     constructor(
@@ -58,7 +83,7 @@ contract RankUpLootNFT is ERC1155, VRFConsumerBaseV2Plus {
         uint32 _numWords
     ) ERC1155(baseURI_) VRFConsumerBaseV2Plus(coordinatorAddress) {
         require(coordinatorAddress != address(0), "Invalid coordinator");
-        _baseURI = baseURI_;
+        _baseMetaURI = baseURI_;
         subscriptionId = _subscriptionId;
         keyHash = _keyHash;
         callbackGasLimit = _callbackGasLimit;
@@ -67,9 +92,13 @@ contract RankUpLootNFT is ERC1155, VRFConsumerBaseV2Plus {
     }
 
     function setBaseURI(string calldata baseURI_) external onlyOwner {
-        _baseURI = baseURI_;
+        _baseMetaURI = baseURI_;
     }
 
+    /**
+     * @dev Update VRF configuration. callbackGasLimit and numWords cannot be changed
+     *      while there are pending (unfulfilled) VRF requests, to avoid bricking them.
+     */
     function setVrfConfig(
         uint256 _subscriptionId,
         bytes32 _keyHash,
@@ -77,6 +106,8 @@ contract RankUpLootNFT is ERC1155, VRFConsumerBaseV2Plus {
         uint16 _requestConfirmations,
         uint32 _numWords
     ) external onlyOwner {
+        require(pendingCount == 0 || (_callbackGasLimit == callbackGasLimit && _numWords == numWords),
+            "Cannot change callbackGasLimit/numWords while requests pending");
         subscriptionId = _subscriptionId;
         keyHash = _keyHash;
         callbackGasLimit = _callbackGasLimit;
@@ -84,7 +115,6 @@ contract RankUpLootNFT is ERC1155, VRFConsumerBaseV2Plus {
         numWords = _numWords;
     }
 
-    /// @dev Returns token ID base for a rank (Iron=1, Bronze=6, ..., Master=31).
     function _baseTokenIdForRank(uint8 rankIndex) internal view returns (uint256) {
         require(rankIndex < totalRanks, "Invalid rank");
         return uint256(rankIndex) * ITEMS_PER_RANK + 1;
@@ -92,8 +122,8 @@ contract RankUpLootNFT is ERC1155, VRFConsumerBaseV2Plus {
 
     /**
      * @dev Request VRF for rank-up loot. Only relayer (owner) calls this; gas is sponsored.
-     * @param botWallet Recipient of the NFT.
-     * @param rankIndex 0=Iron, 1=Bronze, 2=Silver, 3=Gold, 4=Platinum, 5=Diamond, 6=Master.
+     *      The hasRequestedRankReward flag is set AFTER a successful requestId is obtained,
+     *      ensuring a failed VRF request doesn't permanently burn the entitlement.
      */
     function requestRankUpLoot(address botWallet, uint8 rankIndex) external onlyOwner returns (uint256 requestId) {
         require(botWallet != address(0), "Invalid wallet");
@@ -102,8 +132,6 @@ contract RankUpLootNFT is ERC1155, VRFConsumerBaseV2Plus {
         require(subscriptionId != 0, "VRF subId not set");
         require(keyHash != bytes32(0), "VRF keyHash not set");
         require(address(s_vrfCoordinator) != address(0), "Coordinator not set");
-
-        hasRequestedRankReward[botWallet][rankIndex] = true;
 
         VRFV2PlusClient.RandomWordsRequest memory req = VRFV2PlusClient.RandomWordsRequest({
             keyHash: keyHash,
@@ -116,8 +144,12 @@ contract RankUpLootNFT is ERC1155, VRFConsumerBaseV2Plus {
             )
         });
 
+        // Set flag AFTER successful request submission to prevent permanent loss on failure
         requestId = s_vrfCoordinator.requestRandomWords(req);
+        hasRequestedRankReward[botWallet][rankIndex] = true;
+
         pending[requestId] = PendingRequest({ botWallet: botWallet, rankIndex: rankIndex, exists: true });
+        pendingCount++;
 
         emit RankUpLootRequested(requestId, botWallet, rankIndex);
     }
@@ -126,7 +158,9 @@ contract RankUpLootNFT is ERC1155, VRFConsumerBaseV2Plus {
         PendingRequest memory r = pending[requestId];
         require(r.exists, "Unknown request");
 
-        uint256 randomness = randomWords.length > 0 ? randomWords[0] : 0;
+        require(randomWords.length > 0, "VRF returned no words");
+        uint256 randomness = randomWords[0];
+
         uint256 baseId = _baseTokenIdForRank(r.rankIndex);
         uint256 itemId = baseId + (randomness % ITEMS_PER_RANK);
 
@@ -140,6 +174,7 @@ contract RankUpLootNFT is ERC1155, VRFConsumerBaseV2Plus {
         });
 
         delete pending[requestId];
+        if (pendingCount > 0) pendingCount--;
 
         emit RankUpLootAwarded(requestId, r.botWallet, r.rankIndex, itemId, randomness);
     }
@@ -154,23 +189,6 @@ contract RankUpLootNFT is ERC1155, VRFConsumerBaseV2Plus {
     }
 
     function uri(uint256 tokenId) public view override returns (string memory) {
-        return string(abi.encodePacked(_baseURI, _toString(tokenId), ".json"));
-    }
-
-    function _toString(uint256 value) private pure returns (string memory) {
-        if (value == 0) return "0";
-        uint256 temp = value;
-        uint256 digits;
-        while (temp != 0) {
-            digits++;
-            temp /= 10;
-        }
-        bytes memory buffer = new bytes(digits);
-        while (value != 0) {
-            digits -= 1;
-            buffer[digits] = bytes1(uint8(48 + uint256(value % 10)));
-            value /= 10;
-        }
-        return string(buffer);
+        return string(abi.encodePacked(_baseMetaURI, tokenId.toString(), ".json"));
     }
 }

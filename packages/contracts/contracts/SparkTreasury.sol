@@ -10,8 +10,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  *      and updates spark_balances / spark_transactions.
  *
  *      Revenue split on every purchase:
- *        - 90% → owner()      (platform revenue)
- *        - 10% → rewardPool   (bot reward fund, controlled by backend relayer)
+ *        - (100 - rewardSharePct)% → owner()   (platform revenue)
+ *        - rewardSharePct%         → rewardPool (bot reward fund, controlled by backend relayer)
  *
  *      Fuji testnet price feed: 0x5498BB86BC934c8D34FDA08E81D444153d0D06aD
  */
@@ -22,8 +22,11 @@ contract SparkTreasury is Ownable {
     /// @dev Backend relayer wallet that holds bot reward funds (10% of every purchase).
     address public rewardPool;
 
-    /// @dev Percentage kept in rewardPool (out of 100). Default: 10.
+    /// @dev Percentage kept in rewardPool (1–50). Default: 10.
     uint256 public rewardSharePct = 10;
+
+    /// @dev Maximum age (seconds) we accept for a Chainlink price answer. 1 hour.
+    uint256 public constant PRICE_STALENESS_THRESHOLD = 3600;
 
     struct SparkPackage {
         uint256 sparkAmount;
@@ -48,6 +51,7 @@ contract SparkTreasury is Ownable {
     error InvalidPackage();
     error InsufficientPayment();
     error InvalidPriceFeed();
+    error StalePriceFeed();
     error TransferFailed();
     error InvalidAddress();
     error InvalidSharePct();
@@ -57,44 +61,56 @@ contract SparkTreasury is Ownable {
         if (_rewardPool == address(0)) revert InvalidAddress();
         priceFeed = _priceFeed;
         rewardPool = _rewardPool;
-        // Default package: 1 = 1000 Spark = $5
         _setPackage(1, 1000, 5e8);
     }
 
     /**
-     * @dev Chainlink AggregatorV3Interface compatible getter (minimal interface)
+     * @dev Fetches AVAX/USD price from Chainlink with full staleness and validity checks.
+     *      Reverts if the feed is stale, uninitialized, or returns a non-positive answer.
      */
     function _getAvaxUsdPrice() internal view returns (uint256) {
         (bool ok, bytes memory data) = priceFeed.staticcall(
             abi.encodeWithSignature("latestRoundData()")
         );
-        if (!ok || data.length < 160) return 0;
-        (, int256 answer,,,) = abi.decode(data, (uint80, int256, uint256, uint256, uint80));
-        return answer < 0 ? 0 : uint256(answer);
+        if (!ok || data.length < 160) revert InvalidPriceFeed();
+
+        (uint80 roundId, int256 answer, , uint256 updatedAt, uint80 answeredInRound) =
+            abi.decode(data, (uint80, int256, uint256, uint256, uint80));
+
+        if (answer <= 0) revert InvalidPriceFeed();
+        if (updatedAt == 0) revert StalePriceFeed();
+        if (block.timestamp - updatedAt > PRICE_STALENESS_THRESHOLD) revert StalePriceFeed();
+        if (answeredInRound < roundId) revert StalePriceFeed();
+
+        return uint256(answer);
     }
 
     /**
      * @dev User sends AVAX; required amount calculated from packageId at spot rate.
+     *      Excess AVAX beyond the required amount is refunded to the caller.
      *      Payment is split at purchase time:
      *        - (100 - rewardSharePct)% → owner() immediately
      *        - rewardSharePct%         → rewardPool immediately
-     *      No AVAX ever stays in this contract after a successful purchase.
      *
      * @param packageId Package number (e.g. 1 = 1000 Spark = $5)
-     * @param userId Supabase auth.users.id (backend event determines whose balance to credit)
+     * @param userId    Supabase auth.users.id (backend event determines whose balance to credit)
      */
     function buySparks(uint256 packageId, string calldata userId) external payable {
         SparkPackage memory pkg = packages[packageId];
         if (pkg.sparkAmount == 0 || pkg.priceUsd8 == 0) revert InvalidPackage();
 
         uint256 price8 = _getAvaxUsdPrice();
-        if (price8 == 0) revert InvalidPriceFeed();
-        // requiredWei = (priceUsd8 * 1e18) / price8
         uint256 requiredWei = (pkg.priceUsd8 * 1e18) / price8;
         if (msg.value < requiredWei) revert InsufficientPayment();
 
-        uint256 rewardWei = (msg.value * rewardSharePct) / 100;
-        uint256 ownerWei  = msg.value - rewardWei;
+        uint256 paymentWei = requiredWei;
+        uint256 refundWei  = msg.value - requiredWei;
+
+        uint256 rewardWei = (paymentWei * rewardSharePct) / 100;
+        uint256 ownerWei  = paymentWei - rewardWei;
+
+        // Emit before external calls (CEI)
+        emit SparksPurchased(msg.sender, pkg.sparkAmount, paymentWei, ownerWei, rewardWei, userId);
 
         (bool ok1,) = payable(owner()).call{ value: ownerWei }("");
         if (!ok1) revert TransferFailed();
@@ -102,7 +118,10 @@ contract SparkTreasury is Ownable {
         (bool ok2,) = payable(rewardPool).call{ value: rewardWei }("");
         if (!ok2) revert TransferFailed();
 
-        emit SparksPurchased(msg.sender, pkg.sparkAmount, msg.value, ownerWei, rewardWei, userId);
+        if (refundWei > 0) {
+            (bool ok3,) = payable(msg.sender).call{ value: refundWei }("");
+            if (!ok3) revert TransferFailed();
+        }
     }
 
     /**
@@ -115,17 +134,16 @@ contract SparkTreasury is Ownable {
     }
 
     /**
-     * @dev Update the reward share percentage (0-50). Only owner.
+     * @dev Update the reward share percentage (1–50). Only owner.
      */
     function setRewardSharePct(uint256 _pct) external onlyOwner {
-        if (_pct > 50) revert InvalidSharePct();
+        if (_pct == 0 || _pct > 50) revert InvalidSharePct();
         rewardSharePct = _pct;
         emit RewardShareUpdated(_pct);
     }
 
     /**
      * @dev Emergency drain — in normal operation the contract holds no balance.
-     *      Kept for edge cases (e.g. AVAX sent via receive()).
      */
     function withdrawFunds() external onlyOwner {
         uint256 balance = address(this).balance;
@@ -135,9 +153,6 @@ contract SparkTreasury is Ownable {
         emit FundsWithdrawn(owner(), balance);
     }
 
-    /**
-     * @dev Add or update package.
-     */
     function setPackage(uint256 packageId, uint256 sparkAmount, uint256 priceUsd8) external onlyOwner {
         _setPackage(packageId, sparkAmount, priceUsd8);
     }
