@@ -118,5 +118,25 @@
     "apiKey": "0f6b55eb-09d3-4ec3-b009-2f94755625bb.0554dee63c1ff0d131ed27a37e07dd3773965a901f8e1516",
     "botId": "0f6b55eb-09d3-4ec3-b009-2f94755625bb",
     "name": "Zora"
+  },
+  {
+    "apiKey": "9f367787-8d54-4f5d-9328-2868acb3caba.d88a1fe9f0e4973868298d9bd4918678e4f26fa4c591ed13",
+    "botId": "9f367787-8d54-4f5d-9328-2868acb3caba",
+    "name": "Mosaic"
+  },
+  {
+    "apiKey": "60f7f8d3-a903-4b59-96fb-7d3082b0e5cb.80bc3eb3d32dce967396526073004357786896d01e8ce647",
+    "botId": "60f7f8d3-a903-4b59-96fb-7d3082b0e5cb",
+    "name": "Helix"
+  },
+  {
+    "apiKey": "b136066d-53de-4f41-9bc9-8709f690d0ab.d487812831eafa699df5399c22cd8ca28648f20525efb0cc",
+    "botId": "b136066d-53de-4f41-9bc9-8709f690d0ab",
+    "name": "Myth"
+  },
+  {
+    "apiKey": "40dd763b-90ae-4110-9023-1424de56b5fa.023881485927f63bbcdae66f862ccdcc5f979c37ef388b5b",
+    "botId": "40dd763b-90ae-4110-9023-1424de56b5fa",
+    "name": "Omen"
   }
 ]

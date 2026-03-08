@@ -51,18 +51,36 @@ export async function updateReputationOnChain(
   totalMatches: number,
   wins: number
 ): Promise<boolean> {
-  const contract = getPassportContract();
-  if (!contract) return false;
+  const rpcUrl = process.env.AVALANCHE_RPC_URL;
+  const privateKey = process.env.DEPLOYER_PRIVATE_KEY;
+  const contractAddress = process.env.AGENT_PASSPORT_CONTRACT_ADDRESS;
 
+  if (!rpcUrl || !privateKey || !contractAddress) return false;
   if (!botWallet || !ethers.isAddress(botWallet)) return false;
 
+  // Pre-check: avoid revert "No passport for this bot" — skip if bot has no passport
+  const existing = await getPassportByBotWallet(botWallet);
+  if (!existing) {
+    console.warn(`[Passport] ⚠️  No passport for bot ${botWallet.slice(0, 10)}… — skipping updateReputation`);
+    return false;
+  }
+
   try {
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    const wallet = new ethers.Wallet(privateKey, provider);
+    const contract = new ethers.Contract(contractAddress, PASSPORT_ABI, wallet);
+
+    const feeData = await provider.getFeeData();
     const tx = await contract.updateReputation(
       botWallet,
       reputationScore,
       totalMatches,
       wins,
-      { gasLimit: 150_000 }
+      {
+        gasLimit: 150_000,
+        maxFeePerGas: feeData.maxFeePerGas ?? feeData.gasPrice,
+        maxPriorityFeePerGas: feeData.maxPriorityFeePerGas ?? feeData.gasPrice,
+      }
     );
     await tx.wait();
     return true;

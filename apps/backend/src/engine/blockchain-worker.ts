@@ -103,15 +103,13 @@ const blockchainWorker = new Worker('blockchain-queue', async (job) => {
             }
         }
 
-        // 4. ERC-8004 Passport — update reputation on chain for winner and loser
+        // 4. ERC-8004 Passport — update reputation on chain for winner and loser (sequential to avoid nonce/REPLACEMENT_UNDERPRICED)
         if (typeof winnerReputation === 'number' && typeof loserReputation === 'number' &&
             typeof winnerWins === 'number' && typeof loserWins === 'number' &&
             typeof winnerTotalMatches === 'number' && typeof loserTotalMatches === 'number') {
-            const [winnerUpdated, loserUpdated] = await Promise.all([
-                updateReputationOnChain(winner, winnerReputation, winnerTotalMatches, winnerWins),
-                updateReputationOnChain(loser, loserReputation, loserTotalMatches, loserWins)
-            ]);
+            const winnerUpdated = await updateReputationOnChain(winner, winnerReputation, winnerTotalMatches, winnerWins);
             if (winnerUpdated) console.log(`[Blockchain] 🛂 Passport reputation updated for winner ${winner}`);
+            const loserUpdated = await updateReputationOnChain(loser, loserReputation, loserTotalMatches, loserWins);
             if (loserUpdated) console.log(`[Blockchain] 🛂 Passport reputation updated for loser ${loser}`);
         }
     } else {

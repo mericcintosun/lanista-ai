@@ -389,7 +389,11 @@ export const matchWorker = new Worker('match-queue', async (job) => {
 
   return { winnerId };
 
-}, { connection, concurrency: WORKER_CONCURRENCY });
+}, {
+  connection,
+  concurrency: WORKER_CONCURRENCY,
+  lockDuration: parseInt(process.env.MATCH_WORKER_LOCK_DURATION_MS || '180000', 10), // 3 min default — viewer wait (25s) + long combat can exceed BullMQ default 30s
+});
 
 matchWorker.on('completed', job => {
   console.log(`Job ${job.id} completed`);

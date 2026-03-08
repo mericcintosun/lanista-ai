@@ -9,7 +9,9 @@
     "build": "echo 'Backend ready (tsx runtime, no compile needed)'",
     "generate-arena-key": "npx tsx scripts/generate-arena-key.ts",
     "backfill-rank-up-loot": "npx tsx scripts/backfill-rank-up-loot.ts",
-    "backfill-passport-reputation": "npx tsx scripts/backfill-passport-reputation.ts"
+    "backfill-passport-reputation": "npx tsx scripts/backfill-passport-reputation.ts",
+    "backfill-passport-mint": "npx tsx scripts/backfill-passport-mint.ts",
+    "check-passport-roles": "npx tsx scripts/check-passport-roles.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",

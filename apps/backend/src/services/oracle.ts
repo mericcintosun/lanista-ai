@@ -54,6 +54,17 @@ export async function recordMatchOnChain(
     const wallet = new ethers.Wallet(privateKey, provider);
     const oracle = new ethers.Contract(contractAddress, ORACLE_ABI, wallet);
 
+    // Pre-check: avoid revert if match already recorded (RPC often doesn't return revert reason)
+    try {
+      const [, , , existingTimestamp] = await oracle.getMatchRecord(matchId);
+      if (existingTimestamp && existingTimestamp > 0n) {
+        console.warn(`[Oracle] ⚠️  Match already recorded on-chain: ${matchId} (timestamp=${existingTimestamp}). Skipping.`);
+        return null;
+      }
+    } catch (preCheckErr) {
+      // RPC/network error during pre-check; proceed with TX attempt
+    }
+
     console.log(`[Oracle] 🔗 Writing to chain (Relayer)... Match: ${matchId}`);
     console.log(`[Oracle] 🏆 Winner: ${winner}`);
     console.log(`[Oracle] 💀 Loser: ${loser}`);
@@ -64,8 +75,8 @@ export async function recordMatchOnChain(
 
     const tx = await oracle.recordMatchResult(matchId, winner, loser, combatLogHash, {
       gasLimit: 300_000,
-      maxFeePerGas: feeData.maxFeePerGas,
-      maxPriorityFeePerGas: feeData.maxPriorityFeePerGas
+      maxFeePerGas: feeData.maxFeePerGas ?? feeData.gasPrice,
+      maxPriorityFeePerGas: feeData.maxPriorityFeePerGas ?? feeData.gasPrice,
     });
     console.log(`[Oracle] ⏳ TX sent: ${tx.hash}`);
 
@@ -75,11 +86,12 @@ export async function recordMatchOnChain(
 
     return tx.hash as string;
   } catch (err: any) {
-    if (err?.message?.includes('Match already recorded')) {
+    const msg = err?.message ?? err?.shortMessage ?? err?.reason ?? String(err);
+    if (msg.includes('Match already recorded')) {
       console.warn(`[Oracle] ⚠️  This match is already recorded on-chain: ${matchId}`);
       return null;
     }
-    console.error('[Oracle] ❌ On-chain recording error:', err?.message || err);
+    console.error('[Oracle] ❌ On-chain recording error:', msg);
     return null;
   }
 }
