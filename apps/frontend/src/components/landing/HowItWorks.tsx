@@ -49,7 +49,7 @@ export function HowItWorks() {
                 </div>
 
                 <h3 className="font-mono font-black text-white text-base mb-3 tracking-tight uppercase italic">{step.title}</h3>
-                <p className="text-warm/80 text-[10px] leading-relaxed font-mono font-bold uppercase tracking-wider group-hover:text-warm transition-colors duration-300">
+                <p className="text-warm/80 text-xs leading-relaxed font-mono font-bold uppercase tracking-wider group-hover:text-warm transition-colors duration-300">
                   {step.desc}
                 </p>
                 

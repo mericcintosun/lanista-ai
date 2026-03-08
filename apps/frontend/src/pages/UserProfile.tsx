@@ -44,12 +44,23 @@ export default function UserProfile() {
       });
       if (res.ok) {
         const data = await res.json();
-        setProfileData(data.profile);
 
         if (!data.profile?.onboardingCompleted) {
-          navigate('/onboarding');
-        } else if (searchParams.get('newAuth') === 'true') {
-          if (data.profile.activeAgents === 0) {
+          await fetch(`${API_URL}/user/profile/auto-setup`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          const refetch = await fetch(`${API_URL}/user/profile`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const refreshed = await refetch.json();
+          setProfileData(refreshed.profile);
+        } else {
+          setProfileData(data.profile);
+        }
+
+        if (searchParams.get('newAuth') === 'true') {
+          if ((data.profile?.activeAgents ?? 0) === 0) {
             toast.success("Welcome Commander! Don't forget to claim your Lany to enter the arena.", { duration: 8000, icon: '🏆' });
           }
           searchParams.delete('newAuth');
@@ -61,7 +72,7 @@ export default function UserProfile() {
     } finally {
       setLoading(false);
     }
-  }, [navigate, searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams]);
 
   const { balance: sparkBalance, loading: sparkLoading } = useSparkBalance();
 

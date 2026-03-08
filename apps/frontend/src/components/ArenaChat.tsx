@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Sparkles, Megaphone, Flame, Maximize2, Minimize2 } from 'lucide-react';
+import { Send, Sparkles, Megaphone, Flame, Maximize2, Minimize2, UserCircle } from 'lucide-react';
+import { useUIStore } from '../lib/ui-store';
 import { useArenaChat, type ArenaChatMessage } from '../hooks/useArenaChat';
 import { useSparkBalance } from '../hooks/useSparkBalance';
 import { useAuthStore } from '../lib/auth-store';
@@ -37,10 +38,10 @@ function MegaphoneBanner({ message }: { message: ArenaChatMessage }) {
               <Megaphone className="w-5 h-5 text-amber-400" strokeWidth={2.5} />
             </div>
             <div>
-              <p className="font-mono text-[9px] text-amber-400/70 uppercase tracking-[0.25em] leading-none">
+              <p className="font-mono text-[11px] text-amber-400/70 uppercase tracking-[0.25em] leading-none">
                 Megaphone
               </p>
-              <p className="font-mono text-[10px] text-amber-300/90 font-semibold mt-0.5 truncate max-w-[120px]">
+              <p className="font-mono text-xs text-amber-300/90 font-semibold mt-0.5 truncate max-w-[120px]">
                 {message.username}
               </p>
             </div>
@@ -79,7 +80,7 @@ function MessageRow({ msg }: { msg: ArenaChatMessage }) {
   if (msg.type === 'normal') {
     return (
       <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0 rounded-r-lg">
-        <span className="text-[9px] sm:text-[10px] font-mono text-zinc-500 shrink-0">{formatTime(msg.timestamp)}</span>
+        <span className="text-[11px] font-mono text-zinc-500 shrink-0">{formatTime(msg.timestamp)}</span>
         <span className="text-xs sm:text-sm font-bold text-zinc-200 shrink-0">{msg.username}:</span>
         <span className="text-xs sm:text-sm leading-relaxed text-zinc-400 break-words min-w-0">{msg.text}</span>
       </div>
@@ -90,7 +91,7 @@ function MessageRow({ msg }: { msg: ArenaChatMessage }) {
     <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 rounded-r-lg p-2 sm:p-3 border-l-2 border-primary bg-gradient-to-r from-primary/10 to-transparent shadow-[inset_4px_0_0_0_rgba(223,127,62,0.15)]">
       <span className="text-xs sm:text-sm font-bold text-zinc-100 shrink-0">{msg.username}:</span>
       {sparkSpent != null && (
-        <span className="text-[9px] sm:text-[10px] bg-amber-500/10 text-amber-500 px-1.5 sm:px-2 py-0.5 rounded border border-amber-500/30 font-bold uppercase tracking-tighter shrink-0">
+        <span className="text-[11px] bg-amber-500/10 text-amber-500 px-1.5 sm:px-2 py-0.5 rounded border border-amber-500/30 font-bold uppercase tracking-tighter shrink-0">
           {sparkSpent} Spark
         </span>
       )}
@@ -101,6 +102,7 @@ function MessageRow({ msg }: { msg: ArenaChatMessage }) {
 
 export function ArenaChat({ matchId, match, unityIframeRef, gameEmojiContainerRef, className = '' }: ArenaChatProps) {
   const session = useAuthStore((s) => s.session);
+  const openAuthModal = useUIStore((s) => s.openAuthModal);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [bannerMegaphone, setBannerMegaphone] = useState<ArenaChatMessage | null>(null);
 
@@ -234,76 +236,88 @@ export function ArenaChat({ matchId, match, unityIframeRef, gameEmojiContainerRe
           </AnimatePresence>
         </section>
 
-        {error && (
+        {error && session && (
           <div className="px-4 py-2 bg-primary/10 border-t border-primary/20 text-primary text-xs font-mono shrink-0">
             {error}
           </div>
         )}
 
-        {/* Footer: input row (Spark left, input center, Send right) + actions below — same bg as chat */}
-        <footer className="p-2 sm:p-3 border-t border-white/5 bg-black shrink-0 space-y-2 sm:space-y-3">
-          {/* Row 1: Spark (left) | input | Send (right) — Twitch/Kick style */}
-          <div className="flex items-end gap-2 w-full">
-            <div className="flex items-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 bg-zinc-800 border border-zinc-700 rounded-lg shrink-0">
-              <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-500" />
-              <span className="text-[10px] sm:text-xs font-bold text-amber-500 uppercase tracking-tighter">
-                {sparkLoading ? '…' : `${sparkBalance.toLocaleString()}`}
-              </span>
+        {/* Footer: show sign-in prompt for unauthenticated users, full input for authenticated */}
+        {!session ? (
+          <footer className="p-3 sm:p-4 border-t border-white/5 bg-black shrink-0">
+            <button
+              type="button"
+              onClick={openAuthModal}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-primary/10 border border-primary/30 hover:bg-primary/20 text-primary transition-colors"
+            >
+              <UserCircle className="w-4 h-4 shrink-0" />
+              <span className="text-xs font-bold uppercase tracking-widest">Sign in to participate</span>
+            </button>
+          </footer>
+        ) : (
+          <footer className="p-2 sm:p-3 border-t border-white/5 bg-black shrink-0 space-y-2 sm:space-y-3">
+            {/* Row 1: Spark (left) | input | Send (right) — Twitch/Kick style */}
+            <div className="flex items-end gap-2 w-full">
+              <div className="flex items-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 bg-zinc-800 border border-zinc-700 rounded-lg shrink-0">
+                <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-500" />
+                <span className="text-xs font-bold text-amber-500 uppercase tracking-tighter">
+                  {sparkLoading ? '…' : `${sparkBalance.toLocaleString()}`}
+                </span>
+              </div>
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value.slice(0, MAX_MESSAGE_CHARS))}
+                onKeyDown={handleKeyDown}
+                placeholder={`Send message (max ${MAX_MESSAGE_CHARS} characters)`}
+                maxLength={MAX_MESSAGE_CHARS}
+                rows={1}
+                className="flex-1 min-w-0 h-[2.25rem] sm:h-[2.5rem] min-h-[2.25rem] sm:min-h-[2.5rem] max-h-20 bg-black/40 border border-zinc-700 rounded-lg px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-primary transition-colors resize-none overflow-y-auto"
+              />
+              <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleSend('highlight')}
+                  disabled={!input.trim() || sending !== null}
+                  className="p-1.5 sm:p-2 rounded-lg bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 text-amber-500 disabled:opacity-50 disabled:pointer-events-none"
+                  title="Highlight (50 Spark)"
+                >
+                  <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSend('megaphone')}
+                  disabled={!input.trim() || sending !== null}
+                  className="p-1.5 sm:p-2 rounded-lg bg-primary/10 border border-primary/30 hover:bg-primary/20 text-primary disabled:opacity-50 disabled:pointer-events-none"
+                  title="Megaphone (500 Spark)"
+                >
+                  <Megaphone className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSend('normal')}
+                  disabled={!input.trim()}
+                  className="p-1.5 sm:p-2 rounded-lg bg-primary hover:bg-primary/90 text-white disabled:opacity-50 disabled:pointer-events-none group"
+                  title="Send"
+                >
+                  <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </button>
+              </div>
             </div>
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value.slice(0, MAX_MESSAGE_CHARS))}
-              onKeyDown={handleKeyDown}
-              placeholder={session ? `Send message (max ${MAX_MESSAGE_CHARS} characters)` : 'Sign in to chat'}
-              disabled={!session}
-              maxLength={MAX_MESSAGE_CHARS}
-              rows={1}
-              className="flex-1 min-w-0 h-[2.25rem] sm:h-[2.5rem] min-h-[2.25rem] sm:min-h-[2.5rem] max-h-20 bg-black/40 border border-zinc-700 rounded-lg px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-primary transition-colors resize-none overflow-y-auto"
-            />
-            <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
-              <button
-                type="button"
-                onClick={() => handleSend('highlight')}
-                disabled={!session || !input.trim() || sending !== null}
-                className="p-1.5 sm:p-2 rounded-lg bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 text-amber-500 disabled:opacity-50 disabled:pointer-events-none"
-                title="Highlight (50 Spark)"
-              >
-                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSend('megaphone')}
-                disabled={!session || !input.trim() || sending !== null}
-                className="p-1.5 sm:p-2 rounded-lg bg-primary/10 border border-primary/30 hover:bg-primary/20 text-primary disabled:opacity-50 disabled:pointer-events-none"
-                title="Megaphone (500 Spark)"
-              >
-                <Megaphone className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSend('normal')}
-                disabled={!session || !input.trim()}
-                className="p-1.5 sm:p-2 rounded-lg bg-primary hover:bg-primary/90 text-white disabled:opacity-50 disabled:pointer-events-none group"
-                title="Send"
-              >
-                <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </button>
-            </div>
-          </div>
 
-          {/* Row 2: Emoji + Domates fırlat (actions below chat input) */}
-          <div className="flex items-center justify-center gap-2 sm:gap-3 py-1">
-            <InteractionBar
-              onThrowTomato={throwTomato}
-              onEmoji={sendEmoji}
-              sending={sending === 'tomato'}
-              session={session}
-              player1Name={match?.player_1?.name ?? 'Red'}
-              player2Name={match?.player_2?.name ?? 'Blue'}
-              className="flex-1"
-            />
-          </div>
-        </footer>
+            {/* Row 2: Emoji + Throw actions */}
+            <div className="flex items-center justify-center gap-2 sm:gap-3 py-1">
+              <InteractionBar
+                onThrowTomato={throwTomato}
+                onEmoji={sendEmoji}
+                sending={sending === 'tomato'}
+                session={session}
+                player1Name={match?.player_1?.name ?? 'Red'}
+                player2Name={match?.player_2?.name ?? 'Blue'}
+                className="flex-1"
+              />
+            </div>
+          </footer>
+        )}
       </main>
     </>
   );

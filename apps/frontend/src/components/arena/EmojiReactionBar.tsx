@@ -76,7 +76,7 @@ export function EmojiReactionBar({ onEmoji, origin, disabled = false, className 
       >
             {recent.length > 0 && (
               <div className="mb-1.5 pb-1.5 border-b border-zinc-700/50 shrink-0">
-                <p className="text-[8px] font-mono text-zinc-500 uppercase tracking-widest mb-1">Recent</p>
+                <p className="text-[11px] font-mono text-zinc-500 uppercase tracking-widest mb-1">Recent</p>
                 <div className="flex flex-wrap gap-0.5">
                   {recent.map((e, idx) => (
                     <button
@@ -91,7 +91,7 @@ export function EmojiReactionBar({ onEmoji, origin, disabled = false, className 
                 </div>
               </div>
             )}
-            <p className="text-[8px] font-mono text-zinc-500 uppercase tracking-widest mb-1 shrink-0">Emojis</p>
+            <p className="text-[11px] font-mono text-zinc-500 uppercase tracking-widest mb-1 shrink-0">Emojis</p>
             <div className="flex flex-wrap gap-0.5 overflow-y-auto custom-scrollbar flex-1 min-h-0">
               {ARENA_EMOJIS.map((e, idx) => (
                 <button

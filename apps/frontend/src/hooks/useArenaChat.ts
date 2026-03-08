@@ -88,7 +88,7 @@ export function useArenaChat(
 
     const channelName = `room-arena-${matchId}`;
     const channel = supabase.channel(channelName, {
-      config: { private: true, broadcast: { self: true, ack: true } },
+      config: { broadcast: { self: true, ack: true } },
     });
 
     channel.on('broadcast', { event: 'chat' }, ({ payload }) => {

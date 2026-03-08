@@ -29,7 +29,7 @@ export default function Landing() {
         scrollTrigger: {
           trigger: containerRef.current,
           pin: true,
-          scrub: 2,
+          scrub: 0.4,
           start: 'top top',
           end: () => `+=${getScrollDistance()}`,
           invalidateOnRefresh: true,
@@ -83,10 +83,8 @@ export default function Landing() {
           >
             <HorizontalScroll />
             <HowItWorks />
-            {/* Empty screen: HowItWorks height, scroll distance for reading */}
-            <div className="shrink-0 w-[100vw] h-[65vh] bg-transparent" aria-hidden />
             <div
-              className="shrink-0 w-[12vw] max-w-[160px]"
+              className="shrink-0 w-[6vw] max-w-[80px]"
               aria-hidden
             />
           </div>

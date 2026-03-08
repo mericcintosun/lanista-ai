@@ -192,6 +192,59 @@ router.patch('/', async (req, res) => {
     }
 });
 
+const CALLSIGN_ADJECTIVES = ['SHADOW', 'NOVA', 'IRON', 'CYBER', 'STORM', 'GHOST', 'DARK', 'NEON', 'STEEL', 'VOID', 'APEX', 'ROGUE', 'DELTA', 'OMEGA', 'ZERO'];
+const CALLSIGN_NOUNS = ['WOLF', 'BLADE', 'HAWK', 'WRAITH', 'FORGE', 'PULSE', 'RIFT', 'VIPER', 'TITAN', 'EDGE', 'CLAW', 'SURGE', 'NEXUS', 'DUSK', 'FLUX'];
+
+function generateCallsign(userId: string): string {
+    const adj = CALLSIGN_ADJECTIVES[Math.floor(Math.random() * CALLSIGN_ADJECTIVES.length)];
+    const noun = CALLSIGN_NOUNS[Math.floor(Math.random() * CALLSIGN_NOUNS.length)];
+    const suffix = userId.replace(/-/g, '').slice(-4).toUpperCase();
+    return `${adj}_${noun}_${suffix}`;
+}
+
+router.post('/auto-setup', async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) return res.status(401).json({ error: "No token provided" });
+        const token = authHeader.replace('Bearer ', '');
+
+        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+        if (authError || !user) return res.status(401).json({ error: "Invalid token" });
+
+        const { data: existing } = await supabase
+            .from('profiles')
+            .select('onboarding_completed, callsign')
+            .eq('id', user.id)
+            .single();
+
+        if (existing?.onboarding_completed) {
+            return res.json({ success: true, callsign: existing.callsign });
+        }
+
+        const callsign = generateCallsign(user.id);
+        const publicUsername = callsign.toLowerCase();
+
+        const { error } = await supabase
+            .from('profiles')
+            .upsert({
+                id: user.id,
+                callsign,
+                public_username: publicUsername,
+                role: 'commander',
+                sector: 'Sector 0x77-B',
+                onboarding_completed: true,
+                updated_at: new Date().toISOString(),
+            });
+
+        if (error) throw error;
+
+        return res.json({ success: true, callsign });
+    } catch (error: any) {
+        console.error("Auto-setup error:", error);
+        res.status(500).json({ error: error.message || "Internal server error" });
+    }
+});
+
 router.post('/complete', async (req, res) => {
     try {
         const authHeader = req.headers.authorization;

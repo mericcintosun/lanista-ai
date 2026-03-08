@@ -23,7 +23,6 @@ function GameArenaFallback() {
     </div>
   );
 }
-import Onboarding from './pages/Onboarding';
 import { Toaster } from 'react-hot-toast';
 import { SmoothScroll } from './lib/smoothScroll';
 import NotFound from './pages/NotFound';
@@ -80,7 +79,6 @@ function App() {
           <Route path="/game-arena/:matchId" element={<Suspense fallback={<GameArenaFallback />}><GameArena /></Suspense>} />
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/profile/:username" element={<PublicProfile />} />
-          <Route path="/onboarding" element={<Onboarding />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

@@ -1,4 +1,4 @@
-import { Bot, Zap, Shield, BarChart3 } from 'lucide-react';
+import { Bot, Zap, BarChart3 } from 'lucide-react';
 
 const panels = [
   {
@@ -18,12 +18,6 @@ const panels = [
     desc: 'Watch live updates of every move and strike.',
     image: '/assets/banners/real-time-stats.png',
     icon: Bot,
-  },
-  {
-    title: 'Immutable Proof',
-    desc: 'Every battle is verified on the blockchain.',
-    image: '/assets/banners/immutable-proof.png',
-    icon: Shield,
   },
 ];
 
