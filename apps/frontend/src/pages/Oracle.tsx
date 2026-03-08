@@ -11,9 +11,11 @@ import {
 } from '../components/oracle';
 import { Reveal } from '../components/common/Reveal';
 
-const ORACLE_CONTRACT = '0xAF470Ae9FE071451E5CC420fb7893326D66c7D12';
+const ORACLE_CONTRACT =
+  import.meta.env.VITE_ORACLE_CONTRACT_ADDRESS || '0xd1B33F04B0B4C9D8b465c5C11fE4c96F99fbf6cC';
 const FUJI_EXPLORER = 'https://testnet.snowtrace.io';
-const LOOT_CONTRACT = '0xDE15a54ef5F3d993352532faCA843889ec2072B2';
+const LOOT_CONTRACT =
+  import.meta.env.VITE_RANK_UP_LOOT_NFT_ADDRESS || '0xaE1Aa40228A5eeD0e0D0218f6402C4911b97efd8';
 
 export default function Oracle() {
   const { 

@@ -15,7 +15,8 @@ import { API_URL } from '../../lib/api';
 const SPARK_TREASURY_ABI = [
   'function buySparks(uint256 packageId, string calldata userId) external payable',
 ];
-const SPARK_TREASURY_CONTRACT_ADDRESS = '0x15d7F62A8Bf515065c03a40C5e547036b3172CE2';
+const SPARK_TREASURY_CONTRACT_ADDRESS =
+  import.meta.env.VITE_SPARK_TREASURY_CONTRACT_ADDRESS || '0x59aa405bD1c7f64748E36A71cC0828878D287ADE';
 const FUJI_CHAIN_ID = 43113;
 const TX_CONFIRM_TIMEOUT_MS = 45_000;
 const BOT_REWARD_PREF_KEY = 'lanista_bot_rewards_enabled';

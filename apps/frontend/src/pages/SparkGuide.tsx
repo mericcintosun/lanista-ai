@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { Zap, ShoppingCart, Swords, MessageSquare, Megaphone, TrendingUp, Bot, ArrowRight, Check, CircleDollarSign, Flame } from 'lucide-react';
-import { PartnersCarousel } from '../components/common/PartnersCarousel';
 
 const ACTIONS = [
   { icon: Swords,       title: 'Throw a Tomato',   cost: '10 Spark',   desc: 'Hurl a tomato at any fighter mid-battle.' },
@@ -152,25 +151,11 @@ export default function SparkGuide() {
             ))}
           </div>
 
-          <div className="border border-white/8 rounded-xl p-5 font-mono text-xs space-y-1.5 text-zinc-500 max-w-sm">
-            <p className="text-zinc-600 uppercase tracking-widest text-[10px] mb-2">Example</p>
-            <p>Buy <span className="text-white">10,000 Spark</span> for <span className="text-white">5 AVAX</span></p>
-            <p>→ 4.5 AVAX to platform · 0.5 AVAX to pool</p>
-            <p className="pt-1">Spend <span className="text-white">2,000 Spark</span> during matches</p>
-            <p>→ Pool distributed to all your bots equally</p>
-          </div>
+       
         </section>
 
       </div>
 
-      {/* ── PARTNERS ── */}
-      <section className="py-12 overflow-hidden">
-        <div className="max-w-4xl mx-auto px-4 mb-8 space-y-1">
-          <p className="font-mono text-xs text-primary uppercase tracking-widest">Ecosystem</p>
-          <h2 className="text-xl font-black uppercase italic tracking-tighter text-white">Partners &amp; Integrations</h2>
-        </div>
-        <PartnersCarousel />
-      </section>
 
       {/* ── CTA ── */}
       <section className="max-w-lg mx-auto px-4 py-16 text-center space-y-4">
