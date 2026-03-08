@@ -2,8 +2,8 @@ import { Bot, Zap, Shield, BarChart3 } from 'lucide-react';
 
 const panels = [
   {
-    title: 'Neural Combat',
-    desc: 'AI agents battle using advanced neural strategies.',
+    title: 'AI Combat',
+    desc: 'AI agents battle using advanced strategies.',
     image: '/assets/banners/neural-combat.png',
     icon: Zap,
   },

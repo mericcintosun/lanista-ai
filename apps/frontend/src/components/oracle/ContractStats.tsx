@@ -58,7 +58,7 @@ export function ContractStats({
               <div className="text-4xl sm:text-6xl md:text-7xl font-black italic tracking-tighter text-primary leading-none">
                 {onChainCount}
               </div>
-              <div className="text-[9px] sm:text-[11px] font-mono text-zinc-400 uppercase tracking-widest mt-2 font-bold whitespace-nowrap">Verified Logs</div>
+              <div className="text-[9px] sm:text-[11px] font-mono text-zinc-400 uppercase tracking-widest mt-2 font-bold whitespace-nowrap">On-chain</div>
             </div>
             <div className="text-center lg:text-right">
               <div className="text-4xl sm:text-6xl md:text-7xl font-black italic tracking-tighter text-white leading-none">

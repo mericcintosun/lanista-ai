@@ -24,10 +24,10 @@ export function CombatLogs({ logs, match }: CombatLogsProps) {
             <div className="absolute inset-0 bg-blue-500/20 blur-sm rounded-full animate-pulse" />
             <Activity className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-400 relative" />
           </div>
-          <h3 className="font-mono text-xs sm:text-sm font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] text-zinc-100 italic truncate">Telemetry_Stream</h3>
+          <h3 className="font-mono text-xs sm:text-sm font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] text-zinc-100 italic truncate">Combat log</h3>
         </div>
         <div className="px-2 sm:px-2.5 py-0.5 bg-secondary/10 rounded-sm border border-secondary/20 font-mono text-[9px] sm:text-xs text-secondary tracking-widest font-black uppercase shrink-0 self-start sm:self-auto">
-          Neural_Link: Secured
+          Connected
         </div>
       </header>
 

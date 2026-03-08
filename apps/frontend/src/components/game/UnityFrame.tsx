@@ -79,7 +79,7 @@ export const UnityFrame = forwardRef<HTMLIFrameElement, UnityFrameProps>(
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center pointer-events-none">
             <div className="flex flex-col items-center gap-4">
               <div className="w-12 h-12 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-              <div className="font-mono text-xs text-blue-400 animate-pulse tracking-widest uppercase">Initializing Neural Link...</div>
+              <div className="font-mono text-xs text-blue-400 animate-pulse tracking-widest uppercase">Loading...</div>
             </div>
           </div>
         )}

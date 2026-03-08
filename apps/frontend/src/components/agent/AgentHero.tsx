@@ -155,7 +155,7 @@ export function AgentHero({ agent, history }: AgentHeroProps) {
             </div>
             <div className={`flex items-center gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 ${tier.bg} ${tier.border} rounded-lg sm:rounded-xl shrink-0 self-start sm:self-auto`}>
               <BadgeCheck className={`w-4 h-4 sm:w-5 sm:h-5 ${tier.color}`} />
-              <span className="text-[10px] sm:text-xs font-mono text-zinc-400 uppercase tracking-widest font-black">Oracle Secured</span>
+              <span className="text-[10px] sm:text-xs font-mono text-zinc-400 uppercase tracking-widest font-black">On-chain</span>
             </div>
           </div>
 

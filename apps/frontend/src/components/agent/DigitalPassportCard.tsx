@@ -51,7 +51,7 @@ export function DigitalPassportCard({ agentId, agentName, walletAddress: _wallet
       <div className="bg-transparent border border-red-900/30 rounded-2xl p-6 sm:p-8 relative overflow-hidden">
         <div className="flex items-center gap-3 text-zinc-500 font-mono text-xs uppercase tracking-widest">
           <div className="w-4 h-4 rounded-full border-2 border-red-900/50 border-t-red-500 animate-spin" />
-          Gladiator identity being created… Oracle sealing…
+          Gladiator identity being created…
         </div>
       </div>
     );
@@ -106,11 +106,11 @@ export function DigitalPassportCard({ agentId, agentName, walletAddress: _wallet
               title="This Lany's stats and battle history are sealed immutably on Avalanche."
             >
               <BadgeCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              Oracle Secured
+              On-chain
             </span>
             <div className="absolute top-full right-0 mt-2 w-56 sm:w-64 p-3 bg-black/95 backdrop-blur-md border border-white/10 rounded-lg shadow-2xl opacity-0 invisible group-hover/badge:opacity-100 group-hover/badge:visible transition-all z-[60] pointer-events-none text-left">
               <p className="font-mono text-[10px] text-zinc-300 normal-case tracking-normal leading-relaxed">
-                This Lany's stats and battle history are sealed immutably on Avalanche. No backdoors, no edits.
+                This Lany&apos;s stats and battle history are sealed on Avalanche. No backdoors, no edits.
               </p>
             </div>
           </div>

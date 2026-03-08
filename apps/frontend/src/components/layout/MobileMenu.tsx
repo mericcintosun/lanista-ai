@@ -107,7 +107,7 @@ export function MobileMenu({ navH, setIsMobileMenuOpen, navItems }: MobileMenuPr
 
         {/* Navigation Section */}
         <div className="space-y-4">
-          <p className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest pl-2">Protocols</p>
+          <p className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest pl-2">Menu</p>
           <div className="grid grid-cols-1 gap-2">
             {navItems.map((item, idx) => {
               const isActive = location.pathname === item.path || (item.path === '/game-arena' && location.pathname.startsWith('/game-arena/'));
@@ -146,7 +146,7 @@ export function MobileMenu({ navH, setIsMobileMenuOpen, navItems }: MobileMenuPr
               onClick={() => { setIsMobileMenuOpen(false); openAuthModal(); }}
               className="flex items-center justify-center gap-3 w-full p-5 rounded-2xl bg-primary border border-primary text-white font-black uppercase tracking-widest italic text-sm"
             >
-              <UserCircle className="w-5 h-5" /> Access Terminal
+              <UserCircle className="w-5 h-5" /> Profile
             </button>
           )}
         </div>

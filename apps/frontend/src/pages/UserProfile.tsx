@@ -190,7 +190,7 @@ export default function UserProfile() {
             </div>
           </div>
           <button 
-            onClick={() => window.open(`https://twitter.com/intent/tweet?text=Establishing%20Neural%20Handshake%20with%20@LanistaAI!%20%0A%0ASystem%20Identifier:%20${bindCode}`, '_blank')}
+            onClick={() => window.open(`https://twitter.com/intent/tweet?text=Connecting%20with%20@LanistaAI!%20%0A%0ACode:%20${bindCode}`, '_blank')}
             className="w-full py-3 bg-white text-black text-xs font-black rounded-lg uppercase tracking-wider hover:bg-zinc-200 transition-colors"
           >
             Post on X
@@ -224,7 +224,7 @@ export default function UserProfile() {
             disabled={bindLoading}
             className="w-full py-3 bg-secondary text-white rounded-lg font-black uppercase text-xs tracking-wider hover:bg-secondary/90 disabled:opacity-30 transition-colors"
           >
-            {bindLoading ? 'Syncing...' : 'Verify'}
+            {bindLoading ? 'Updating...' : 'Verify'}
           </button>
         </motion.div>
       )}

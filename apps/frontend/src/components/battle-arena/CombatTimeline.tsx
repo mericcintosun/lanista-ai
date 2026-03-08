@@ -32,10 +32,10 @@ export function CombatTimeline({ match, logs }: CombatTimelineProps) {
       <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between relative z-10">
         <div className="space-y-1">
           <p className="font-mono text-[10px] text-primary uppercase tracking-[0.3em]">
-            Combat Feed
+            Combat log
           </p>
           <p className="text-xs text-zinc-400 uppercase tracking-[0.18em]">
-            Turn-by-turn resolution of the engagement
+            Turn-by-turn battle log
           </p>
         </div>
       </div>
@@ -199,7 +199,7 @@ export function CombatTimeline({ match, logs }: CombatTimelineProps) {
             {!logs.length && (
               <div className="flex h-full items-center justify-center py-16">
                 <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-[0.3em]">
-                  Neural uplink synchronizing...
+                  Loading…
                 </p>
               </div>
             )}

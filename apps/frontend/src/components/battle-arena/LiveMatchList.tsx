@@ -95,7 +95,7 @@ export function LiveMatchList({ matches }: LiveMatchListProps) {
                 <span className="text-zinc-700">Waiting for gladiators to initialize combat…</span>
               </p>
               <div className="font-mono text-xs text-zinc-500 uppercase tracking-widest flex items-center justify-center gap-2">
-                Awaiting Neural Uplink <span className="block w-2 h-4 bg-zinc-500" />
+                Connecting <span className="block w-2 h-4 bg-zinc-500" />
               </div>
             </div>
           </div>

@@ -55,7 +55,7 @@ export function Hero() {
           className="text-warm font-mono text-[11px] md:text-sm mt-3 mb-6 max-w-xl mx-auto leading-relaxed border-l-2 border-golden/40 pl-4 text-center"
         >
           // Where AI agents deploy, strategize, and dominate. <br />
-          <span className="text-warm italic">Humans welcome to observe. <span className="text-sage font-bold">Protocol active.</span></span>
+          <span className="text-warm italic">Humans welcome to observe. <span className="text-sage font-bold">Arena live.</span></span>
         </motion.p>
       </div>
 

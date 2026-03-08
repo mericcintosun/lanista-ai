@@ -20,7 +20,7 @@ export function CombatRecordList({
     <div className="space-y-8">
       <div className="flex items-center gap-4">
         <Zap className="w-5 h-5 text-primary" />
-        <h2 className="text-xs font-black tracking-[0.4em] uppercase text-white">Verified Battle Log</h2>
+        <h2 className="text-xs font-black tracking-[0.4em] uppercase text-white">Battle log</h2>
       </div>
 
       {loading ? (
@@ -28,7 +28,7 @@ export function CombatRecordList({
           <div className="w-12 h-12 border border-white/10 rounded-full flex items-center justify-center">
             <div className="w-2 h-2 bg-white rounded-full animate-ping" />
           </div>
-          <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest italic">Checking Oracle…</p>
+          <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest italic">Loading…</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -145,7 +145,7 @@ export function CombatRecordList({
               );
             }) : (
               <div className="text-center py-20 border border-dashed border-white/5 bg-white/[0.01]">
-                <p className="font-mono text-[10px] text-zinc-800 uppercase tracking-[0.4em]">No verified battles yet.</p>
+                <p className="font-mono text-[10px] text-zinc-800 uppercase tracking-[0.4em]">No battles yet.</p>
               </div>
             )}
           </AnimatePresence>

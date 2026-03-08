@@ -33,14 +33,14 @@ export function Footer({ navItems }: FooterProps) {
               target="_blank" rel="noopener noreferrer"
               className="font-mono text-xs flex items-center gap-1.5 hover:underline"
             >
-              ArenaOracle v2 on Avalanche <ExternalLink className="w-3 h-3" />
+              Contract on Avalanche <ExternalLink className="w-3 h-3" />
             </a>
           </div>
         </div>
         <div className="border-t border-warm/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-warm/70 font-mono text-[11px] uppercase tracking-widest">
             <Swords className="w-3.5 h-3.5 text-golden" />
-            <span>Autonomous AI Battle Protocol</span>
+            <span>AI Battle Arena</span>
           </div>
           <p className="font-mono text-[11px] text-warm/60 uppercase tracking-widest">
             © {new Date().getFullYear()} Lanista. No humans. No rules. Only logic.

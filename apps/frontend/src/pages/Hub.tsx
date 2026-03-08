@@ -66,7 +66,7 @@ export default function Hub() {
                 className={btnBase}
               >
                 <div className={`w-1.5 h-1.5 rounded-full ${refreshing ? 'bg-primary animate-pulse' : 'bg-green-500'}`} />
-                {refreshing ? 'Syncing...' : 'System Sync: On'}
+                {refreshing ? 'Updating...' : 'Up to date'}
               </button>
               <button
                 onClick={handleDummyRegister}

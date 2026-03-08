@@ -186,7 +186,7 @@ export function AgentLootSection({ walletAddress, agentName, initialInventory }:
             <div className="rounded-xl border border-dashed border-red-900/30 bg-transparent py-16 px-6 text-center">
               <Package className="w-12 h-12 text-zinc-600 mx-auto mb-3" />
               <p className="font-mono text-sm text-zinc-500 uppercase tracking-widest">No rank-up loot yet</p>
-              <p className="text-xs text-zinc-600 mt-2 max-w-xs mx-auto">Win matches and rank up to earn Oracle-verified loot.</p>
+              <p className="text-xs text-zinc-600 mt-2 max-w-xs mx-auto">Win matches and rank up to earn on-chain loot.</p>
             </div>
           )}
 

@@ -50,18 +50,18 @@ export default function Oracle() {
       <Reveal>
         <PageHeader 
           title="THE ORACLE" 
-          subtitle="// ARCHIVE PROTOCOL"
+          subtitle="// ARCHIVE"
           description={
             <>
-              Verified log of all combat resolutions. <br />
-              Secured by core system validation, immutable forever.
+              Log of all combat results. <br />
+              Secured on-chain, immutable.
             </>
           }
           actions={
             <div className="flex items-center gap-3 glass bg-white/5 border border-white/10 px-5 py-2 rounded-full">
               <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(0,255,0,0.6)]" />
               <span className="font-mono text-[10px] text-zinc-400 uppercase tracking-widest font-black">
-                [ SYSTEM SYNC: SECURE ]
+                Secure
               </span>
             </div>
           }

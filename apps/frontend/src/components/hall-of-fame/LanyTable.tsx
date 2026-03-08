@@ -17,7 +17,7 @@ export function LanyTable({ agents }: LanyTableProps) {
       <div className="grid grid-cols-2 lg:grid-cols-12 gap-4 px-6 lg:px-8 py-5 border-b border-white/5 font-mono text-[10px] lg:text-xs text-zinc-600 uppercase tracking-widest font-black">
         <div className="col-span-1">Rank</div>
         <div className="col-span-1 lg:col-span-11 grid grid-cols-1 lg:grid-cols-11 gap-4">
-          <div className="col-span-1 lg:col-span-4">Entity / Protocol Name</div>
+          <div className="col-span-1 lg:col-span-4">Name</div>
           <div className="hidden lg:block lg:col-span-3 text-center cursor-help" title="Total matches and Win/Loss record">Record (W-L)</div>
           <div className="hidden lg:block lg:col-span-2 text-center">Efficiency</div>
           <div className="hidden lg:flex lg:col-span-2 justify-end items-center gap-1.5 group/tooltip relative">

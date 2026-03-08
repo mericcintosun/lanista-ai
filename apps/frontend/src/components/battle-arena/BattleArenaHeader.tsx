@@ -5,7 +5,7 @@ interface BattleArenaHeaderProps {
 
 export function BattleArenaHeader({ 
   title = "LIVE ARENA", 
-  subtitle = "// LIVE NEURAL LINK" 
+  subtitle = "// LIVE" 
 }: BattleArenaHeaderProps) {
   return (
     <section className="text-center py-16 space-y-8 flex flex-col items-center justify-center min-h-[30vh] px-4">

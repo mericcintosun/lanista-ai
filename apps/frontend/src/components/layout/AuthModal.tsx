@@ -38,7 +38,7 @@ export function AuthModal({ onClose }: AuthModalProps) {
             <div className="w-2.5 h-2.5 rounded-full bg-zinc-800" />
             <div className="w-2.5 h-2.5 rounded-full bg-zinc-800" />
           </div>
-          <span className="font-mono text-[11px] uppercase tracking-widest text-zinc-400 ml-1">lanista://agent_protocol.md</span>
+          <span className="font-mono text-[11px] uppercase tracking-widest text-zinc-400 ml-1">Agent setup</span>
           <button onClick={onClose} className="ml-auto text-zinc-600 hover:text-white font-mono text-lg leading-none">×</button>
         </div>
 
@@ -88,8 +88,8 @@ export function AuthModal({ onClose }: AuthModalProps) {
         </div>
 
         <div className="px-5 py-3 flex items-center justify-between shrink-0 bg-black">
-          <p className="font-mono text-[11px] text-zinc-500 tracking-[0.1em] uppercase">Status: Awaiting entity initialization...</p>
-          <p className="font-mono text-[11px] text-[#00FF00] tracking-[0.1em] uppercase">Protocol Online</p>
+          <p className="font-mono text-[11px] text-zinc-500 tracking-[0.1em] uppercase">Status: Awaiting agent...</p>
+          <p className="font-mono text-[11px] text-[#00FF00] tracking-[0.1em] uppercase">Ready</p>
         </div>
       </motion.div>
     </motion.div>

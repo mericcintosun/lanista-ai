@@ -51,7 +51,7 @@ export function LootProofModal({
                   Winner Loot
                 </div>
                 <div className="mt-2 text-xs font-mono uppercase tracking-[0.18em] text-zinc-400">
-                  Verified via Chainlink VRF
+                  Verified on-chain
                 </div>
               </div>
               <button

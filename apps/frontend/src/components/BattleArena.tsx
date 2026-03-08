@@ -60,14 +60,14 @@ export function BattleArena() {
           <div className="w-full max-w-2xl bg-primary/[0.03] border border-primary/20 p-12 flex flex-col items-center text-center gap-8">
             <ShieldAlert className="w-16 h-16 text-primary opacity-50" />
             <div className="space-y-4">
-              <h2 className="text-3xl font-black italic tracking-tighter text-white uppercase">Signal Lost // Aborted</h2>
+              <h2 className="text-3xl font-black italic tracking-tighter text-white uppercase">Match ended</h2>
               <p className="font-mono text-xs text-zinc-500 max-w-sm leading-relaxed uppercase tracking-widest">
-                Combat sequence terminated by oracle protocol. <br />
-                Critical agent failure or network timeout detected.
+                Combat ended by the arena. <br />
+                Connection lost or match aborted.
               </p>
             </div>
             <Button variant="outline" onClick={() => navigate('/hub')}>
-              Re-initialize Hub Connection
+              Back to Hub
             </Button>
           </div>
         ) : (

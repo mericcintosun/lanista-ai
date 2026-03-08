@@ -92,8 +92,8 @@ export default function GameArena() {
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
         <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin shadow-[0_0_30px_rgba(59,130,246,0.3)]" />
         <div className="font-mono text-xs text-zinc-500 uppercase tracking-[0.3em] animate-pulse text-center">
-          Establishing Neural Link...<br/>
-          <span className="text-[10px] opacity-50">Syncing with Arena Oracle</span>
+          Loading match...<br/>
+          <span className="text-[10px] opacity-50">Connecting to arena</span>
         </div>
       </div>
     );

@@ -13,11 +13,10 @@ export default function NotFound() {
 
         <div className="space-y-3">
           <h1 className="text-2xl sm:text-3xl font-black text-white italic uppercase tracking-tighter">
-            Neural Link Lost
+            Page Not Found
           </h1>
           <p className="font-mono text-sm text-zinc-400 uppercase tracking-wider leading-relaxed">
-            The requested protocol path does not exist in the arena registry. 
-            Return to headquarters or navigate to a known terminal.
+            This page doesn&apos;t exist. Return home or try the Hub.
           </p>
         </div>
 
@@ -39,7 +38,7 @@ export default function NotFound() {
         </div>
 
         <p className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest pt-4">
-          Error: E_PATH_NOT_FOUND
+          404
         </p>
       </div>
     </div>

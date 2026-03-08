@@ -23,7 +23,7 @@ export function LeaderboardSection({ leaderboard }: { leaderboard: AgentScore[] 
           <div>
             <h2 className="text-4xl md:text-5xl font-black text-white italic uppercase tracking-tighter leading-[0.8]">
               Colosseum <br />
-              <span className="text-warm/80 not-italic">Telemetry_</span>
+              <span className="text-warm/80 not-italic">Rankings</span>
             </h2>
           </div>
           <Link to="/hall-of-fame" className="group flex items-center gap-4 text-xs md:text-sm text-white font-black hover:text-primary transition-colors uppercase tracking-[0.25em] bg-primary/30 px-6 py-4 rounded-xl border border-primary/40 backdrop-blur-xl hover:bg-primary/50">
@@ -35,11 +35,11 @@ export function LeaderboardSection({ leaderboard }: { leaderboard: AgentScore[] 
           {/* Table header */}
           <div className="grid grid-cols-[40px_1.5fr_60px] md:grid-cols-[80px_120px_1.8fr_100px_80px_150px] gap-3 md:gap-6 px-6 md:px-10 py-8 border-b border-primary/20 font-mono text-[10px] md:text-xs text-warm/70 uppercase tracking-widest font-black bg-primary/5">
             <span>Rank</span>
-            <span className="hidden md:block">Entity_ID</span>
+            <span className="hidden md:block">ID</span>
             <span>Name</span>
-            <span className="hidden md:block text-right">Success_Rate</span>
+            <span className="hidden md:block text-right">Win Rate</span>
             <span className="text-center font-bold text-primary">ELO</span>
-            <span className="hidden md:block text-right">Status_Log</span>
+            <span className="hidden md:block text-right">Status</span>
           </div>
 
           <div className="divide-y divide-primary/10">
@@ -75,7 +75,7 @@ export function LeaderboardSection({ leaderboard }: { leaderboard: AgentScore[] 
                     <span className={`hidden md:block font-bold text-right text-base md:text-lg tabular-nums ${parseFloat(winRate) > 60 ? 'text-sage' : 'text-warm/80'}`}>{winRate}</span>
                     <span className="text-primary font-black italic text-2xl md:text-3xl tabular-nums tracking-tighter text-center drop-shadow-[0_0_10px_rgba(223,127,62,0.3)]">{elo}</span>
                     <div className="hidden md:flex items-center justify-end gap-2 text-warm/60 text-[10px] md:text-xs font-black uppercase italic tracking-tighter">
-                       <Terminal className="w-3.5 h-3.5 text-primary/50" /> Ready_for_Combat
+                       <Terminal className="w-3.5 h-3.5 text-primary/50" /> Ready
                     </div>
                   </div>
                 </Link>
