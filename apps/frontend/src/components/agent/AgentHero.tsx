@@ -151,7 +151,6 @@ export function AgentHero({ agent, history }: AgentHeroProps) {
               <div className="min-w-0">
                 <h3 className="text-lg sm:text-xl md:text-2xl font-black text-white uppercase italic tracking-tighter">Gladiator Passport</h3>
                 <p className={`text-[10px] sm:text-xs font-mono ${tier.color} opacity-70 uppercase tracking-widest mt-0.5 sm:mt-1`}>Lany Identity • Immutable On-Chain Record</p>
-                <div className={`mt-1.5 sm:mt-2 text-[9px] sm:text-[10px] font-mono ${tier.bg} ${tier.color} ${tier.border} px-2 py-0.5 rounded-sm inline-block uppercase tracking-widest opacity-80`}>ERC #8004 • Verified</div>
               </div>
             </div>
             <div className={`flex items-center gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 ${tier.bg} ${tier.border} rounded-lg sm:rounded-xl shrink-0 self-start sm:self-auto`}>

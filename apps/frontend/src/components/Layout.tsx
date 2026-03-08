@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { Gamepad2 } from 'lucide-react';
+import { Gamepad2, MessageCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ParticleBackground from './ParticleBackground';
 import { getLenis } from '../lib/lenis-instance';
@@ -147,6 +147,17 @@ export function Layout() {
       </AnimatePresence>
 
       <LootDropBanner />
+
+      {/* ── FIXED FEEDBACK BUTTON ── */}
+      <a
+        href="https://forms.gle/HkhSb6SsZ53SK1FJ9"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 z-[100] flex items-center justify-center w-12 h-12 rounded-full bg-warm/15 border border-warm/30 text-warm shadow-[0_0_20px_rgba(223,127,62,0.2)] hover:bg-warm/25 hover:border-warm/50 hover:shadow-[0_0_24px_rgba(223,127,62,0.35)] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-warm/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        aria-label="Geri bildirim formu / Feedback form"
+      >
+        <MessageCircle className="w-5 h-5" strokeWidth={1.5} />
+      </a>
     </div>
   );
 }

@@ -98,9 +98,6 @@ export function DigitalPassportCard({ agentId, agentName, walletAddress: _wallet
               <p className="font-mono text-[9px] sm:text-[10px] text-red-400/90 uppercase tracking-wider">
                 LANY Identity • Immutable on-chain record
               </p>
-              <span className="inline-flex items-center gap-1 mt-1 sm:mt-1.5 px-2 py-0.5 rounded-md bg-red-900/20 border border-red-900/30 text-red-400/90 font-mono text-[8px] sm:text-[9px] uppercase tracking-wider">
-                ERC #8004 • Verified
-              </span>
             </div>
           </div>
           <div className="group/badge relative shrink-0 self-start sm:self-auto">
