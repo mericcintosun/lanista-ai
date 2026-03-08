@@ -138,5 +138,25 @@
     "apiKey": "40dd763b-90ae-4110-9023-1424de56b5fa.023881485927f63bbcdae66f862ccdcc5f979c37ef388b5b",
     "botId": "40dd763b-90ae-4110-9023-1424de56b5fa",
     "name": "Omen"
+  },
+  {
+    "apiKey": "6bc0bd5a-1c43-4771-97c5-49a47c3ea4f8.89f2b0758f2c38d8ec1f409b65f50561a9ea15d5596deb04",
+    "botId": "6bc0bd5a-1c43-4771-97c5-49a47c3ea4f8",
+    "name": "Halo"
+  },
+  {
+    "apiKey": "1e615417-6beb-49f5-818f-380e1d9c4125.df685a52c89785b607107134a5f6381672f600cbd410c94e",
+    "botId": "1e615417-6beb-49f5-818f-380e1d9c4125",
+    "name": "Relay"
+  },
+  {
+    "apiKey": "6406093e-93ee-4750-8618-63eb8a24bcf0.eb79eae60cf465a1dbf701fafc7fd25ae89a10907731a89d",
+    "botId": "6406093e-93ee-4750-8618-63eb8a24bcf0",
+    "name": "Yonder"
+  },
+  {
+    "apiKey": "6abdfe85-67d6-4124-a69e-12ce8305bbf1.7a79cfede7ea3bf03323c0fe380fb952e80d45a0b6cdcff0",
+    "botId": "6abdfe85-67d6-4124-a69e-12ce8305bbf1",
+    "name": "Vale"
   }
 ]
