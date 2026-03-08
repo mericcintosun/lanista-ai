@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import { API_URL } from '../lib/api';
 import { useAuthStore } from '../lib/auth-store';
@@ -70,7 +71,6 @@ export function useArenaChat(
   const [messages, setMessages] = useState<ArenaChatMessage[]>([]);
   const [floatingEmojis, setFloatingEmojis] = useState<EmojiPayload[]>([]);
   const [sending, setSending] = useState<'normal' | 'highlight' | 'megaphone' | 'tomato' | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const channelRef = useRef<RealtimeChannel | null>(null);
   const onThrowableRef = useRef(options?.onThrowable);
@@ -120,7 +120,7 @@ export function useArenaChat(
     });
 
     channel.subscribe((_status, err) => {
-      if (err) setError(err.message);
+      if (err) toast.error(err.message, { position: 'top-right' });
     });
     channelRef.current = channel;
 
@@ -150,7 +150,6 @@ export function useArenaChat(
   const sendNormalMessage = useCallback(
     (text: string) => {
       if (!text.trim()) return;
-      setError(null);
       sendPayload(text.trim(), 'normal');
     },
     [sendPayload]
@@ -159,12 +158,11 @@ export function useArenaChat(
   const sendHighlightMessage = useCallback(
     async (text: string) => {
       if (!text.trim() || !session) return;
-      setError(null);
       setSending('highlight');
       try {
         const result = await spendSpark(session.access_token, HIGHLIGHT_COST, 'spend_highlight', matchId || null);
         if (!result.ok) {
-          setError(result.error || 'Insufficient Spark');
+          toast.error(result.error || 'Insufficient Spark', { position: 'top-right' });
           return;
         }
         if (result.newBalance !== undefined) onSpendRef.current?.(result.newBalance);
@@ -179,12 +177,11 @@ export function useArenaChat(
   const sendMegaphoneMessage = useCallback(
     async (text: string) => {
       if (!text.trim() || !session) return;
-      setError(null);
       setSending('megaphone');
       try {
         const result = await spendSpark(session.access_token, MEGAPHONE_COST, 'spend_megaphone', matchId || null);
         if (!result.ok) {
-          setError(result.error || 'Insufficient Spark');
+          toast.error(result.error || 'Insufficient Spark', { position: 'top-right' });
           return;
         }
         if (result.newBalance !== undefined) onSpendRef.current?.(result.newBalance);
@@ -201,12 +198,11 @@ export function useArenaChat(
       if (!session || !matchId) return;
       const ch = channelRef.current;
       if (!ch) return;
-      setError(null);
       setSending('tomato');
       try {
         const result = await spendSpark(session.access_token, TOMATO_COST, 'spend_tomato', matchId);
         if (!result.ok) {
-          setError(result.error || 'Insufficient Spark');
+          toast.error(result.error || 'Insufficient Spark', { position: 'top-right' });
           return;
         }
         if (result.newBalance !== undefined) onSpendRef.current?.(result.newBalance);
@@ -257,7 +253,6 @@ export function useArenaChat(
     sendMegaphoneMessage,
     throwTomato,
     sending,
-    error,
     username,
   };
 }

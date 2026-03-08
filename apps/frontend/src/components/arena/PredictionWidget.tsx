@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Flame } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { API_URL } from '../../lib/api';
 import { useSparkBalance } from '../../hooks/useSparkBalance';
 import { useAuthStore } from '../../lib/auth-store';
@@ -30,7 +31,6 @@ export function PredictionWidget({
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [poolData, setPoolData] = useState<PoolData | null>(null);
 
   const { balance: sparkBalance, loading: balanceLoading } = useSparkBalance();
@@ -75,7 +75,6 @@ export function PredictionWidget({
     const botId = selectedBotId ?? p1Id;
     const amt = Math.floor(Number(amount) || 0);
     if (amt < MIN_BET || !session) return;
-    setError(null);
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/sparks/bet`, {
@@ -92,7 +91,7 @@ export function PredictionWidget({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error ?? 'Bet failed');
+        toast.error(data.error ?? 'Bet failed', { position: 'top-right' });
         return;
       }
       setPoolData((prev) => ({
@@ -213,9 +212,6 @@ export function PredictionWidget({
                   {balanceLoading ? '…' : `${sparkBalance.toLocaleString()} Sparks`}
                 </span>
               </div>
-              {error && (
-                <p className="px-4 pb-2 text-xs text-primary font-mono">{error}</p>
-              )}
               <div className="p-4 pt-0">
                 <motion.button
                   type="button"

@@ -1,48 +1,20 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, Megaphone, Flame, RefreshCw, Minimize2, Target, Smile, UserCircle } from 'lucide-react';
-// HpBar component kept for potential future use
+import { Send, Sparkles, Megaphone, Flame, RefreshCw, Minimize2, UserCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Match } from '@lanista/types';
-import { TOMATO_COST } from '../../hooks/useArenaChat';
 import { useSparkBalance } from '../../hooks/useSparkBalance';
 import { useAuthStore } from '../../lib/auth-store';
 import { useUIStore } from '../../lib/ui-store';
 import type { ArenaChatState } from '../ArenaChat';
+import { InteractionBar } from '../arena/InteractionBar';
+import { EmojiBubble } from '../arena/EmojiBubble';
 
 const MAX_MESSAGE_CHARS = 280;
-const QUICK_EMOJIS = ['🔥', '💥', '👏', '😱', '⚡', '💪', '🎯', '🤯', '👾', '🏆', '💀', '🤖'];
 
 function formatTime(ts: number) {
   return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-function HpBar({ pct, color }: { pct: number; color: 'blue' | 'green' | 'reverse-blue' | 'reverse-green' }) {
-  const isReverse = color.startsWith('reverse');
-  const baseColor = color.includes('blue') ? '#3b82f6' : '#0ca55a';
-  const warnColor = '#f59e0b';
-  const dangerColor = '#ef4444';
-  const barColor = pct > 50 ? baseColor : pct > 25 ? warnColor : dangerColor;
-  const segments = 20;
-
-  return (
-    <div className={`flex gap-[2px] ${isReverse ? 'flex-row-reverse' : ''}`}>
-      {Array.from({ length: segments }).map((_, i) => {
-        const threshold = isReverse ? ((segments - i) / segments) * 100 : ((i + 1) / segments) * 100;
-        const active = isReverse ? (100 - pct) < threshold : threshold <= pct;
-        return (
-          <div
-            key={i}
-            className="flex-1 h-2.5 rounded-[2px] transition-all duration-700"
-            style={{
-              background: active ? barColor : 'rgba(255,255,255,0.08)',
-              boxShadow: active && pct > 0 ? `0 0 4px ${barColor}80` : 'none',
-            }}
-          />
-        );
-      })}
-    </div>
-  );
-}
 
 interface FullscreenHUDProps {
   match: Match;
@@ -55,21 +27,21 @@ export function FullscreenHUD({ match, onRefresh, onExitFullscreen, chatState }:
   const session = useAuthStore((s) => s.session);
   const openAuthModal = useUIStore((s) => s.openAuthModal);
   const [input, setInput] = useState('');
-  const [emojiOpen, setEmojiOpen] = useState(false);
-  const [throwOpen, setThrowOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const emojiContainerRef = useRef<HTMLDivElement>(null);
 
   const { balance: sparkBalance, loading: sparkLoading } = useSparkBalance();
 
   const {
     messages,
+    floatingEmojis,
+    removeFloatingEmoji,
     sendNormalMessage,
     sendHighlightMessage,
     sendMegaphoneMessage,
     throwTomato,
     sendEmoji,
     sending,
-    error,
   } = chatState;
 
   useEffect(() => {
@@ -89,12 +61,6 @@ export function FullscreenHUD({ match, onRefresh, onExitFullscreen, chatState }:
 
   const p1 = match.player_1;
   const p2 = match.player_2;
-  const p1MaxHp = p1?.hp || 100;
-  const p2MaxHp = p2?.hp || 100;
-  const p1Hp = Math.max(0, p1?.current_hp ?? 0);
-  const p2Hp = Math.max(0, p2?.current_hp ?? 0);
-  const p1Pct = Math.min(100, (p1Hp / p1MaxHp) * 100);
-  const p2Pct = Math.min(100, (p2Hp / p2MaxHp) * 100);
   const isFinished = match.status === 'finished' || match.status === 'aborted';
   const isLive = match.status === 'active';
 
@@ -102,6 +68,28 @@ export function FullscreenHUD({ match, onRefresh, onExitFullscreen, chatState }:
 
   return (
     <div className="absolute inset-0 pointer-events-none z-20">
+
+      {/* Emoji container — lives inside the fullscreen wrapper so bubbles appear in fullscreen */}
+      <div
+        ref={emojiContainerRef}
+        className="absolute inset-0 pointer-events-none overflow-hidden"
+        aria-hidden
+      />
+
+      {/* Floating emojis rendered inside the fullscreen context */}
+      <AnimatePresence>
+        {floatingEmojis.map((e) => (
+          <EmojiBubble
+            key={e.id}
+            id={e.id}
+            emoji={e.emoji}
+            offsetX={e.offsetX}
+            origin={e.origin}
+            onComplete={() => removeFloatingEmoji(e.id)}
+            containerRef={emojiContainerRef}
+          />
+        ))}
+      </AnimatePresence>
 
       {/* ══ BOTTOM OVERLAY ═══════════════════════════════════════════════ */}
       <div
@@ -142,87 +130,16 @@ export function FullscreenHUD({ match, onRefresh, onExitFullscreen, chatState }:
         {/* Action row */}
         <div className="flex items-center gap-2 px-5 pb-5 pt-2">
 
-          {/* Emoji picker */}
-          <div className="relative shrink-0">
-            <button
-              type="button"
-              onClick={() => { setEmojiOpen((o) => !o); setThrowOpen(false); }}
-              disabled={!session}
-              className="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-white/8 hover:bg-white/14 text-zinc-400 hover:text-zinc-100 text-xs font-bold disabled:opacity-40 transition-colors"
-            >
-              <Smile className="w-3.5 h-3.5" />
-              <span>Emoji</span>
-            </button>
-            {emojiOpen && (
-              <div className="absolute bottom-full mb-2 left-0 bg-zinc-950/98 rounded-xl p-3 shadow-2xl backdrop-blur-xl z-30 w-[228px]">
-                <p className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest mb-2">Quick reactions</p>
-                <div className="flex flex-wrap gap-1">
-                  {QUICK_EMOJIS.map((e) => (
-                    <button
-                      key={e}
-                      type="button"
-                      onClick={() => { sendEmoji(e, 'left'); setEmojiOpen(false); }}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-zinc-800 text-xl transition-colors"
-                    >
-                      {e}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Throw tomato */}
-          <div className="relative shrink-0">
-            <button
-              type="button"
-              onClick={() => { setThrowOpen((o) => !o); setEmojiOpen(false); }}
-              disabled={!session || sending === 'tomato'}
-              className="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-white/8 hover:bg-white/14 text-zinc-400 hover:text-zinc-100 text-xs font-bold disabled:opacity-40 transition-colors"
-            >
-              <span className="text-base leading-none">🍅</span>
-              <span>Throw</span>
-              <span className="font-mono text-zinc-600">-{TOMATO_COST}</span>
-            </button>
-            {throwOpen && (
-              <div className="absolute bottom-full mb-2 left-0 bg-zinc-950/98 rounded-xl p-3 shadow-2xl backdrop-blur-xl z-30 w-[200px]">
-                <p className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest mb-2.5 text-center">
-                  Target — {TOMATO_COST} Spark
-                </p>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => { throwTomato('player_1'); setThrowOpen(false); }}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-xs font-bold transition-colors"
-                  >
-                    <Target className="w-3 h-3 shrink-0" />
-                    <span className="truncate">{p1?.name?.slice(0, 7) || 'P1'}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { throwTomato('player_2'); setThrowOpen(false); }}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-secondary/10 hover:bg-secondary/20 text-secondary text-xs font-bold transition-colors"
-                  >
-                    <Target className="w-3 h-3 shrink-0" />
-                    <span className="truncate">{p2?.name?.slice(0, 7) || 'P2'}</span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Quick emoji singles */}
-          {(['🔥', '💥', '👏'] as const).map((e) => (
-            <button
-              key={e}
-              type="button"
-              onClick={() => sendEmoji(e, 'left')}
-              disabled={!session}
-              className="w-9 h-9 flex items-center justify-center rounded-lg bg-white/8 hover:bg-white/14 text-xl disabled:opacity-40 transition-colors shrink-0"
-            >
-              {e}
-            </button>
-          ))}
+          {/* Unified interaction popup (emoji + tomato) */}
+          <InteractionBar
+            onThrowTomato={throwTomato}
+            onEmoji={sendEmoji}
+            sending={sending === 'tomato'}
+            session={session}
+            player1Name={p1?.name?.slice(0, 8) || 'P1'}
+            player2Name={p2?.name?.slice(0, 8) || 'P2'}
+            className="shrink-0"
+          />
 
           {/* Match status */}
           {isLive && (
@@ -282,9 +199,6 @@ export function FullscreenHUD({ match, onRefresh, onExitFullscreen, chatState }:
             </button>
           ) : (
             <div className="flex items-stretch gap-1.5 shrink-0">
-              {error && (
-                <span className="self-center text-[10px] text-primary font-mono max-w-[120px] truncate">{error}</span>
-              )}
               <input
                 type="text"
                 value={input}

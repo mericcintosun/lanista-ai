@@ -20,7 +20,6 @@ export interface ArenaChatState {
   sendMegaphoneMessage: (text: string) => void;
   throwTomato: (target: ThrowableTarget) => void;
   sending: string | null;
-  error: string | null;
 }
 
 const MEGAPHONE_BANNER_DURATION_MS = 8000;
@@ -146,7 +145,6 @@ export function ArenaChat({ matchId, match, unityIframeRef, gameEmojiContainerRe
     sendMegaphoneMessage,
     throwTomato,
     sending,
-    error,
   } = chatState ?? internalChat;
 
   useEffect(() => {
@@ -253,12 +251,6 @@ export function ArenaChat({ matchId, match, unityIframeRef, gameEmojiContainerRe
             ))}
           </AnimatePresence>
         </section>
-
-        {error && session && (
-          <div className="px-4 py-2 bg-primary/10 border-t border-primary/20 text-primary text-xs font-mono shrink-0">
-            {error}
-          </div>
-        )}
 
         {/* Footer: show sign-in prompt for unauthenticated users, full input for authenticated */}
         {!session ? (

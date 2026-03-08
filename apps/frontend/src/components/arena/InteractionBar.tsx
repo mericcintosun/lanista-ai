@@ -84,10 +84,10 @@ export function InteractionBar({
   };
 
   const handleEmojiPick = (emoji: ArenaEmoji) => {
-    if (!emojiTarget) return;
     pushRecentEmoji(emoji);
     setRecent(getRecentEmojis());
-    onEmoji(emoji, emojiTarget === 'player_1' ? 'left' : 'right');
+    const origin = emojiTarget === 'player_1' ? 'left' : emojiTarget === 'player_2' ? 'right' : (Math.random() < 0.5 ? 'left' : 'right');
+    onEmoji(emoji, origin);
     setOpen(false);
     setEmojiTarget(null);
   };
@@ -135,6 +135,8 @@ export function InteractionBar({
     </div>
   );
 
+  const portalTarget = (document.fullscreenElement as Element | null) ?? document.body;
+
   const popup = open && (
     <AnimatePresence>
       <motion.div
@@ -171,24 +173,54 @@ export function InteractionBar({
           </button>
         </div>
 
-        {/* Player target buttons (both tabs) */}
-        {playerButtons}
+        {/* Tomato tab: requires session + target selection */}
+        {mainTab === 'tomato' && (
+          !session ? (
+            <p className="text-[11px] font-mono text-zinc-500 text-center mb-3 py-1">
+              Sign in to throw tomatoes
+            </p>
+          ) : (
+            playerButtons
+          )
+        )}
 
-        {/* Emoji section */}
+        {/* Emoji tab: target is optional (sets which side the emoji floats from) */}
         {mainTab === 'emoji' && (
           <div>
-            {!emojiTarget && (
-              <p className="text-[11px] font-mono text-zinc-500 text-center mb-2">
-                Select a target above
-              </p>
-            )}
+            {/* Optional side preference */}
+            <p className="text-[11px] font-mono text-zinc-500 mb-1.5">
+              Side <span className="text-zinc-600">(optional)</span>
+            </p>
+            <div className="flex gap-2 mb-3">
+              <button
+                type="button"
+                onClick={() => setEmojiTarget(emojiTarget === 'player_1' ? null : 'player_1')}
+                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold uppercase tracking-tight truncate transition-colors ${
+                  emojiTarget === 'player_1'
+                    ? 'bg-blue-500/25 border-blue-400 text-blue-300'
+                    : 'bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/20 text-blue-400'
+                }`}
+              >
+                <span className="truncate">← {player1Name}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setEmojiTarget(emojiTarget === 'player_2' ? null : 'player_2')}
+                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold uppercase tracking-tight truncate transition-colors ${
+                  emojiTarget === 'player_2'
+                    ? 'bg-secondary/25 border-secondary/80 text-secondary'
+                    : 'bg-secondary/10 border-secondary/30 hover:bg-secondary/20 text-secondary'
+                }`}
+              >
+                <span className="truncate">{player2Name} →</span>
+              </button>
+            </div>
 
             {/* Category tab bar — horizontal scroll */}
             <div
               ref={categoryTabsRef}
               className="flex gap-0.5 mb-2 overflow-x-auto no-scrollbar"
             >
-              {/* Recent tab */}
               {recent.length > 0 && (
                 <button
                   type="button"
@@ -220,12 +252,8 @@ export function InteractionBar({
               ))}
             </div>
 
-            {/* Emoji grid */}
-            <div
-              className={`flex flex-wrap gap-0.5 h-[156px] overflow-y-auto custom-scrollbar ${
-                !emojiTarget ? 'opacity-40 pointer-events-none' : ''
-              }`}
-            >
+            {/* Emoji grid — always clickable */}
+            <div className="flex flex-wrap gap-0.5 h-[156px] overflow-y-auto custom-scrollbar">
               {activeEmojis.length === 0 ? (
                 <p className="text-[11px] font-mono text-zinc-600 w-full text-center pt-4">
                   No emojis yet
@@ -255,7 +283,7 @@ export function InteractionBar({
         ref={buttonRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
-        disabled={!session || sending}
+        disabled={sending}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         className="p-1.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700/50 text-zinc-400 hover:text-zinc-200 disabled:opacity-50 disabled:pointer-events-none transition-colors"
@@ -265,7 +293,7 @@ export function InteractionBar({
         <Smile className="w-4 h-4" />
       </motion.button>
 
-      {popup && createPortal(popup, document.body)}
+      {popup && createPortal(popup, portalTarget)}
     </div>
   );
 }

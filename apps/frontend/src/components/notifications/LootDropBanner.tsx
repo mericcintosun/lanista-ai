@@ -1,69 +1,119 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gift, ExternalLink } from 'lucide-react';
+import { Gift, ExternalLink, X } from 'lucide-react';
 import { useLootDropStore, type LootDropNotification } from '../../lib/loot-drop-store';
 import { tokenIdToImagePath } from '../../lib/rankUpItems';
 
 const BANNER_DURATION_MS = 8000;
 
-function LootDropBannerInner({ notification, onDismiss }: { notification: LootDropNotification; onDismiss: () => void }) {
+function LootDropBannerInner({
+  notification,
+  queueLength,
+  onDismiss,
+}: {
+  notification: LootDropNotification;
+  queueLength: number;
+  onDismiss: () => void;
+}) {
   const { botName, rankName, itemName, itemId, botId } = notification;
-  const displayText = `${botName} ranked up to ${rankName} and dropped … ${itemName}.`;
-
   const [imgError, setImgError] = useState(false);
+  const [progress, setProgress] = useState(100);
+
+  // Auto-dismiss timer + progress bar
   useEffect(() => {
-    const t = setTimeout(onDismiss, BANNER_DURATION_MS);
-    return () => clearTimeout(t);
+    setProgress(100);
+    const start = Date.now();
+    const tick = setInterval(() => {
+      const elapsed = Date.now() - start;
+      const remaining = Math.max(0, 100 - (elapsed / BANNER_DURATION_MS) * 100);
+      setProgress(remaining);
+      if (remaining === 0) {
+        clearInterval(tick);
+        onDismiss();
+      }
+    }, 50);
+    return () => clearInterval(tick);
   }, [onDismiss]);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -4 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -4 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
-      className="fixed left-0 right-0 z-[90] pointer-events-auto overflow-hidden"
-      style={{ top: '5rem' }}
+      initial={{ opacity: 0, x: 40, scale: 0.97 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      exit={{ opacity: 0, x: 60, scale: 0.95 }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      className="fixed left-1/2 -translate-x-1/2 z-[90] pointer-events-auto w-[92%] max-w-md"
+      style={{ top: '5.5rem' }}
     >
-      <div className="relative mx-4 rounded-lg border border-amber-500/50 bg-gradient-to-b from-amber-950/98 to-zinc-950/98 shadow-[0_4px_24px_rgba(0,0,0,0.5),0_0_0_1px_rgba(251,191,36,0.15),inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
-        <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-amber-500/10 via-transparent to-amber-400/5 pointer-events-none" aria-hidden />
-        <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg bg-gradient-to-b from-amber-500 via-amber-400 to-amber-600" aria-hidden />
-        <div className="flex items-center h-14 sm:h-16">
-          <div className="flex items-center gap-3 pl-4 pr-6 shrink-0 border-r border-amber-500/20">
-            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-amber-500/20 border border-amber-400/30 overflow-hidden">
-              {imgError ? (
-                <Gift className="w-5 h-5 text-amber-400" />
-              ) : (
-                <img
-                  src={tokenIdToImagePath(itemId)}
-                  alt={itemName}
-                  className="w-full h-full object-contain p-1"
-                  onError={() => setImgError(true)}
-                />
-              )}
-            </div>
-            <div>
-              <p className="font-mono text-[9px] text-amber-400/70 uppercase tracking-[0.25em] leading-none">
-                Rank-up Loot
-              </p>
-              <p className="font-mono text-[10px] text-amber-300/90 font-semibold mt-0.5 truncate max-w-[120px]">
-                {itemName}
-              </p>
-            </div>
+      <div className="relative rounded-xl border border-amber-500/50 bg-gradient-to-b from-amber-950/98 to-zinc-950/98 shadow-[0_8px_32px_rgba(0,0,0,0.6),0_0_0_1px_rgba(251,191,36,0.1)] backdrop-blur-xl overflow-hidden">
+        {/* Decorative left bar */}
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-amber-400 via-amber-500 to-amber-600" aria-hidden />
+
+        {/* Content */}
+        <div className="flex items-center gap-3 pl-4 pr-3 py-3">
+          {/* Item image */}
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-500/20 border border-amber-400/30 overflow-hidden shrink-0">
+            {imgError ? (
+              <Gift className="w-5 h-5 text-amber-400" />
+            ) : (
+              <img
+                src={tokenIdToImagePath(itemId)}
+                alt={itemName}
+                className="w-full h-full object-contain p-1"
+                onError={() => setImgError(true)}
+              />
+            )}
           </div>
-          <div className="flex-1 min-w-0 overflow-hidden py-2 px-2">
-            <p className="text-sm sm:text-base font-bold text-white tracking-tight truncate">
-              {displayText}
+
+          {/* Text */}
+          <div className="flex-1 min-w-0">
+            <p className="font-mono text-[10px] text-amber-400/70 uppercase tracking-[0.2em] leading-none mb-1">
+              Rank-up Loot Drop
+            </p>
+            <p className="text-sm font-bold text-white leading-snug">
+              <span className="text-amber-300">{botName}</span>
+              <span className="text-zinc-300 font-normal"> ranked up to </span>
+              <span className="text-amber-400">{rankName}</span>
+            </p>
+            <p className="text-xs text-zinc-400 truncate mt-0.5">
+              Dropped: <span className="text-amber-200 font-medium">{itemName}</span>
             </p>
           </div>
-          <Link
-            to={`/agent/${botId}`}
-            className="relative z-10 flex items-center gap-2 shrink-0 px-4 py-2 mr-4 rounded-lg bg-amber-500/20 border border-amber-400/30 hover:bg-amber-500/30 text-amber-300 font-bold text-xs uppercase tracking-wider transition-colors"
-          >
-            Profil <ExternalLink className="w-3 h-3" />
-          </Link>
-          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-amber-950 to-transparent shrink-0 pointer-events-none" aria-hidden />
+
+          {/* Actions */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Link
+              to={`/agent/${botId}`}
+              onClick={onDismiss}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-500/20 border border-amber-400/30 hover:bg-amber-500/30 text-amber-300 font-bold text-[11px] uppercase tracking-wider transition-colors"
+            >
+              View <ExternalLink className="w-3 h-3" />
+            </Link>
+            <button
+              type="button"
+              onClick={onDismiss}
+              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-zinc-200 transition-colors"
+              aria-label="Dismiss"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Queue badge */}
+        {queueLength > 0 && (
+          <div className="absolute top-2 right-10 bg-amber-500 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
+            +{queueLength}
+          </div>
+        )}
+
+        {/* Progress bar */}
+        <div className="h-0.5 bg-zinc-800">
+          <motion.div
+            className="h-full bg-gradient-to-r from-amber-400 to-amber-600"
+            style={{ width: `${progress}%` }}
+            transition={{ duration: 0 }}
+          />
         </div>
       </div>
     </motion.div>
@@ -72,12 +122,18 @@ function LootDropBannerInner({ notification, onDismiss }: { notification: LootDr
 
 export function LootDropBanner() {
   const current = useLootDropStore((s) => s.current);
+  const queue = useLootDropStore((s) => s.queue);
   const dismiss = useLootDropStore((s) => s.dismiss);
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {current && (
-        <LootDropBannerInner key={current.id} notification={current} onDismiss={dismiss} />
+        <LootDropBannerInner
+          key={current.id}
+          notification={current}
+          queueLength={queue.length}
+          onDismiss={dismiss}
+        />
       )}
     </AnimatePresence>
   );

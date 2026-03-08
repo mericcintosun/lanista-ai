@@ -73,7 +73,10 @@ router.post('/', registerLimiter, async (req: any, res: any) => {
             status: 'active',
             hp: 100,
             attack: 10,
-            defense: 10
+            defense: 10,
+            elo: 0,
+            wins: 0,
+            total_matches: 0
         }).select().single();
 
         if (error) {
