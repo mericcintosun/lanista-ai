@@ -84,26 +84,7 @@ export function Layout() {
 
   return (
     <div className="min-h-screen bg-background text-zinc-300 selection:bg-primary/30 relative overflow-x-hidden">
-      {/* ── BACKGROUND: grid pattern + particles ── */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div 
-          className="absolute inset-0"
-          style={{
-            backgroundImage: location.pathname.startsWith('/agent')
-              ? 'linear-gradient(to right, rgba(127,29,29,0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(127,29,29,0.08) 1px, transparent 1px)'
-              : location.pathname.startsWith('/oracle')
-                ? 'linear-gradient(to right, rgba(12,165,90,0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(12,165,90,0.1) 1px, transparent 1px)'
-                : location.pathname.startsWith('/hall-of-fame')
-                ? 'linear-gradient(to right, rgba(59,130,246,0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(59,130,246,0.1) 1px, transparent 1px)'
-                : location.pathname.startsWith('/game-arena')
-                  ? 'linear-gradient(to right, rgba(59,130,246,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(59,130,246,0.06) 1px, transparent 1px)'
-                  : location.pathname === '/hub'
-                    ? 'linear-gradient(to right, rgba(180,214,111,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(180,214,111,0.06) 1px, transparent 1px)'
-                    : 'linear-gradient(to right, rgba(223,127,62,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(223,127,62,0.06) 1px, transparent 1px)',
-            backgroundSize: '24px 24px',
-          }}
-        />
-      </div>
+      {/* ── BACKGROUND: particles ── */}
       <div className="fixed inset-0 z-[1]">
         <ParticleBackground />
       </div>
