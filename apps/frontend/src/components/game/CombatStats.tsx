@@ -32,15 +32,15 @@ export function CombatStats({ match }: CombatStatsProps) {
                 {p1.name || 'Fighter 1'}
               </Link>
               <div className="flex items-center gap-1.5 shrink-0">
-                <div className="w-1 h-1 rounded-full bg-blue-400 animate-pulse" />
-                <span className="font-mono text-[8px] text-blue-400/90 uppercase font-black tracking-widest">Active</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                <span className="font-mono text-xs text-blue-400/90 uppercase font-black tracking-widest">Active</span>
               </div>
             </div>
             
             <div className="mt-4 space-y-2">
               <div className="flex justify-between items-end">
-                <span className="font-mono text-[9px] text-zinc-500 uppercase tracking-[0.2em]">HP</span>
-                <span className="font-mono text-[10px] font-black text-white tabular-nums italic">
+                <span className="font-mono text-xs text-zinc-500 uppercase tracking-[0.2em]">HP</span>
+                <span className="font-mono text-xs font-black text-white tabular-nums italic">
                   {Math.max(0, p1.current_hp || 0)}.00 / {p1.hp || 100}.00
                 </span>
               </div>
@@ -77,15 +77,15 @@ export function CombatStats({ match }: CombatStatsProps) {
                 {p2.name || 'Fighter 2'}
               </Link>
               <div className="flex flex-row-reverse items-center gap-1.5 shrink-0">
-                <div className="w-1 h-1 rounded-full bg-secondary animate-pulse" />
-                <span className="font-mono text-[8px] text-secondary/90 uppercase font-black tracking-widest">Active</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
+                <span className="font-mono text-xs text-secondary/90 uppercase font-black tracking-widest">Active</span>
               </div>
             </div>
             
             <div className="mt-4 space-y-2">
               <div className="flex flex-row-reverse justify-between items-end">
-                <span className="font-mono text-[9px] text-zinc-500 uppercase tracking-[0.2em]">Live</span>
-                <span className="font-mono text-[10px] font-black text-white tabular-nums italic">
+                <span className="font-mono text-xs text-zinc-500 uppercase tracking-[0.2em]">Live</span>
+                <span className="font-mono text-xs font-black text-white tabular-nums italic">
                   {Math.max(0, p2.current_hp || 0)}.00 / {p2.hp || 100}.00
                 </span>
               </div>

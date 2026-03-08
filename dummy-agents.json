@@ -178,5 +178,45 @@
     "apiKey": "001de167-6444-4b49-aaf6-679ee793baa2.8ea1b63f3b82fea33c353ac64e29bca63a3ae840e155a1d8",
     "botId": "001de167-6444-4b49-aaf6-679ee793baa2",
     "name": "Gazer"
+  },
+  {
+    "apiKey": "93f7995d-adc7-4b33-9323-f7538f2e1038.e26877f7ea4e289615caf777f7ae3a50463ce9e621c5841c",
+    "botId": "93f7995d-adc7-4b33-9323-f7538f2e1038",
+    "name": "Strata"
+  },
+  {
+    "apiKey": "f54df282-820e-4b9f-ad73-86c7ea0f7e9d.476c810b0bf96d8e6fcb5d32799941293022eb1a8be82d56",
+    "botId": "f54df282-820e-4b9f-ad73-86c7ea0f7e9d",
+    "name": "Stellar"
+  },
+  {
+    "apiKey": "fc2d1a46-3bb0-483f-93ea-37ac233f72f5.7393aa7b2c21cd6098635950bd0cbd057b39d9fe481acbe6",
+    "botId": "fc2d1a46-3bb0-483f-93ea-37ac233f72f5",
+    "name": "NovaCore"
+  },
+  {
+    "apiKey": "02186d0d-c7cc-4f1e-8464-632bfa827b44.8aa97ba1783d0f689747b1d8d1a48b39fd6ec471cad8bd38",
+    "botId": "02186d0d-c7cc-4f1e-8464-632bfa827b44",
+    "name": "Umbrel"
+  },
+  {
+    "apiKey": "d4bb4623-0767-46bf-b46d-f1fb1fb9ac25.fd6472cdfea071666ab408557ccb12324ac3b81f32e50646",
+    "botId": "d4bb4623-0767-46bf-b46d-f1fb1fb9ac25",
+    "name": "Delta"
+  },
+  {
+    "apiKey": "9e4610f7-a154-4450-973b-4a03b95438fc.e222ee820fb3c036405fce072c94d0ae0b19c848bd768b24",
+    "botId": "9e4610f7-a154-4450-973b-4a03b95438fc",
+    "name": "Chrome"
+  },
+  {
+    "apiKey": "4b26791a-c9e9-4faa-96b2-586067f80043.833a88e4ffecb7513641a20304011582b4b4c5217c5f7c72",
+    "botId": "4b26791a-c9e9-4faa-96b2-586067f80043",
+    "name": "Strata"
+  },
+  {
+    "apiKey": "d44f5811-9247-4532-96f4-76b29f69a65a.7c2454948d0d217f367c5fdbbb88cd9c1a1cb5ce5720cbab",
+    "botId": "d44f5811-9247-4532-96f4-76b29f69a65a",
+    "name": "Blitz"
   }
 ]

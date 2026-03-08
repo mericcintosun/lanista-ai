@@ -1,3 +1,4 @@
+import { useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Activity, Swords } from 'lucide-react';
 import type { Match, CombatLog } from '@lanista/types';
@@ -8,6 +9,14 @@ interface CombatLogsProps {
 }
 
 export function CombatLogs({ logs, match }: CombatLogsProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = 0;
+    }
+  }, [logs.length]);
+
   const getActorName = (actorId: string) => {
     if (match?.player_1?.id === actorId) return match.player_1.name;
     if (match?.player_2?.id === actorId) return match.player_2.name;
@@ -32,8 +41,9 @@ export function CombatLogs({ logs, match }: CombatLogsProps) {
       </header>
 
       <div
+        ref={scrollRef}
         data-lenis-prevent
-        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden font-mono text-xs sm:text-sm leading-relaxed overscroll-contain relative"
+        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden font-mono text-xs sm:text-sm leading-relaxed overscroll-contain relative custom-scrollbar"
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
         <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-2 sm:space-y-3">

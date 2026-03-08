@@ -1,10 +1,12 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { prefetchGameHtml } from '../lib/prefetchGame';
 import confetti from 'canvas-confetti';
-import { sendToUnity, setUnityMode } from '../lib/unity';
+import { sendToUnity, setUnityMode, sendThrowableToUnity } from '../lib/unity';
 import { useCombatRealtime } from '../hooks/useCombatRealtime';
 import { useHubData } from '../hooks/useHubData';
+import { useArenaChat } from '../hooks/useArenaChat';
+import { useSparkBalance } from '../hooks/useSparkBalance';
 import { PageHeader } from '../components/common/PageHeader';
 import { LiveMatchList } from '../components/battle-arena/LiveMatchList';
 import { ArenaChat } from '../components/ArenaChat';
@@ -12,7 +14,7 @@ import { PredictionWidget } from '../components/arena/PredictionWidget';
 import { Reveal } from '../components/common/Reveal';
 
 // Game Components
-import { UnityFrame, CombatStats } from '../components/game';
+import { UnityFrame, CombatStats, CombatLogs, MatchInfoBanner, FullscreenHUD } from '../components/game';
 
 export default function GameArena() {
   const { matchId } = useParams<{ matchId: string }>();
@@ -22,6 +24,20 @@ export default function GameArena() {
   const { match, logs, signalReady } = useCombatRealtime(matchId || null);
   const { liveMatches } = useHubData();
   const lastStatus = useRef<string | null>(null);
+
+  const { balance: _sparkBalance, setBalance: setSparkBalance } = useSparkBalance();
+
+  const onThrowable = useCallback(
+    (payload: { type: 'throwable'; item: 'tomato'; target: 'player_1' | 'player_2' }) => {
+      if (iframeRef.current) sendThrowableToUnity(iframeRef.current, payload);
+    },
+    []
+  );
+
+  const chatState = useArenaChat(matchId || null, {
+    onThrowable,
+    onSpend: (newBalance) => setSparkBalance(newBalance),
+  });
 
   useEffect(() => {
     prefetchGameHtml();
@@ -100,41 +116,33 @@ export default function GameArena() {
     );
   }
 
-  const isFinished = match.status === 'finished' || match.status === 'aborted';
-
   return (
-    <div className="max-w-[1600px] mx-auto py-4 sm:py-6 px-4 space-y-4 sm:space-y-6">
-      <Reveal>
-        <PredictionWidget
-          match={match}
-          matchId={matchId}
-        />
-      </Reveal>
-      
-      {/* ── Match ID & Status (compact) ── */}
-      <Reveal className="flex flex-wrap items-center gap-3 sm:gap-4 px-3 py-2 rounded-lg border border-blue-500/20 bg-blue-500/5 w-fit" delay={0.1}>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-          <span className="font-mono text-[9px] text-zinc-500 uppercase tracking-widest">Match ID</span>
-          <span className="font-mono text-xs text-white uppercase tabular-nums truncate max-w-[180px] sm:max-w-none" title={matchId}>{matchId}</span>
-        </div>
-        <div className={`px-2.5 py-1 border rounded font-mono text-[9px] sm:text-[10px] tracking-widest font-black ${
-          isFinished ? 'bg-zinc-800 border-zinc-700 text-zinc-500' : 'bg-secondary/20 border-secondary/30 text-secondary animate-pulse'
-        }`}>
-          {isFinished ? 'ARCHIVED' : 'LIVE'}
-        </div>
-      </Reveal>
+    <div className="max-w-[1600px] mx-auto py-4 sm:py-6 px-3 sm:px-4 space-y-4 sm:space-y-5">
+      {/* Floating prediction widget (fixed overlay, pending only) */}
+      <PredictionWidget match={match} matchId={matchId} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-stretch">
-        {/* Main: Unity & Stats — mobile: 2nd, desktop: left 8 cols */}
-        <Reveal className="lg:col-span-8 flex flex-col gap-4 sm:gap-6 order-2 lg:order-1" direction="left" delay={0.2}>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 lg:items-stretch">
+        {/* ── Left column: iframe → match info → chat (mobile) → combat stats ── */}
+        <div className="lg:col-span-8 flex flex-col gap-3 sm:gap-4 order-1 self-stretch">
+          {/* Unity iframe */}
           <div className="relative group">
-            <div className="absolute -inset-[1px] bg-gradient-to-r from-blue-500/20 via-transparent to-secondary/20 rounded-2xl blur-sm opacity-50" />
+            <div className="absolute -inset-[1px] bg-gradient-to-r from-blue-500/20 via-transparent to-secondary/20 rounded-2xl blur-sm opacity-50 pointer-events-none" />
             <div className="relative">
               <UnityFrame
                 ref={iframeRef}
                 onRefresh={() => window.location.reload()}
                 onFullscreen={() => iframeRef.current?.requestFullscreen()}
                 isLoading={!match}
+                hudOverlay={
+                  match ? (
+                    <FullscreenHUD
+                      match={match}
+                      onRefresh={() => window.location.reload()}
+                      onExitFullscreen={() => document.exitFullscreen?.()}
+                      chatState={chatState}
+                    />
+                  ) : undefined
+                }
               />
               <div
                 ref={emojiOverlayRef}
@@ -143,20 +151,47 @@ export default function GameArena() {
               />
             </div>
           </div>
-          
-          <CombatStats match={match} />
-        </Reveal>
 
-        {/* Chat — same height as game column (Twitch/Kick style) */}
-        <Reveal className="lg:col-span-4 flex flex-col min-h-[400px] lg:min-h-0 order-1 lg:order-2" direction="right" delay={0.3}>
-          <ArenaChat
-            matchId={matchId}
-            match={match}
-            unityIframeRef={iframeRef}
-            gameEmojiContainerRef={emojiOverlayRef}
-            className="flex-1 min-h-[400px] lg:min-h-0 w-full"
-          />
-        </Reveal>
+          {/* Match info — id, status, p1 vs p2 */}
+          <MatchInfoBanner match={match} matchId={matchId} />
+
+          {/* Chat + combat logs — only on mobile/tablet */}
+          <div className="lg:hidden flex flex-col gap-3">
+            <div className="min-h-[300px] max-h-[45vh]">
+              <ArenaChat
+                matchId={matchId}
+                match={match}
+                unityIframeRef={iframeRef}
+                gameEmojiContainerRef={emojiOverlayRef}
+                className="h-full w-full"
+                chatState={chatState}
+              />
+            </div>
+            <div className="min-h-[150px] max-h-[25vh]">
+              <CombatLogs logs={logs} match={match} />
+            </div>
+          </div>
+
+          {/* Robot HP & stats */}
+          <CombatStats match={match} />
+        </div>
+
+        {/* ── Right column: chat (2/3) + combat logs (1/3), desktop only ── */}
+        <div className="hidden lg:flex lg:flex-col lg:col-span-4 order-2 gap-3 sm:gap-4 self-stretch min-h-0 overflow-hidden">
+          <div className="h-[415px] shrink-0 overflow-hidden">
+            <ArenaChat
+              matchId={matchId}
+              match={match}
+              unityIframeRef={iframeRef}
+              gameEmojiContainerRef={emojiOverlayRef}
+              className="h-full w-full"
+              chatState={chatState}
+            />
+          </div>
+          <div className="h-[320px] shrink-0 overflow-hidden">
+            <CombatLogs logs={logs} match={match} />
+          </div>
+        </div>
       </div>
     </div>
   );

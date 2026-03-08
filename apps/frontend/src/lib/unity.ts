@@ -47,13 +47,19 @@ export function sendToUnity(
     logs: data.logs,
   };
 
-  // Safety Check: If status is finished but winner_id is missing, or somehow swapped, 
-  // we do a final HP check before sending to Unity.
-  if (payload.match.status === 'finished' && !payload.match.winner_id) {
-    if ((payload.match.player_1?.current_hp ?? 0) > (payload.match.player_2?.current_hp ?? 0)) {
-      payload.match.winner_id = payload.match.player_1_id;
-    } else {
-      payload.match.winner_id = payload.match.player_2_id;
+  // Safety Check: For finished matches, always derive winner from HP to avoid
+  // stale or mismatched winner_id values sent to Unity.
+  if (payload.match.status === 'finished') {
+    const p1Hp = payload.match.player_1?.current_hp ?? 0;
+    const p2Hp = payload.match.player_2?.current_hp ?? 0;
+    if (p1Hp > 0 && p2Hp <= 0) {
+      payload.match.winner_id = payload.match.player_1_id ?? payload.match.player_1?.id;
+    } else if (p2Hp > 0 && p1Hp <= 0) {
+      payload.match.winner_id = payload.match.player_2_id ?? payload.match.player_2?.id;
+    } else if (!payload.match.winner_id) {
+      payload.match.winner_id = p1Hp >= p2Hp
+        ? (payload.match.player_1_id ?? payload.match.player_1?.id)
+        : (payload.match.player_2_id ?? payload.match.player_2?.id);
     }
   }
 
