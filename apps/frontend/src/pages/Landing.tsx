@@ -3,6 +3,7 @@ import { Hero, HowItWorks, LeaderboardSection, HorizontalScroll } from '../compo
 import { useLeaderboard } from '../hooks/useLeaderboard';
 import { Link } from 'react-router-dom';
 import gsap, { ScrollTrigger } from '../lib/gsap';
+import { PartnersCarousel } from '../components/common/PartnersCarousel';
 
 export default function Landing() {
   const { leaderboard } = useLeaderboard(false);
@@ -91,11 +92,9 @@ export default function Landing() {
         </div>
 
         {/* Mobile & tablet: vertical stacked story, no pinning */}
-        <div className="md:hidden flex flex-col gap-6 py-8">
+        <div className="md:hidden flex flex-col gap-0 py-4">
           <HorizontalScroll />
-          <div className="px-4">
-            <HowItWorks />
-          </div>
+          <HowItWorks />
         </div>
       </section>
 
@@ -104,38 +103,43 @@ export default function Landing() {
         <LeaderboardSection leaderboard={leaderboard} />
       </section>
 
-      {/* 🛠 Join Section (Vertical Exit) */}
-      <section className="min-h-[50vh] py-12 bg-transparent flex flex-col items-center justify-center px-4 text-center relative overflow-hidden border-t border-white/5">
+      {/* 🤝 Partners Section */}
+      <section className="border-t border-white/5 py-10 md:py-14 overflow-hidden">
+        <div className="max-w-5xl mx-auto px-4 mb-6 md:mb-8 text-center">
+          <p className="font-mono text-xs text-primary uppercase tracking-widest mb-1">// Ecosystem</p>
+          <h2 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter text-white">Partners &amp; Integrations</h2>
+        </div>
+        <PartnersCarousel />
+      </section>
 
-        <div className="relative z-10 max-w-lg space-y-6 flex flex-col items-center">
-          {/* Logo + Tagline */}
-          <div className="flex flex-col items-center gap-4">
-            <div className="relative">
-              <img
-                src="/logo-remove-bg.png"
-                alt="Lanista"
-                className="relative w-20 h-20 md:w-28 md:h-28 rounded-full border border-white/10 object-cover"
-              />
-            </div>
+      {/* 🛠 Join Section (Vertical Exit) */}
+      <section className="py-16 md:py-24 bg-transparent flex flex-col items-center justify-center px-4 text-center relative overflow-hidden border-t border-white/5">
+        <div className="relative z-10 w-full max-w-lg space-y-5 flex flex-col items-center">
+          <div className="flex flex-col items-center gap-3">
+            <img
+              src="/logo-remove-bg.png"
+              alt="Lanista"
+              className="w-16 h-16 md:w-24 md:h-24 rounded-full border border-white/10 object-cover"
+            />
             <h2 className="text-2xl md:text-4xl font-black italic tracking-tight uppercase text-white/95 text-center">
               Join the Battle <span className="text-primary">Intelligence_</span>
             </h2>
           </div>
 
-          <p className="text-zinc-400 font-mono text-xs md:text-sm uppercase tracking-widest max-w-md mx-auto leading-relaxed">
-            Lanista is not just a game; it's an evolving computational proving ground. Claim your Lany, optimize your logic, and prove your dominance on the chain.
+          <p className="text-zinc-400 font-mono text-xs md:text-sm uppercase tracking-widest max-w-sm mx-auto leading-relaxed">
+            Lanista is not just a game — it's an evolving computational proving ground.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-1 w-full sm:w-auto">
             <Link
               to="/hub"
-              className="px-6 py-3 bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-primary hover:text-white transition-colors rounded-lg shadow-xl"
+              className="w-full sm:w-auto px-6 py-3 bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-primary hover:text-white transition-colors rounded-lg shadow-xl text-center"
             >
               Enter The Hub
             </Link>
             <Link
               to="/game-arena"
-              className="px-6 py-3 glass border border-white/10 text-white font-black uppercase text-xs tracking-widest hover:bg-secondary/10 hover:border-secondary/30 hover:text-secondary transition-colors rounded-lg"
+              className="w-full sm:w-auto px-6 py-3 glass border border-white/10 text-white font-black uppercase text-xs tracking-widest hover:bg-secondary/10 hover:border-secondary/30 hover:text-secondary transition-colors rounded-lg text-center"
             >
               Live Arena
             </Link>

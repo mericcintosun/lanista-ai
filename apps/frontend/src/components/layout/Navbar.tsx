@@ -7,7 +7,7 @@ import type { LucideIcon } from 'lucide-react';
 import gsap from 'gsap';
 import { supabase } from '../../lib/supabase';
 import { SparkBalance } from '../spark/SparkBalance';
-import { SparkStoreModal } from '../spark/SparkStoreModal';
+import { BuySparkDrawer } from '../spark/BuySparkDrawer';
 import { useAuthStore } from '../../lib/auth-store';
 import { useUserStore } from '../../lib/user-store';
 import { useUIStore } from '../../lib/ui-store';
@@ -31,7 +31,7 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
   const session = useAuthStore((s) => s.session);
   const myAgentId = useUserStore((s) => s.myAgentId);
   const openAuthModal = useUIStore((s) => s.openAuthModal);
-  const [showSparkStore, setShowSparkStore] = useState(false);
+  const [showSparkDrawer, setShowSparkDrawer] = useState(false);
   
   const navRef = useRef<HTMLElement>(null);
   const underlineRef = useRef<HTMLDivElement>(null);
@@ -104,7 +104,7 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
             className={`rounded-full border border-white/10 ${scrolled ? 'h-8 w-8' : 'h-10 w-10'}`}
           />
           <span className={`font-mono font-black text-white italic tracking-tighter ${scrolled ? 'text-lg' : 'text-xl'}`}>
-            lanista
+            Lanista
           </span>
         </Link>
 
@@ -149,7 +149,7 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
               </button>
             )}
             <div className={session ? '' : 'hidden'}>
-              <SparkBalance onOpenStore={() => setShowSparkStore(true)} />
+              <SparkBalance onOpenStore={() => setShowSparkDrawer(true)} />
             </div>
             {session && (
               <>
@@ -182,15 +182,6 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
             )}
           </div>
 
-          <AnimatePresence>
-            {showSparkStore && (
-              <SparkStoreModal
-                onClose={() => setShowSparkStore(false)}
-                session={session}
-                onPurchased={() => {}}
-              />
-            )}
-          </AnimatePresence>
         </div>
 
         {/* Mobile Hamburger */}
@@ -212,6 +203,12 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
           </AnimatePresence>
         </button>
       </div>
+
+      <BuySparkDrawer
+        open={showSparkDrawer}
+        onClose={() => setShowSparkDrawer(false)}
+        session={session}
+      />
     </nav>
   );
 }

@@ -39,6 +39,17 @@ export interface EmojiPayload {
   origin?: EmojiOrigin;
 }
 
+const BOT_REWARD_PREF_KEY = 'lanista_bot_rewards_enabled';
+
+function getBotRewardPref(): boolean {
+  try {
+    const saved = localStorage.getItem(BOT_REWARD_PREF_KEY);
+    return saved === null ? true : saved === 'true';
+  } catch {
+    return true;
+  }
+}
+
 async function spendSpark(
   accessToken: string,
   amount: number,
@@ -51,7 +62,12 @@ async function spendSpark(
       'Content-Type': 'application/json',
       Authorization: `Bearer ${accessToken}`,
     },
-    body: JSON.stringify({ amount, type, reference_id: referenceId }),
+    body: JSON.stringify({
+      amount,
+      type,
+      reference_id: referenceId,
+      enable_bot_rewards: getBotRewardPref(),
+    }),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {

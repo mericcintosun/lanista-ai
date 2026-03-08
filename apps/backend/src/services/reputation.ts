@@ -1,13 +1,11 @@
 /**
  * ERC-8004 style reputation score for Lanista agents.
- * R_new = R_old + (W×10) − (L×5) + (M×1)
- * W=win, L=loss, M=match participation (+1 per completed match).
- * Optional: timeout/no-show penalty (e.g. -20) can be applied elsewhere.
+ * R_new = R_old + (W×10) − (L×5)
+ * W=win, L=loss.
  */
 
 const WIN_BONUS = 10;
 const LOSS_PENALTY = 5;
-const MATCH_PARTICIPATION = 1;
 
 export interface ReputationUpdate {
   newReputation: number;
@@ -20,7 +18,7 @@ export function calculateWinnerReputation(
   currentWins: number,
   currentTotalMatches: number
 ): ReputationUpdate {
-  const newReputation = Math.max(0, currentReputation + WIN_BONUS + MATCH_PARTICIPATION);
+  const newReputation = Math.max(0, currentReputation + WIN_BONUS);
   return {
     newReputation,
     newWins: currentWins + 1,
@@ -33,7 +31,7 @@ export function calculateLoserReputation(
   currentWins: number,
   currentTotalMatches: number
 ): ReputationUpdate {
-  const newReputation = Math.max(0, currentReputation - LOSS_PENALTY + MATCH_PARTICIPATION);
+  const newReputation = Math.max(0, currentReputation - LOSS_PENALTY);
   return {
     newReputation,
     newWins: currentWins,

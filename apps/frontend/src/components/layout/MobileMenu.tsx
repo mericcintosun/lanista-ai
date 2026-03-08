@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { prefetchGameHtml } from '../../lib/prefetchGame';
 import { UserCircle, Bot, LogOut, Terminal } from 'lucide-react';
 import gsap from 'gsap';
@@ -22,6 +22,7 @@ interface MobileMenuProps {
 
 export function MobileMenu({ navH, setIsMobileMenuOpen, navItems }: MobileMenuProps) {
   const location = useLocation();
+  const navigate = useNavigate();
   const session = useAuthStore((s) => s.session);
   const myAgentId = useUserStore((s) => s.myAgentId);
   const openAuthModal = useUIStore((s) => s.openAuthModal);
@@ -59,94 +60,90 @@ export function MobileMenu({ navH, setIsMobileMenuOpen, navItems }: MobileMenuPr
     <div
       ref={menuRef}
       style={{ top: navH }}
-      className="fixed inset-0 bg-black/98 backdrop-blur-3xl z-[60] overflow-y-auto pb-12"
+      className="fixed inset-0 bg-black/98 backdrop-blur-3xl z-[60] overflow-y-auto pb-8"
     >
-      <div className="flex flex-col gap-8 py-10 px-8">
-        
-        {/* Account Header Section */}
+      <div className="flex flex-col gap-4 py-5 px-5">
+
+        {/* Account */}
         {session && (
-          <div ref={el => { itemsRef.current[0] = el; }} className="space-y-4">
-            <p className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest pl-2">Account Control</p>
-            <div className="grid grid-cols-1 gap-2">
-               <Link
-                to="/profile"
+          <div ref={el => { itemsRef.current[0] = el; }} className="space-y-2">
+            <p className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest px-1">Account</p>
+            <Link
+              to="/profile"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 border border-white/8 text-white"
+            >
+              <div className="p-1.5 bg-primary/20 rounded-lg shrink-0">
+                <UserCircle className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs font-black uppercase tracking-wider">User Profile</p>
+                <p className="text-[9px] font-mono text-zinc-500 uppercase">Settings & Identity</p>
+              </div>
+            </Link>
+
+            {myAgentId && (
+              <Link
+                to={`/agent/${myAgentId}`}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-4 p-5 rounded-2xl bg-white/5 border border-white/10 text-white font-bold"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 border border-white/8 text-white"
               >
-                <div className="p-2 bg-primary/20 rounded-lg">
-                  <UserCircle className="w-5 h-5 text-primary" />
+                <div className="p-1.5 bg-emerald-500/20 rounded-lg shrink-0">
+                  <Bot className="w-4 h-4 text-emerald-400" />
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-sm uppercase tracking-wider font-black italic">User Profile</span>
-                  <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest">Settings & Identity</span>
+                <div>
+                  <p className="text-xs font-black uppercase tracking-wider">My Lany</p>
+                  <p className="text-[9px] font-mono text-zinc-500 uppercase">Autonomous Agent</p>
                 </div>
               </Link>
+            )}
 
-              {myAgentId && (
-                <Link
-                  to={`/agent/${myAgentId}`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-4 p-5 rounded-2xl bg-white/5 border border-white/10 text-white font-bold"
-                >
-                  <div className="p-2 bg-emerald-500/20 rounded-lg">
-                    <Bot className="w-5 h-5 text-emerald-400" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm uppercase tracking-wider font-black italic">My Lany</span>
-                    <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest">Autonomous Agent</span>
-                  </div>
-                </Link>
-              )}
-            </div>
-            
-            <div className="py-2 px-2">
-               <SparkBalance onOpenStore={() => {}} />
+            <div className="px-1">
+              <SparkBalance onOpenStore={() => { setIsMobileMenuOpen(false); navigate('/buy-sparks'); }} />
             </div>
           </div>
         )}
 
-        {/* Navigation Section */}
-        <div className="space-y-4">
-          <p className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest pl-2">Menu</p>
-          <div className="grid grid-cols-1 gap-2">
-            {navItems.map((item, idx) => {
-              const isActive = location.pathname === item.path || (item.path === '/game-arena' && location.pathname.startsWith('/game-arena/'));
-              return (
-                <div key={item.path} ref={el => { itemsRef.current[idx + 5] = el; }}>
-                  <Link
-                    to={item.path}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    onMouseEnter={() => item.path === '/game-arena' && prefetchGameHtml()}
-                    onTouchStart={() => item.path === '/game-arena' && prefetchGameHtml()}
-                    className={`flex items-center justify-between p-5 rounded-2xl border transition-all duration-300 ${isActive 
-                      ? 'bg-primary/10 border-primary/30 text-white' 
-                      : 'bg-white/[0.02] border-white/5 text-zinc-400 hover:text-white'}`}
-                  >
-                    <span className="text-sm font-black uppercase italic tracking-wider font-mono">{item.name}</span>
-                    <Terminal className={`w-4 h-4 ${isActive ? 'text-primary' : 'text-zinc-700'}`} />
-                  </Link>
-                </div>
-              );
-            })}
-          </div>
+        {/* Nav */}
+        <div className="space-y-1.5">
+          <p className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest px-1">Menu</p>
+          {navItems.map((item, idx) => {
+            const isActive = location.pathname === item.path || (item.path === '/game-arena' && location.pathname.startsWith('/game-arena/'));
+            return (
+              <div key={item.path} ref={el => { itemsRef.current[idx + 5] = el; }}>
+                <Link
+                  to={item.path}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  onMouseEnter={() => item.path === '/game-arena' && prefetchGameHtml()}
+                  onTouchStart={() => item.path === '/game-arena' && prefetchGameHtml()}
+                  className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-colors ${
+                    isActive ? 'bg-primary/10 border-primary/25 text-white' : 'bg-white/[0.02] border-white/5 text-zinc-400'
+                  }`}
+                >
+                  <span className="text-xs font-black uppercase tracking-wider font-mono">{item.name}</span>
+                  <Terminal className={`w-3.5 h-3.5 ${isActive ? 'text-primary' : 'text-zinc-700'}`} />
+                </Link>
+              </div>
+            );
+          })}
         </div>
 
-        {/* Auth Actions */}
-        <div className="pt-4 border-t border-white/5" ref={el => { itemsRef.current[20] = el; }}>
+        {/* Auth */}
+        <div className="pt-2 border-t border-white/5" ref={el => { itemsRef.current[20] = el; }}>
           {session ? (
             <button
               type="button"
               onClick={handleSignOut}
-              className="flex items-center justify-center gap-3 w-full p-5 rounded-2xl bg-primary/5 border border-primary/10 text-primary font-black uppercase tracking-widest italic text-sm"
+              className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-primary/5 border border-primary/10 text-primary font-black uppercase tracking-widest text-xs"
             >
-              <LogOut className="w-5 h-5" /> Terminate Session
+              <LogOut className="w-4 h-4" /> Sign Out
             </button>
           ) : (
             <button
               onClick={() => { setIsMobileMenuOpen(false); openAuthModal(); }}
-              className="flex items-center justify-center gap-3 w-full p-5 rounded-2xl bg-primary border border-primary text-white font-black uppercase tracking-widest italic text-sm"
+              className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-primary border border-primary text-white font-black uppercase tracking-widest text-xs"
             >
-              <UserCircle className="w-5 h-5" /> Profile
+              <UserCircle className="w-4 h-4" /> Sign In
             </button>
           )}
         </div>

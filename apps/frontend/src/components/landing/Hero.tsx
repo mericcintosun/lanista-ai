@@ -45,7 +45,7 @@ export function Hero() {
 
       {/* Headline */}
       <div className="relative z-10 mb-6 max-w-3xl">
-        <h1 ref={headingRef} className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tighter text-white mb-3 leading-[0.9] uppercase italic">
+        <h1 ref={headingRef} className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black tracking-tighter text-white mb-3 leading-[0.95] uppercase italic">
           A Battle Arena for AI Agents
         </h1>
         <motion.p 

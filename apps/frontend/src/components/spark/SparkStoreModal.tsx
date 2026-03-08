@@ -2,11 +2,15 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Eip1193Provider } from 'ethers';
-import { X, Zap, Loader2 } from 'lucide-react';
+import { X, Zap, Loader2, Bot, ChevronDown, ChevronUp, Check, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { Button } from '../ui/Button';
 import { API_URL } from '../../lib/api';
 import { useChainlinkAvaxPrice } from '../../hooks/useChainlinkAvaxPrice';
+import { useUserStore } from '../../lib/user-store';
+
+const BOT_REWARD_PREF_KEY = 'lanista_bot_rewards_enabled';
 
 const TX_CONFIRM_TIMEOUT_MS = 45_000;
 const SPARK_TREASURY_ABI = [
@@ -14,7 +18,7 @@ const SPARK_TREASURY_ABI = [
 ];
 
 const FUJI_CHAIN_ID = 43113;
-const SPARK_TREASURY_CONTRACT_ADDRESS = '0x79545A9F603Bc813CCd8429B9ad74fBb7c02a5cf';
+const SPARK_TREASURY_CONTRACT_ADDRESS = '0x15d7F62A8Bf515065c03a40C5e547036b3172CE2';
 
 interface SparkPackage {
   packageId: number;
@@ -36,7 +40,17 @@ export function SparkStoreModal({ onClose, session, onPurchased }: SparkStoreMod
   const [buyingId, setBuyingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [botRewardEnabled, setBotRewardEnabled] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem(BOT_REWARD_PREF_KEY);
+      return saved === null ? true : saved === 'true';
+    } catch {
+      return true;
+    }
+  });
+  const [rewardInfoOpen, setRewardInfoOpen] = useState(false);
   const { priceUsd: avaxUsdPrice } = useChainlinkAvaxPrice(30_000);
+  const myAgentId = useUserStore((s) => s.myAgentId);
 
   useEffect(() => {
     fetch(`${API_URL}/sparks/packages`)
@@ -47,6 +61,11 @@ export function SparkStoreModal({ onClose, session, onPurchased }: SparkStoreMod
       .catch(() => setPackages([]))
       .finally(() => setLoading(false));
   }, []);
+
+  const toggleBotReward = (val: boolean) => {
+    setBotRewardEnabled(val);
+    try { localStorage.setItem(BOT_REWARD_PREF_KEY, String(val)); } catch (e) { void e; }
+  };
 
   const connectWallet = async () => {
     setError(null);
@@ -184,6 +203,95 @@ export function SparkStoreModal({ onClose, session, onPurchased }: SparkStoreMod
               <p className="text-sm text-primary font-mono bg-primary/10 border border-primary/20 rounded-lg px-3 py-2">
                 {error}
               </p>
+            )}
+
+            {/* Bot Reward Distribution preference — shown if user has at least one bot */}
+            {myAgentId && (
+              <div className={`rounded-xl border transition-colors ${botRewardEnabled ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-white/10 bg-white/5'}`}>
+                <button
+                  type="button"
+                  onClick={() => setRewardInfoOpen((v) => !v)}
+                  className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Bot className={`w-4 h-4 shrink-0 ${botRewardEnabled ? 'text-emerald-400' : 'text-zinc-500'}`} />
+                    <span className={`font-mono text-xs font-bold uppercase tracking-widest ${botRewardEnabled ? 'text-emerald-400' : 'text-zinc-400'}`}>
+                      Bot Reward Distribution
+                    </span>
+                    <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded font-bold uppercase ${botRewardEnabled ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/10 text-zinc-500'}`}>
+                      {botRewardEnabled ? 'ON' : 'OFF'}
+                    </span>
+                  </div>
+                  {rewardInfoOpen
+                    ? <ChevronUp className="w-4 h-4 text-zinc-500 shrink-0" />
+                    : <ChevronDown className="w-4 h-4 text-zinc-500 shrink-0" />
+                  }
+                </button>
+
+                <AnimatePresence>
+                  {rewardInfoOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-4 pb-4 space-y-3 border-t border-white/5 pt-3">
+                        <p className="text-xs text-zinc-400 leading-relaxed">
+                          Should the AVAX value of your Spark spending be <span className="text-white font-semibold">distributed equally to all your bots</span> automatically?
+                        </p>
+
+                        {/* No extra payment callout */}
+                        <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-2.5">
+                          <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                          <p className="text-[11px] text-emerald-400 leading-snug">
+                            <span className="font-bold">No extra payment.</span> The reward pool is funded at purchase time by the smart contract — you never pay twice.
+                          </p>
+                        </div>
+
+                        <div className="bg-black/30 rounded-lg px-3 py-2.5 space-y-1 font-mono text-[11px]">
+                          <p className="text-zinc-500 uppercase tracking-widest text-[10px]">Example</p>
+                          <p className="text-zinc-300">Spend 500 Spark in the arena</p>
+                          <p className="text-zinc-500">→ AVAX equivalent calculated via Chainlink</p>
+                          {avaxUsdPrice && (
+                            <p className="text-zinc-500">
+                              → ≈ <span className="text-zinc-300">{((500 * 0.005) / avaxUsdPrice).toFixed(4)} AVAX</span> split among your bots
+                            </p>
+                          )}
+                          <p className="text-zinc-500 pt-0.5">More bots = smaller share each, but every bot earns.</p>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => toggleBotReward(true)}
+                            className={`flex-1 py-2 rounded-lg font-mono text-xs font-bold uppercase tracking-widest transition-all border ${botRewardEnabled ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400' : 'bg-white/5 border-white/10 text-zinc-500 hover:text-white'}`}
+                          >
+                            Yes, distribute
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => toggleBotReward(false)}
+                            className={`flex-1 py-2 rounded-lg font-mono text-xs font-bold uppercase tracking-widest transition-all border ${!botRewardEnabled ? 'bg-primary/20 border-primary/40 text-primary' : 'bg-white/5 border-white/10 text-zinc-500 hover:text-white'}`}
+                          >
+                            No thanks
+                          </button>
+                        </div>
+
+                        <Link
+                          to="/spark"
+                          onClick={onClose}
+                          className="flex items-center gap-1.5 text-[11px] font-mono text-zinc-500 hover:text-primary transition-colors"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          Learn how the Spark economy works
+                        </Link>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             )}
 
             {loading ? (

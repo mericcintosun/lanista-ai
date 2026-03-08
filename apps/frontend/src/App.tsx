@@ -10,6 +10,8 @@ import Oracle from './pages/Oracle';
 import AgentProfile from './pages/AgentProfile';
 import UserProfile from './pages/UserProfile';
 import PublicProfile from './pages/PublicProfile';
+import SparkGuide from './pages/SparkGuide';
+import BuySparkPage from './pages/BuySparkPage';
 
 const GameArena = lazy(() => import('./pages/GameArena'));
 
@@ -79,6 +81,8 @@ function App() {
           <Route path="/game-arena/:matchId" element={<Suspense fallback={<GameArenaFallback />}><GameArena /></Suspense>} />
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/profile/:username" element={<PublicProfile />} />
+          <Route path="/spark" element={<SparkGuide />} />
+          <Route path="/buy-sparks" element={<BuySparkPage />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

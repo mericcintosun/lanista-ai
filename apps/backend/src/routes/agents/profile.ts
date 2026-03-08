@@ -1,8 +1,20 @@
 import { Router } from 'express';
+import { ethers } from 'ethers';
 import { supabase } from '../../lib/supabase.js';
 import { getPassportByBotWallet } from '../../services/passport.js';
 import { getInventoryBalances } from '../../services/rankUpLoot.js';
 import { respondError } from '../shared.js';
+
+async function getWalletAvaxBalance(walletAddress: string): Promise<string> {
+  const rpcUrl = process.env.AVALANCHE_RPC_URL || 'https://api.avax-test.network/ext/bc/C/rpc';
+  try {
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    const balance = await provider.getBalance(walletAddress);
+    return ethers.formatEther(balance);
+  } catch {
+    return '0';
+  }
+}
 
 const router = Router();
 
@@ -50,7 +62,7 @@ router.get('/:id', async (req, res) => {
         bot.true_wins = wins;
         bot.true_total_matches = totalMatches;
 
-        const [matchResult, inventory] = await Promise.all([
+        const [matchResult, inventory, avaxBalance] = await Promise.all([
             supabase
                 .from('matches')
                 .select('*, player_1:bots!matches_player_1_id_fkey(name, avatar_url), player_2:bots!matches_player_2_id_fkey(name, avatar_url)')
@@ -58,10 +70,13 @@ router.get('/:id', async (req, res) => {
                 .order('created_at', { ascending: false })
                 .limit(50),
             bot.wallet_address ? getInventoryBalances(bot.wallet_address) : Promise.resolve([]),
+            bot.wallet_address ? getWalletAvaxBalance(bot.wallet_address) : Promise.resolve('0'),
         ]);
 
         const { data: matches, error: matchErr } = matchResult;
         if (matchErr) throw matchErr;
+
+        bot.avax_balance = avaxBalance;
 
         res.json({ agent: bot, history: matches || [], inventory: inventory || [] });
     } catch (error: any) {

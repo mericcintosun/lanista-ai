@@ -3,11 +3,12 @@ import { ethers } from 'ethers';
 
 interface AgentBalanceProps {
   address?: string;
+  initialBalance?: string;
 }
 
-export function AgentBalance({ address }: AgentBalanceProps) {
-  const [balance, setBalance] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+export function AgentBalance({ address, initialBalance }: AgentBalanceProps) {
+  const [balance, setBalance] = useState<string | null>(initialBalance ?? null);
+  const [loading, setLoading] = useState(!initialBalance);
 
   useEffect(() => {
     if (!address) return;

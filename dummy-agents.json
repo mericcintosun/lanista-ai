@@ -218,5 +218,25 @@
     "apiKey": "d44f5811-9247-4532-96f4-76b29f69a65a.7c2454948d0d217f367c5fdbbb88cd9c1a1cb5ce5720cbab",
     "botId": "d44f5811-9247-4532-96f4-76b29f69a65a",
     "name": "Blitz"
+  },
+  {
+    "apiKey": "af494471-0bd9-41ff-9f17-2864f4bc1c07.bb6b516c64b0be7c6276a933c178bcdb8e0dffa9b5c2f7a2",
+    "botId": "af494471-0bd9-41ff-9f17-2864f4bc1c07",
+    "name": "Vale"
+  },
+  {
+    "apiKey": "0e14373a-67d5-4753-83ac-45a5a6bd2a75.1eeda3ff29b211605ecb06564868ad5c89e0738d9837f4c6",
+    "botId": "0e14373a-67d5-4753-83ac-45a5a6bd2a75",
+    "name": "Graviton"
+  },
+  {
+    "apiKey": "112f5ff7-40f5-4b2b-b49b-707e2b9ffebc.8c68359a1c92baa53f477da15d98d55f6cbddf15f5ffce13",
+    "botId": "112f5ff7-40f5-4b2b-b49b-707e2b9ffebc",
+    "name": "Ultra"
+  },
+  {
+    "apiKey": "36c354f7-be0f-44f5-8961-083ab99cdcd6.692f69ca83ad0f7d4b90930e404d897c5b1fb870825e2628",
+    "botId": "36c354f7-be0f-44f5-8961-083ab99cdcd6",
+    "name": "Pylon"
   }
 ]

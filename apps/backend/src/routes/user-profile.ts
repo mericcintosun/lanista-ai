@@ -122,6 +122,16 @@ router.get('/', async (req, res) => {
         // Use profiles table data, fall back to user_metadata if profile row doesn't exist yet
         const metadata = user.user_metadata || {};
         
+        const hasAgent = (bots?.length ?? 0) > 0;
+        const derivedRole = hasAgent ? 'commander' : (profile?.role || 'viewer');
+
+        if (hasAgent && profile?.role !== 'commander') {
+            await supabase
+                .from('profiles')
+                .update({ role: 'commander' })
+                .eq('id', user.id);
+        }
+
         return res.json({
             profile: {
                 activeAgents,
@@ -131,7 +141,7 @@ router.get('/', async (req, res) => {
                 rank: rankName,
                 firstName: metadata.first_name || '',
                 lastName: metadata.last_name || '',
-                role: profile?.role || null,
+                role: derivedRole,
                 callsign: profile?.callsign || '',
                 bio: profile?.bio || '',
                 sector: profile?.sector || '',
@@ -230,7 +240,7 @@ router.post('/auto-setup', async (req, res) => {
                 id: user.id,
                 callsign,
                 public_username: publicUsername,
-                role: 'commander',
+                role: 'viewer',
                 sector: 'Sector 0x77-B',
                 onboarding_completed: true,
                 updated_at: new Date().toISOString(),

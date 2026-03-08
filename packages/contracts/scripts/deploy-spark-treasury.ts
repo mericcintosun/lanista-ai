@@ -26,10 +26,15 @@ async function main() {
 
   const priceFeedAddress = process.env.AVAX_USD_PRICE_FEED_FUJI || FUJI_AVAX_USD_FEED;
 
+  // rewardPool = backend relayer wallet (holds 10% of each purchase for bot rewards).
+  // Defaults to deployer address if not set separately.
+  const rewardPoolAddress = process.env.REWARD_POOL_ADDRESS || wallet.address;
+
   console.log("📦 Deployer:", wallet.address);
   const balance = await provider.getBalance(wallet.address);
   console.log("💰 Balance:", ethers.formatEther(balance), "AVAX");
-  console.log("📊 Price Feed (AVAX/USD):", priceFeedAddress, "\n");
+  console.log("📊 Price Feed (AVAX/USD):", priceFeedAddress);
+  console.log("🏦 Reward Pool:", rewardPoolAddress, "\n");
 
   console.log("SparkTreasury deploying to Fuji...");
 
@@ -40,7 +45,7 @@ async function main() {
   const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
 
   const factory = new ethers.ContractFactory(artifact.abi, artifact.bytecode, wallet);
-  const treasury = await factory.deploy(priceFeedAddress);
+  const treasury = await factory.deploy(priceFeedAddress, rewardPoolAddress);
 
   await treasury.waitForDeployment();
   const address = await treasury.getAddress();

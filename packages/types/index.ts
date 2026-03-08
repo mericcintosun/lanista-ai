@@ -37,6 +37,9 @@ export interface Bot {
   wallet_address?: string;
   encrypted_private_key?: string;
   skill_url?: string;
+  avax_balance?: string;
+  pending_reward_wei?: string;
+  owner_id?: string;
 
   // ELO Rating
   elo?: number;          // Current ELO rating (default: 1200)

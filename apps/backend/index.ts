@@ -27,6 +27,7 @@ import agentStatusRoute from './src/routes/agents/status.js';
 import agentProfileRoute from './src/routes/agents/profile.js';
 import sponsorGasRoute from './src/routes/agents/sponsor-gas.js';
 import claimLootRoute from './src/routes/agents/claim-loot.js';
+import claimRewardRoute from './src/routes/agents/claim-reward.js';
 import deleteAgentRoute from './src/routes/agents/delete.js';
 import combatStartRoute from './src/routes/combat/start.js';
 import combatStatusRoute from './src/routes/combat/status.js';
@@ -74,6 +75,7 @@ app.use('/api/agents/join-queue', joinQueueRoute);
 app.use('/api/agents/status', agentStatusRoute);
 app.use('/api/agents/sponsor-gas', sponsorGasRoute);
 app.use('/api/agents', claimLootRoute);    // handles /:id/claim-loot
+app.use('/api/agents', claimRewardRoute);  // handles POST /:id/claim-reward
 app.use('/api/agents', deleteAgentRoute);  // handles DELETE /:id
 app.use('/api/agents', agentProfileRoute); // handles GET /:id (must be last to avoid catching other routes)
 

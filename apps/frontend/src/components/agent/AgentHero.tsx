@@ -3,7 +3,9 @@ import { Shield, Fingerprint, Check, Trophy, Swords, Target, BadgeCheck, Copy } 
 import { TierBadge, TierProgressBar } from '../EloTier';
 import { getEloTier } from '../../lib/elo';
 import { AgentBalance } from './AgentBalance';
+import { ClaimRewardButton, ClaimRewardSuccess } from './ClaimRewardButton';
 import { API_URL } from '../../lib/api';
+import { useAuthStore } from '../../lib/auth-store';
 import type { BotData } from '../../types';
 
 interface AgentHeroProps {
@@ -15,6 +17,9 @@ export function AgentHero({ agent, history }: AgentHeroProps) {
   const [copiedId, setCopiedId] = useState(false);
   const [copiedWallet, setCopiedWallet] = useState(false);
   const [passport, setPassport] = useState<any>(null);
+  const [claimedTx, setClaimedTx] = useState<string | null>(null);
+  const session = useAuthStore((s) => s.session);
+  const isOwner = !!session && (agent as any).owner_id === session.user.id;
 
   const elo = agent.elo ?? 0;
   const wins = agent.true_wins ?? history.filter(m => m.status === 'finished' && m.winner_id === agent.id).length;
@@ -91,7 +96,16 @@ export function AgentHero({ agent, history }: AgentHeroProps) {
                 </div>
 
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
-                  <AgentBalance address={agent.wallet_address} />
+                  <AgentBalance address={agent.wallet_address} initialBalance={agent.avax_balance} />
+                  {isOwner && session && !claimedTx && (agent as any).pending_reward_wei && BigInt((agent as any).pending_reward_wei ?? '0') > 0n && (
+                    <ClaimRewardButton
+                      botId={agent.id}
+                      pendingRewardWei={(agent as any).pending_reward_wei}
+                      accessToken={session.access_token}
+                      onClaimed={(tx) => setClaimedTx(tx)}
+                    />
+                  )}
+                  {claimedTx && <ClaimRewardSuccess txHash={claimedTx} />}
                   {agent.created_at && (
                     <div className={`bg-transparent px-3 py-1.5 rounded-lg border ${tierBorder} font-mono text-xs text-zinc-500 uppercase tracking-widest`}>
                       INIT: {new Date(agent.created_at).toLocaleDateString()}

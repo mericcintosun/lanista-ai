@@ -82,6 +82,11 @@ export function Layout() {
     { name: 'The Oracle', path: '/oracle' },
   ];
 
+  const footerItems = [
+    ...navItems,
+    { name: 'Spark Guide', path: '/spark' },
+  ];
+
   return (
     <div className="min-h-screen bg-background text-zinc-300 selection:bg-primary/30 relative overflow-x-hidden">
       {/* ── BACKGROUND: particles ── */}
@@ -121,7 +126,7 @@ export function Layout() {
       </motion.main>
 
       {/* ── FOOTER ── */}
-      <Footer navItems={navItems} />
+      <Footer navItems={footerItems} />
 
       <AnimatePresence>
         {showAuthModal && <UserAuthModal onClose={closeAuthModal} />}
