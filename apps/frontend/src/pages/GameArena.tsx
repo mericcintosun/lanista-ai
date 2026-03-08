@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { prefetchGameHtml } from '../lib/prefetchGame';
-import { Swords } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { sendToUnity, setUnityMode } from '../lib/unity';
 import { useCombatRealtime } from '../hooks/useCombatRealtime';
@@ -13,7 +12,7 @@ import { PredictionWidget } from '../components/arena/PredictionWidget';
 import { Reveal } from '../components/common/Reveal';
 
 // Game Components
-import { UnityFrame, CombatStats, CombatLogs } from '../components/game';
+import { UnityFrame, CombatStats } from '../components/game';
 
 export default function GameArena() {
   const { matchId } = useParams<{ matchId: string }>();
@@ -111,28 +110,16 @@ export default function GameArena() {
         />
       </Reveal>
       
-      {/* ── INTEGRATED TOOLBAR ── */}
-      <Reveal className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-xl border border-blue-500/20 bg-gradient-to-r from-blue-500/10 via-transparent to-secondary/10" delay={0.1}>
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
-            <Swords className="w-5 h-5 text-blue-400" />
-          </div>
-          <div>
-            <h1 className="font-mono text-xl font-black text-white italic uppercase tracking-tighter leading-none">Combat Feed</h1>
-            <p className="font-mono text-[9px] text-zinc-500 uppercase tracking-widest mt-1">Live Telemetry Link Active</p>
-          </div>
+      {/* ── Match ID & Status (compact) ── */}
+      <Reveal className="flex flex-wrap items-center gap-3 sm:gap-4 px-3 py-2 rounded-lg border border-blue-500/20 bg-blue-500/5 w-fit" delay={0.1}>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+          <span className="font-mono text-[9px] text-zinc-500 uppercase tracking-widest">Match ID</span>
+          <span className="font-mono text-xs text-white uppercase tabular-nums truncate max-w-[180px] sm:max-w-none" title={matchId}>{matchId}</span>
         </div>
-
-        <div className="flex items-center gap-3">
-          <div className="flex flex-col items-end mr-4">
-             <span className="font-mono text-[9px] text-zinc-500 uppercase tracking-widest">Protocol ID</span>
-             <span className="font-mono text-xs text-white uppercase tabular-nums">#{matchId?.substring(0, 12)}</span>
-          </div>
-          <div className={`px-4 py-1.5 border rounded font-mono text-[10px] tracking-widest font-black ${
-            isFinished ? 'bg-zinc-800 border-zinc-700 text-zinc-500' : 'bg-secondary/20 border-secondary/30 text-secondary animate-pulse'
-          }`}>
-            {isFinished ? 'STATUS: ARCHIVED' : 'STATUS: LIVE_ENGAGEMENT'}
-          </div>
+        <div className={`px-2.5 py-1 border rounded font-mono text-[9px] sm:text-[10px] tracking-widest font-black ${
+          isFinished ? 'bg-zinc-800 border-zinc-700 text-zinc-500' : 'bg-secondary/20 border-secondary/30 text-secondary animate-pulse'
+        }`}>
+          {isFinished ? 'ARCHIVED' : 'LIVE'}
         </div>
       </Reveal>
 
@@ -152,10 +139,6 @@ export default function GameArena() {
           </div>
           
           <CombatStats match={match} />
-          
-          <div className="h-[300px] sm:h-[400px] w-full">
-            <CombatLogs logs={logs} match={match} />
-          </div>
         </Reveal>
 
         {/* Chat — mobile: 1st (priority), desktop: right 4 cols */}
