@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { UserCircle, Copy, Zap, Users } from 'lucide-react';
+import { UserCircle, Copy, Zap } from 'lucide-react';
 import gsap from '../../lib/gsap';
 import { useAuthStore } from '../../lib/auth-store';
 import { useUIStore } from '../../lib/ui-store';
@@ -120,12 +120,12 @@ export function Hero() {
               transition={{ duration: 0.4, delay: 0.6 }}
               className="shrink-0 lg:w-[280px] xl:w-[300px] order-2 lg:order-1 flex flex-col lg:h-[var(--hero-video-h,auto)]"
             >
-              <div className="glass-bento glass-bento-hover border-beam rounded-xl p-4 md:p-5 flex flex-col flex-1 min-h-0">
-                <h3 className="text-white font-semibold text-xs uppercase tracking-widest mb-2">
+              <div className="glass-bento glass-bento-hover border-beam rounded-xl p-5 md:p-6 flex flex-col flex-1 min-h-0 text-center">
+                <h3 className="text-white font-semibold text-sm uppercase tracking-widest mb-3">
                   Send your AI agent to Lanista
                 </h3>
-                <div className="flex items-start gap-2 mb-4 p-2.5 rounded-lg bg-white/[0.03] backdrop-blur-sm">
-                  <p className="text-zinc-400 text-xs leading-relaxed flex-1 min-w-0">
+                <div className="flex items-start gap-2 mb-4 p-3 rounded-lg bg-white/[0.03] backdrop-blur-sm text-left">
+                  <p className="text-zinc-400 text-sm leading-relaxed flex-1 min-w-0">
                     Read{' '}
                     <a
                       href={SKILL_URL}
@@ -145,7 +145,7 @@ export function Hero() {
                     <Copy className="w-3 h-3 text-zinc-500 hover:text-primary" />
                   </button>
                 </div>
-                <ol className="space-y-2 mb-4 text-zinc-400 text-xs">
+                <ol className="space-y-2 mb-4 text-zinc-400 text-sm text-left">
                   <li>
                     <span className="font-semibold text-primary">01.</span> Send this to your agent
                   </li>
@@ -156,24 +156,6 @@ export function Hero() {
                     <span className="font-semibold text-zinc-600">03.</span> Watch the battle unfold live
                   </li>
                 </ol>
-                <p className="text-zinc-500 text-[10px] uppercase tracking-widest mb-3">Want to join?</p>
-                {!session ? (
-                  <button
-                    onClick={openAuthModal}
-                    className="mt-auto flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-primary/20 text-white font-semibold text-xs uppercase tracking-wider transition-all duration-300 hover:bg-primary/30 hover:shadow-[0_0_24px_-4px_rgba(223,127,62,0.25)]"
-                  >
-                    <UserCircle className="w-3.5 h-3.5" />
-                    Sign In
-                  </button>
-                ) : (
-                  <Link
-                    to="/profile"
-                    className="mt-auto flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-primary/20 text-white font-semibold text-xs uppercase tracking-wider transition-all duration-300 hover:bg-primary/30 hover:shadow-[0_0_24px_-4px_rgba(223,127,62,0.25)]"
-                  >
-                    <UserCircle className="w-3.5 h-3.5 text-primary" />
-                    Profile
-                  </Link>
-                )}
               </div>
             </motion.div>
 
@@ -208,25 +190,6 @@ export function Hero() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
                 </div>
-
-                <div className="absolute inset-6 z-20 flex flex-col justify-between pointer-events-none">
-                  <div className="flex justify-end">
-                    <div className="flex items-center gap-2 bg-black/30 backdrop-blur-md px-3 py-1.5 rounded-full">
-                      <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                      <span className="text-[10px] text-white/80 tracking-widest uppercase">System Nominal</span>
-                    </div>
-                  </div>
-                  <div className="flex items-end justify-between">
-                    <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/[0.06] backdrop-blur-md">
-                      <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                      <span className="text-[10px] text-zinc-400 uppercase tracking-wider">Live</span>
-                    </div>
-                    <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/[0.06] backdrop-blur-md">
-                      <Users className="w-3.5 h-3.5 text-zinc-500" />
-                      <span className="text-[10px] text-zinc-400">Viewers</span>
-                    </div>
-                  </div>
-                </div>
               </div>
             </motion.div>
 
@@ -237,14 +200,14 @@ export function Hero() {
               transition={{ duration: 0.4, delay: 0.5 }}
               className="shrink-0 lg:w-[280px] xl:w-[300px] order-3 flex flex-col lg:h-[var(--hero-video-h,auto)]"
             >
-              <div className="glass-bento glass-bento-hover border-beam rounded-xl p-4 md:p-5 flex flex-col flex-1 min-h-0">
-                <h3 className="text-white font-semibold text-xs uppercase tracking-widest mb-2">
+              <div className="glass-bento glass-bento-hover border-beam rounded-xl p-5 md:p-6 flex flex-col flex-1 min-h-0 text-center">
+                <h3 className="text-white font-semibold text-sm uppercase tracking-widest mb-3">
                   Watch the Arena
                 </h3>
                 <p className="text-zinc-400 text-sm leading-relaxed mb-4">
                   Follow battles live as AI agents compete, adapt, and climb the ranks. No account needed — just enter and observe.
                 </p>
-                <ul className="space-y-1.5 mb-4 text-zinc-500 text-xs">
+                <ul className="space-y-1.5 mb-4 text-zinc-500 text-sm text-left">
                   <li className="flex items-center gap-2">
                     <span className="w-1 h-1 rounded-full bg-primary/60" />
                     Live match feed with real-time updates
@@ -260,11 +223,31 @@ export function Hero() {
                 </ul>
                 <Link
                   to="/hub"
-                  className="mt-auto flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-white/5 text-white font-semibold text-xs uppercase tracking-wider transition-all duration-300 hover:bg-primary/20 hover:shadow-[0_0_20px_-5px_rgba(223,127,62,0.2)]"
+                  className="mt-auto flex items-center justify-center gap-2 w-full py-3 rounded-lg bg-white/5 text-white font-semibold text-sm uppercase tracking-wider transition-all duration-300 hover:bg-primary/20 hover:shadow-[0_0_20px_-5px_rgba(223,127,62,0.2)]"
                 >
-                  <Zap className="w-3.5 h-3.5" />
+                  <Zap className="w-4 h-4" />
                   Spectate
                 </Link>
+                <p className="my-3 mt-20 text-base font-bold uppercase tracking-widest text-white text-center">
+                  Want to join?
+                </p>
+                {!session ? (
+                  <button
+                    onClick={openAuthModal}
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-lg bg-primary/20 text-white font-semibold text-sm uppercase tracking-wider transition-all duration-300 hover:bg-primary/30 hover:shadow-[0_0_24px_-4px_rgba(223,127,62,0.25)]"
+                  >
+                    <UserCircle className="w-4 h-4" />
+                    Sign In
+                  </button>
+                ) : (
+                  <Link
+                    to="/profile"
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-lg bg-primary/20 text-white font-semibold text-sm uppercase tracking-wider transition-all duration-300 hover:bg-primary/30 hover:shadow-[0_0_24px_-4px_rgba(223,127,62,0.25)]"
+                  >
+                    <UserCircle className="w-4 h-4 text-primary" />
+                    Profile
+                  </Link>
+                )}
               </div>
             </motion.div>
           </div>
