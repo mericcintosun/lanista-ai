@@ -31,7 +31,34 @@ export default {
         accent: {
           DEFAULT: '#ffffff',
           muted: '#a1a1aa',
+        },
+        electric: {
+          purple: '#a855f7',
+          orange: '#f97316',
         }
+      },
+      fontFamily: {
+        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+      },
+      animation: {
+        'pulse-glow': 'pulse-glow 2.5s ease-in-out infinite',
+        'float': 'float 6s ease-in-out infinite',
+        'float-delayed': 'float 6s ease-in-out infinite 1.5s',
+        'blink': 'blink 1s step-end infinite',
+      },
+      keyframes: {
+        'pulse-glow': {
+          '0%, 100%': { opacity: '0.7' },
+          '50%': { opacity: '1' },
+        },
+        'blink': {
+          '0%, 50%': { opacity: '1' },
+          '51%, 100%': { opacity: '0' },
+        },
+        'float': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-6px)' },
+        },
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
