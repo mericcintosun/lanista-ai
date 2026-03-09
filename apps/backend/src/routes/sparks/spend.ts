@@ -32,6 +32,36 @@ router.post('/', async (req, res) => {
     const referenceId = typeof reference_id === 'string' ? reference_id : null;
     const botRewardsEnabled = enable_bot_rewards !== false;
 
+    // ── Pre-Spend Validations for Predictions ─────────────────────────────
+    if (referenceId && (transactionType === 'support_player_1' || transactionType === 'support_player_2')) {
+      // 1. Check if the lobby window is still open
+      const { data: match } = await supabase
+        .from('matches')
+        .select('lobby_ends_at')
+        .eq('id', referenceId)
+        .single();
+
+      if (match?.lobby_ends_at) {
+        if (Date.now() > new Date(match.lobby_ends_at as unknown as string).getTime()) {
+          return res.status(403).json({ error: 'Lobby phase is closed. Combat has already started.' });
+        }
+      }
+
+      // 2. Check if user already supported a side for this match
+      const { data: existingSupports } = await supabase
+        .from('spark_transactions')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('reference_id', referenceId)
+        .in('transaction_type', ['support_player_1', 'support_player_2'])
+        .limit(1);
+
+      if (existingSupports && existingSupports.length > 0) {
+        return res.status(403).json({ error: 'You have already placed a prediction on this match.' });
+      }
+    }
+    // ──────────────────────────────────────────────────────────────────────
+
     const result = await spendSpark(user.id, amount, transactionType, referenceId);
 
     if (!result.ok) {

@@ -278,5 +278,155 @@
     "apiKey": "3b33b3f5-e703-4017-bec4-3b4bdc14b85a.7a1098a1fd666a198fa5dc1aa0544f14e0d92072b075f8da",
     "botId": "3b33b3f5-e703-4017-bec4-3b4bdc14b85a",
     "name": "Sentinel"
+  },
+  {
+    "apiKey": "cd177ddf-5d29-4a52-90dc-54be30543681.6748b56e0fa02a6f477ed54ea8dc7b7ca0e9e77e32165c60",
+    "botId": "cd177ddf-5d29-4a52-90dc-54be30543681",
+    "name": "Eyrie"
+  },
+  {
+    "apiKey": "7b7c7c29-0ca4-4095-987d-a323d6e88054.ed56eee2523c5433f432a78a2927b299ff2ac9c6d6e7ff9e",
+    "botId": "7b7c7c29-0ca4-4095-987d-a323d6e88054",
+    "name": "Astra"
+  },
+  {
+    "apiKey": "06e256eb-4ed2-4e0a-99b9-8869ec7831f4.127fcbe4ed7bccad3866d57c1c42cd957d7b0030728d9033",
+    "botId": "06e256eb-4ed2-4e0a-99b9-8869ec7831f4",
+    "name": "Arc"
+  },
+  {
+    "apiKey": "7295dc3c-aa8f-444f-a2bf-3ea6c4337bdd.5bfc45f794d6a4d51c06d1862e7425cd1f5a8329d73d7281",
+    "botId": "7295dc3c-aa8f-444f-a2bf-3ea6c4337bdd",
+    "name": "Lucid"
+  },
+  {
+    "apiKey": "a8dc5dab-9d09-424b-b937-6f31821596fd.2d402321c10fc2bba6fb260d5cce278158f4818b3ec66ccb",
+    "botId": "a8dc5dab-9d09-424b-b937-6f31821596fd",
+    "name": "Pylon"
+  },
+  {
+    "apiKey": "32b83425-9451-43b1-a224-842c11b71499.5a82f8dce52e9a7e8548a995e4c6403ab76e31661e6947d6",
+    "botId": "32b83425-9451-43b1-a224-842c11b71499",
+    "name": "Graviton"
+  },
+  {
+    "apiKey": "fe4b69ae-d6d4-4bba-851e-28bb157b5d7d.69fd51fcedb69727e6c8d128c1157dc4538fdd73109576d0",
+    "botId": "fe4b69ae-d6d4-4bba-851e-28bb157b5d7d",
+    "name": "Ward"
+  },
+  {
+    "apiKey": "80c6925d-2a79-44c5-8c14-b4d13c7a319a.bc7955cdbb96b413d348e3f0ff01e2075b80e45f3765a39c",
+    "botId": "80c6925d-2a79-44c5-8c14-b4d13c7a319a",
+    "name": "Unity"
+  },
+  {
+    "apiKey": "66f30a87-1e97-4c4d-b76a-aa7db2ab4842.280163336430f4a5e652de9e4d087bda5d4d1aeb0f09c11a",
+    "botId": "66f30a87-1e97-4c4d-b76a-aa7db2ab4842",
+    "name": "Kairo"
+  },
+  {
+    "apiKey": "0e24a886-0d82-4c19-920f-70cb04c51c75.8b2d00b71648159f8cd3a8eadbfb7d96d686ce545c67cec0",
+    "botId": "0e24a886-0d82-4c19-920f-70cb04c51c75",
+    "name": "Crux"
+  },
+  {
+    "apiKey": "2f3869bb-7e5d-493e-91c4-5c72c7e09112.d32e2925490d035e696088777eee190277f3baa86c5fefd7",
+    "botId": "2f3869bb-7e5d-493e-91c4-5c72c7e09112",
+    "name": "Zodiac"
+  },
+  {
+    "apiKey": "65b047e2-6694-4fcb-8a99-8e206fc3505d.b78a47b5912119478abea3ea7e15442cb8e6e9d46ba5ef15",
+    "botId": "65b047e2-6694-4fcb-8a99-8e206fc3505d",
+    "name": "Mosaic"
+  },
+  {
+    "apiKey": "88a90fc7-b291-4e4d-a1fb-2ad5f769139e.df778876ad20eb41e01c45f7d0bee3e78fb35d4be28186f6",
+    "botId": "88a90fc7-b291-4e4d-a1fb-2ad5f769139e",
+    "name": "JadeX"
+  },
+  {
+    "apiKey": "3ac353b8-c3f8-4b98-8316-fe95d6331b77.b4add39e5fa8afe80cfc0dc965dbfec5352893b51c36eb24",
+    "botId": "3ac353b8-c3f8-4b98-8316-fe95d6331b77",
+    "name": "Phantom"
+  },
+  {
+    "apiKey": "49194de3-cc67-47dc-b8b1-327723eabc3d.b707f0c264be1d761ffd2a3d72f029bb048d924eb96cf0d8",
+    "botId": "49194de3-cc67-47dc-b8b1-327723eabc3d",
+    "name": "Rune"
+  },
+  {
+    "apiKey": "00026a94-c634-4023-8ccf-2f803992039a.4cc94c88a5a74fbe0fc8ba4941fc947fd9880ec7370c57dc",
+    "botId": "00026a94-c634-4023-8ccf-2f803992039a",
+    "name": "Muse"
+  },
+  {
+    "apiKey": "a1553385-67a8-4056-8191-8567151f66ff.c93437976caf99d071ac29319373c8a947e55ee01ca142a2",
+    "botId": "a1553385-67a8-4056-8191-8567151f66ff",
+    "name": "Jade"
+  },
+  {
+    "apiKey": "ffbd05ea-bdc6-4ee7-a77f-d0032f97ca48.fe22636810a385f7a3c386b2cc8b82c13ad263752774e6d0",
+    "botId": "ffbd05ea-bdc6-4ee7-a77f-d0032f97ca48",
+    "name": "Monarch"
+  },
+  {
+    "apiKey": "0c396539-95d8-44df-a0ff-a4d3a9e022af.689eb72f7abcae9300ee378cbf20a9a4c928f79dc6b5daef",
+    "botId": "0c396539-95d8-44df-a0ff-a4d3a9e022af",
+    "name": "Xenon"
+  },
+  {
+    "apiKey": "cda180f0-012f-4059-ae91-87ab82e17516.0a32e489c60c22780b673a98883e198faf459cd00c11236e",
+    "botId": "cda180f0-012f-4059-ae91-87ab82e17516",
+    "name": "Fractal"
+  },
+  {
+    "apiKey": "089e0a0e-8a07-44a8-9ff6-3fcee06ca7c1.7eff81805c2a457c8e1b5f0558572dc719f6787f288c7159",
+    "botId": "089e0a0e-8a07-44a8-9ff6-3fcee06ca7c1",
+    "name": "Cobalt"
+  },
+  {
+    "apiKey": "b373cb50-8ded-40c1-bae9-9f473826568d.08fa9d6f2b4d1e6ad5ef1ab67364c9f5eca29ed275f25749",
+    "botId": "b373cb50-8ded-40c1-bae9-9f473826568d",
+    "name": "Eon"
+  },
+  {
+    "apiKey": "6dcc1b2e-b10a-4176-9e4a-31dc3af30544.436bd9c033f2a44f6f648581ea97fa71352ffecd7c111555",
+    "botId": "6dcc1b2e-b10a-4176-9e4a-31dc3af30544",
+    "name": "Dusk"
+  },
+  {
+    "apiKey": "7ec2e143-41d0-48c5-8712-0006c102500d.6520ef586204d1e78c7a841626a3da87d472f9a7682d0032",
+    "botId": "7ec2e143-41d0-48c5-8712-0006c102500d",
+    "name": "Quiver"
+  },
+  {
+    "apiKey": "9510bb77-b3b5-4649-88a9-1d1c2fa63c31.e73fb7ba891e9ff1fdb9a62db5233634d921a00f820ebe6e",
+    "botId": "9510bb77-b3b5-4649-88a9-1d1c2fa63c31",
+    "name": "X-pulse"
+  },
+  {
+    "apiKey": "7ff09d0f-d800-4515-b346-d8fbedb73741.88f16ce16c97d5ee8ad77c867a24bc5a4834b76a7bea9610",
+    "botId": "7ff09d0f-d800-4515-b346-d8fbedb73741",
+    "name": "Aegis"
+  },
+  {
+    "apiKey": "2a697e85-4efb-4dd4-88d3-425cbee15b7d.24f601654ff5eda6f6e54d38d66f9220cf7269080ee2f876",
+    "botId": "2a697e85-4efb-4dd4-88d3-425cbee15b7d",
+    "name": "Xander"
+  },
+  {
+    "apiKey": "8bf21a59-f1db-433d-a0bb-cf08c316102d.b9380561038fae592b6f9e5fab878d4cd88e868853cb218f",
+    "botId": "8bf21a59-f1db-433d-a0bb-cf08c316102d",
+    "name": "Bishop"
+  },
+  {
+    "apiKey": "67b48185-4fce-42c3-8bbe-01e1132bd974.fe06de7f0a5f7ac6fdad3ba5217a4c330385de119f031cbe",
+    "botId": "67b48185-4fce-42c3-8bbe-01e1132bd974",
+    "name": "Jade"
+  },
+  {
+    "apiKey": "f9332df4-70df-41dd-a728-a3dda3cec83a.29e45e958ad037de5c880b754a291029dfe5e6c8b4b47e7e",
+    "botId": "f9332df4-70df-41dd-a728-a3dda3cec83a",
+    "name": "Chrome"
   }
 ]

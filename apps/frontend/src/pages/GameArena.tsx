@@ -15,6 +15,7 @@ import { WatchRewardBadge } from '../components/arena/WatchRewardBadge';
 
 // Game Components
 import { UnityFrame, CombatStats, CombatLogs, MatchInfoBanner, FullscreenHUD } from '../components/game';
+import { SupportPanel } from '../components/arena/SupportPanel';
 
 export default function GameArena() {
   const { matchId } = useParams<{ matchId: string }>();
@@ -25,7 +26,7 @@ export default function GameArena() {
   const { liveMatches } = useHubData();
   const lastStatus = useRef<string | null>(null);
 
-  const { balance: _sparkBalance, setBalance: setSparkBalance } = useSparkBalance();
+  const { setBalance: setSparkBalance } = useSparkBalance();
 
   const onThrowable = useCallback(
     (payload: { type: 'throwable'; item: 'tomato'; target: 'player_1' | 'player_2' }) => {
@@ -116,6 +117,8 @@ export default function GameArena() {
     );
   }
 
+  const isLobby = match.status === 'pending';
+
   return (
     <div className="max-w-[1600px] mx-auto py-4 sm:py-6 px-3 sm:px-4 space-y-4 sm:space-y-5">
       {/* Watch reward — fixed bottom-left, only during active match */}
@@ -155,18 +158,27 @@ export default function GameArena() {
           {/* Match info — id, status, p1 vs p2 */}
           <MatchInfoBanner match={match} matchId={matchId} />
 
+          {/* Lobby Prediction Panel for Mobile (Prominent) */}
+          {isLobby && (
+            <div className="lg:hidden">
+              <SupportPanel match={match} />
+            </div>
+          )}
+
           {/* Chat + combat logs — only on mobile/tablet */}
           <div className="lg:hidden flex flex-col gap-3">
-            <div className="min-h-[300px] max-h-[45vh]">
-              <ArenaChat
-                matchId={matchId}
-                match={match}
-                unityIframeRef={iframeRef}
-                gameEmojiContainerRef={emojiOverlayRef}
-                className="h-full w-full"
-                chatState={chatState}
-              />
-            </div>
+            {!isLobby && (
+              <div className="min-h-[300px] max-h-[45vh]">
+                <ArenaChat
+                  matchId={matchId}
+                  match={match}
+                  unityIframeRef={iframeRef}
+                  gameEmojiContainerRef={emojiOverlayRef}
+                  className="h-full w-full"
+                  chatState={chatState}
+                />
+              </div>
+            )}
             <div className="min-h-[150px] max-h-[25vh]">
               <CombatLogs logs={logs} match={match} />
             </div>
@@ -176,20 +188,25 @@ export default function GameArena() {
           <CombatStats match={match} />
         </div>
 
-        {/* ── Right column: chat (2/3) + combat logs (1/3), desktop only ── */}
+        {/* ── Right column: Prediction Panel + chat (2/3) + combat logs (1/3), desktop only ── */}
         <div className="hidden lg:flex lg:flex-col lg:col-span-4 order-2 gap-3 sm:gap-4 self-stretch min-h-0 overflow-hidden">
-          <div className="h-[415px] shrink-0 overflow-hidden">
-            <ArenaChat
-              matchId={matchId}
-              match={match}
-              unityIframeRef={iframeRef}
-              gameEmojiContainerRef={emojiOverlayRef}
-              className="h-full w-full"
-              chatState={chatState}
-            />
-          </div>
-          <div className="h-[320px] shrink-0 overflow-hidden">
-            <CombatLogs logs={logs} match={match} />
+          {/* Desktop Prediction Panel */}
+          <SupportPanel match={match} disabled={match.status === 'finished' || match.status === 'aborted'} />
+
+          <div className="flex-1 min-h-0 flex flex-col gap-3 sm:gap-4">
+            <div className="flex-1 min-h-[300px] overflow-hidden">
+              <ArenaChat
+                matchId={matchId}
+                match={match}
+                unityIframeRef={iframeRef}
+                gameEmojiContainerRef={emojiOverlayRef}
+                className="h-full w-full"
+                chatState={chatState}
+              />
+            </div>
+            <div className="h-[250px] shrink-0 overflow-hidden">
+              <CombatLogs logs={logs} match={match} />
+            </div>
           </div>
         </div>
       </div>

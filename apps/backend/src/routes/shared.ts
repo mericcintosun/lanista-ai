@@ -36,7 +36,7 @@ export async function startMatch(p1Id: string, p2Id: string) {
         id: matchId,
         player_1_id: p1.id,
         player_2_id: p2.id,
-        status: 'active',
+        status: 'pending',
         p1_final_stats: { hp: p1.hp, attack: p1.attack, defense: p1.defense },
         p2_final_stats: { hp: p2.hp, attack: p2.attack, defense: p2.defense }
     };
@@ -47,7 +47,8 @@ export async function startMatch(p1Id: string, p2Id: string) {
         player_2_id: match.player_2_id,
         status: match.status,
         p1_final_stats: match.p1_final_stats,
-        p2_final_stats: match.p2_final_stats
+        p2_final_stats: match.p2_final_stats,
+        lobby_ends_at: new Date(Date.now() + 45_000).toISOString()
     });
 
     // Set agent statuses to combat to prevent double entry
@@ -66,7 +67,8 @@ export async function startMatch(p1Id: string, p2Id: string) {
         p2: { ...p2, strategy: p2Strategy }
     }, {
         removeOnComplete: true,
-        attempts: 3
+        attempts: 3,
+        delay: 45_000
     });
 
     return { matchId, opponentName: p1.name };

@@ -42,7 +42,7 @@ router.post('/', async (req, res) => {
             id: matchId,
             player_1_id: p1.id,
             player_2_id: p2.id,
-            status: 'active',
+            status: 'pending',
             p1_final_stats: p1Stats,
             p2_final_stats: p2Stats
         };
@@ -53,14 +53,15 @@ router.post('/', async (req, res) => {
             player_2_id: match.player_2_id,
             status: match.status,
             p1_final_stats: match.p1_final_stats,
-            p2_final_stats: match.p2_final_stats
+            p2_final_stats: match.p2_final_stats,
+            lobby_ends_at: new Date(Date.now() + 45_000).toISOString()
         });
         if (mErr) {
             console.error('Match Insert Error:', mErr);
             return res.status(500).json({ error: "Failed to create match" });
         }
 
-        await matchQueue.add('start-match', { matchId, p1, p2 });
+        await matchQueue.add('start-match', { matchId, p1, p2 }, { delay: 45_000 });
         console.log(`Added Match ${matchId} to Queue`);
 
         res.json({ message: 'Agents armed, battle starting!', match });

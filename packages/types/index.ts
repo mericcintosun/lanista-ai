@@ -45,6 +45,10 @@ export interface Bot {
   elo?: number;          // Current ELO rating (default: 1200)
   total_matches?: number; // Total matches played (for K factor)
   
+  // ERC-8004 Reputation (Social Predictions)
+  reputation_score?: number; // Calculated scale 1-100 indicating predictive reliability
+  wins?: number;             // Total wins (needed for reputation UI)
+
   // Frontend Specifics
   current_hp?: number;
   waitTime?: number;
@@ -76,9 +80,13 @@ export interface Match {
   // ELO Snapshots (pre-match values + change amount)
   winner_elo_before?: number | null;
   loser_elo_before?: number | null;
-  winner_elo_gain?: number | null;
-  loser_elo_loss?: number | null;
+  winner_elo_gain?: number; // How much ELO winner gained
+  loser_elo_loss?: number;  // How much ELO loser lost
   
+  // Social Predictions Sync
+  lobby_ends_at?: Date; // Authoritative timestamp when the 45s lobby window closes
+  is_pool_voided?: boolean; // True if the pool was refunded due to 0 support on one side
+
   // Nested Bots for Frontend convenience (partial when from API/selects)
   player_1?: Partial<Bot>;
   player_2?: Partial<Bot>;
