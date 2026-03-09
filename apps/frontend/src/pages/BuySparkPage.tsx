@@ -3,8 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Eip1193Provider } from 'ethers';
 import {
-  Zap, CreditCard, Wallet, ArrowRight, Check, Loader2,
-  Star, ChevronRight, AlertCircle,
+  Zap,
+  CreditCard,
+  Wallet,
+  ArrowRight,
+  Check,
+  Loader2,
+  Star,
+  ChevronRight,
+  AlertCircle,
+  Lock,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useAuthStore } from '../lib/auth-store';
@@ -83,7 +91,7 @@ interface SparkPackage {
   requiredAvaxFormatted: string;
   badge?: string;
   highlight?: boolean;
-  savingsPct?: number;
+  savingsPct: number;
 }
 
 const BASE_USD_PER_1K = 5; // $5 / 1000 Sparks

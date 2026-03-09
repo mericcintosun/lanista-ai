@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Trophy, Swords, ExternalLink, Shield, BadgeCheck } from 'lucide-react';
+import { Trophy, Swords, ExternalLink } from 'lucide-react';
 import { API_URL } from '../lib/api';
 import { getEloTier, ELO_TIERS } from '../lib/elo';
 import { TierBadge } from '../components/EloTier';

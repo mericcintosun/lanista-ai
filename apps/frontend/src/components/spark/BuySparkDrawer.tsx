@@ -69,7 +69,7 @@ interface SparkPackage {
   requiredAvaxFormatted: string;
   badge?: string;
   highlight?: boolean;
-  savingsPct?: number;
+  savingsPct: number;
 }
 
 const BASE_USD_PER_1K = 5;

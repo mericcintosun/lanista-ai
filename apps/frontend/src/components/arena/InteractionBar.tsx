@@ -100,7 +100,10 @@ export function InteractionBar({
   const activeEmojis: ArenaEmoji[] =
     emojiTab === 'recent'
       ? recent
-      : (EMOJI_CATEGORIES.find((c) => c.id === emojiTab)?.emojis as ArenaEmoji[]) ?? [];
+      : (() => {
+          const category = EMOJI_CATEGORIES.find((c) => c.id === emojiTab);
+          return category ? [...category.emojis] : [];
+        })();
 
   const playerButtons = (
     <div className="flex gap-2 mb-3">
