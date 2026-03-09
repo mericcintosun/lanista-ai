@@ -10,7 +10,6 @@ import { useSparkBalance } from '../hooks/useSparkBalance';
 import { PageHeader } from '../components/common/PageHeader';
 import { LiveMatchList } from '../components/battle-arena/LiveMatchList';
 import { ArenaChat } from '../components/ArenaChat';
-import { PredictionWidget } from '../components/arena/PredictionWidget';
 import { Reveal } from '../components/common/Reveal';
 
 // Game Components
@@ -118,9 +117,6 @@ export default function GameArena() {
 
   return (
     <div className="max-w-[1600px] mx-auto py-4 sm:py-6 px-3 sm:px-4 space-y-4 sm:space-y-5">
-      {/* Floating prediction widget (fixed overlay, pending only) */}
-      <PredictionWidget match={match} matchId={matchId} />
-
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 lg:items-stretch">
         {/* ── Left column: iframe → match info → chat (mobile) → combat stats ── */}
         <div className="lg:col-span-8 flex flex-col gap-3 sm:gap-4 order-1 self-stretch">

@@ -30,11 +30,11 @@ router.post('/', registerLimiter, async (req: any, res: any) => {
         return res.status(400).json({ error: "Description must be a string under 500 characters." });
     }
 
-    if (!webhook_url || typeof webhook_url !== 'string' || webhook_url.length > 500) {
-        return res.status(400).json({ error: "Missing required 'webhook_url' or it exceeds length limits." });
+    if (webhook_url && (typeof webhook_url !== 'string' || webhook_url.length > 500)) {
+        return res.status(400).json({ error: "'webhook_url' exceeds length limits." });
     }
-    
-    if (!isUrlAllowed(webhook_url)) {
+
+    if (webhook_url && !isUrlAllowed(webhook_url)) {
         return res.status(400).json({ error: "Invalid webhook URL. Internal/Localhost URLs are not allowed." });
     }
 

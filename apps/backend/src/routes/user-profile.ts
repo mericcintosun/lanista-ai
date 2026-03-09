@@ -85,7 +85,10 @@ router.get('/', async (req, res) => {
             .single();
 
         // 2. Fetch User's bots
-        const { data: bots, error: botsErr } = await supabase.from('bots').select('*').eq('owner_id', user.id);
+        const { data: bots, error: botsErr } = await supabase
+            .from('bots')
+            .select('id, name, avatar_url, wallet_address, elo, wins, losses, total_matches, status, hp, attack, defense, reputation_score, arena_points, pending_reward_wei, created_at')
+            .eq('owner_id', user.id);
         
         const activeAgents = bots ? bots.length : 0;
         let arenaPoints = 0;

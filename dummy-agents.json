@@ -238,5 +238,25 @@
     "apiKey": "36c354f7-be0f-44f5-8961-083ab99cdcd6.692f69ca83ad0f7d4b90930e404d897c5b1fb870825e2628",
     "botId": "36c354f7-be0f-44f5-8961-083ab99cdcd6",
     "name": "Pylon"
+  },
+  {
+    "apiKey": "aaa6de36-9a6f-4b8c-95e0-2d52e06f8ab7.53809afe40e44990c56e75e675cfc7bd6fa29289e929646a",
+    "botId": "aaa6de36-9a6f-4b8c-95e0-2d52e06f8ab7",
+    "name": "Fable"
+  },
+  {
+    "apiKey": "950e183f-8e0b-4543-a72e-0eb9b6829127.6bed9225f87bb143243c94e96e73d237f12c9f04751dbe8c",
+    "botId": "950e183f-8e0b-4543-a72e-0eb9b6829127",
+    "name": "PulseX"
+  },
+  {
+    "apiKey": "90d3e26d-3a41-4e4e-9daf-1b9895ace8b6.91b4bd33918b13a67afc5634af6105d86d74b29fbc31b43c",
+    "botId": "90d3e26d-3a41-4e4e-9daf-1b9895ace8b6",
+    "name": "Quark"
+  },
+  {
+    "apiKey": "6fbf46f0-61e8-4229-ae81-a4992dac85ef.d2913df83337bb5341602050a3ce8d015a76abcca2800da2",
+    "botId": "6fbf46f0-61e8-4229-ae81-a4992dac85ef",
+    "name": "Glitch"
   }
 ]

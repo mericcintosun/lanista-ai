@@ -7,9 +7,6 @@ const WATCH_REWARD_COOLDOWN_SEC = 10 * 60; // 10 minutes
 export type SparkTransactionType =
   | 'purchase'
   | 'watch_reward'
-  | 'spend_tomato'
-  | 'prediction_win'
-  | 'prediction_lose'
   | string;
 
 /**
@@ -114,94 +111,6 @@ export async function spendSpark(
   return { ok: true, newBalance: newBalance ?? 0 };
 }
 
-const MIN_BET_AMOUNT = 100;
-
-/**
- * Place a bet on a match (atomic: deduct balance + insert prediction). One bet per user per match.
- */
-export async function placeBet(
-  userId: string,
-  matchId: string,
-  predictedBotId: string,
-  amount: number
-): Promise<{ ok: boolean; predictionId?: string; newBalance?: number; error?: string }> {
-  if (amount < MIN_BET_AMOUNT) {
-    return { ok: false, error: `Minimum bet is ${MIN_BET_AMOUNT} Sparks` };
-  }
-
-  const { data: predictionId, error } = await supabase.rpc('spark_bet', {
-    p_user_id: userId,
-    p_match_id: matchId,
-    p_predicted_bot_id: predictedBotId,
-    p_amount: amount
-  });
-
-  if (error) {
-    const msg = error.message || '';
-    if (msg.includes('insufficient_balance') || msg.toLowerCase().includes('insufficient')) {
-      return { ok: false, error: 'Insufficient Spark balance' };
-    }
-    if (msg.includes('unique') || msg.includes('duplicate')) {
-      return { ok: false, error: 'You already placed a bet on this match' };
-    }
-    console.error('[Spark] placeBet error:', error.message);
-    return { ok: false, error: error.message };
-  }
-
-  const { balance } = await getBalance(userId);
-  return { ok: true, predictionId: predictionId ?? undefined, newBalance: balance };
-}
-
-export { MIN_BET_AMOUNT };
-
-/**
- * Resolve predictions when match finishes: mark won/lost, distribute loser pool to winners proportionally.
- */
-export async function resolvePredictions(matchId: string, winnerBotId: string): Promise<void> {
-  const { data: predictions, error: fetchErr } = await supabase
-    .from('match_predictions')
-    .select('id, user_id, predicted_bot_id, amount')
-    .eq('match_id', matchId)
-    .eq('status', 'pending');
-
-  if (fetchErr || !predictions?.length) {
-    if (fetchErr) console.error('[Spark] resolvePredictions fetch error:', fetchErr.message);
-    return;
-  }
-
-  const won = predictions.filter((p) => p.predicted_bot_id === winnerBotId);
-  const lost = predictions.filter((p) => p.predicted_bot_id !== winnerBotId);
-
-  await supabase
-    .from('match_predictions')
-    .update({ status: 'won' })
-    .in('id', won.map((p) => p.id));
-
-  if (lost.length) {
-    await supabase
-      .from('match_predictions')
-      .update({ status: 'lost' })
-      .in('id', lost.map((p) => p.id));
-  }
-
-  const totalWinnerStake = won.reduce((s, p) => s + p.amount, 0);
-  const loserPool = lost.reduce((s, p) => s + p.amount, 0);
-
-  if (loserPool <= 0 || totalWinnerStake <= 0) return;
-
-  for (const p of won) {
-    const share = (p.amount / totalWinnerStake) * loserPool;
-    const payout = p.amount + Math.floor(share);
-    const { error: creditErr } = await supabase.rpc('spark_credit', {
-      p_user_id: p.user_id,
-      p_amount: payout,
-      p_wallet_address: null,
-      p_tx_type: 'prediction_win',
-      p_reference_id: p.id
-    });
-    if (creditErr) console.error('[Spark] prediction_win credit error:', creditErr.message);
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Package list for Spark store (read from chain)
@@ -241,7 +150,9 @@ export async function getSparkPackages(): Promise<SparkPackageInfo[]> {
     if (price8 === 0n) return [];
 
     const out: SparkPackageInfo[] = [];
-    for (let i = 0; i < count; i++) {
+    // packageCount is set to packageId + 1 on each setPackage call, so IDs are 1-based.
+    // Starting from 1 avoids a guaranteed empty RPC call for index 0.
+    for (let i = 1; i < count; i++) {
       const [sparkAmount, priceUsd8] = await treasury.packages(i);
       if (sparkAmount === 0n && priceUsd8 === 0n) continue;
       const requiredWei = (priceUsd8 * BigInt(1e18)) / price8;

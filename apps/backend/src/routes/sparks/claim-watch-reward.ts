@@ -34,12 +34,18 @@ router.post('/', async (req, res) => {
       });
     }
 
+    // Set cooldown BEFORE crediting. If the DB write fails the cooldown is
+    // rolled back (deleted), so the user can retry. This order prevents an
+    // exploit where Redis becomes temporarily unavailable after a successful
+    // DB credit, allowing unlimited claims.
+    await redis.set(key, Date.now().toString(), 'EX', WATCH_REWARD_COOLDOWN_SEC);
+
     const result = await creditWatchReward(user.id);
     if (!result.ok) {
+      // Rollback cooldown so the user is not permanently locked out
+      await redis.del(key).catch(() => {});
       return res.status(500).json({ error: result.error ?? 'Failed to credit reward' });
     }
-
-    await redis.set(key, Date.now().toString(), 'EX', WATCH_REWARD_COOLDOWN_SEC);
 
     return res.json({
       success: true,

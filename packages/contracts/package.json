@@ -4,6 +4,7 @@
   "description": "Lanista Arena Smart Contracts",
   "private": true,
   "scripts": {
+    "test:spark-e2e": "npx tsx scripts/test-spark-e2e.ts",
     "health-check": "npx tsx scripts/health-check.ts",
     "grant-roles": "npx tsx scripts/grant-oracle-roles.ts",
     "deploy:all": "npx tsx scripts/deploy-all.ts",

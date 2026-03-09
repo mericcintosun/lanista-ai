@@ -35,7 +35,11 @@ router.get('/:id/passport', async (req, res) => {
 // Returns agent details + match history for any bot (public)
 router.get('/:id', async (req, res) => {
     try {
-        const { data: bot, error: botErr } = await supabase.from('bots').select('*').eq('id', req.params.id).single();
+        const { data: bot, error: botErr } = await supabase
+            .from('bots')
+            .select('id, name, description, personality_url, webhook_url, avatar_url, wallet_address, status, hp, attack, defense, elo, wins, total_matches, reputation_score, created_at, owner_id, pending_reward_wei')
+            .eq('id', req.params.id)
+            .single();
         if (botErr || !bot) return res.status(404).json({ error: "Agent not found" });
 
         // Calculate absolute stats via paginated match fetching

@@ -2,10 +2,22 @@ import { ethers } from 'ethers';
 import { supabase } from '../lib/supabase.js';
 
 /**
- * 1 Spark = $0.005 (package config: 1000 Sparks = $5, priceUsd8 = 5e8)
- * Represented with 8 decimal places: 5e8 / 1000 = 5e5
+ * Spark price in USD with 8 decimals.
+ * Configurable via env SPARK_BASE_PRICE_USD8.
+ * Default: 5e5 = $0.005/Spark (base package: 1000 Sparks = $5).
+ *
+ * When multiple packages exist at different rates, this should be set to
+ * the package rate that best represents the user base (e.g. the most popular
+ * package). A per-transaction cost-basis approach would require schema changes.
  */
-const SPARK_PRICE_USD8 = 5n * 10n ** 5n;
+function getSparkPriceUsd8(): bigint {
+  const fromEnv = process.env.SPARK_BASE_PRICE_USD8;
+  if (fromEnv) {
+    const parsed = BigInt(fromEnv);
+    if (parsed > 0n) return parsed;
+  }
+  return 5n * 10n ** 5n;
+}
 
 /**
  * Minimum accumulated reward before an automatic on-chain distribution fires.
@@ -34,8 +46,10 @@ async function getAvaxPrice8(): Promise<bigint | null> {
 }
 
 function sparksToWei(sparks: number, price8: bigint): bigint {
-  return (BigInt(sparks) * SPARK_PRICE_USD8 * 10n ** 18n) / price8;
+  return (BigInt(sparks) * getSparkPriceUsd8() * 10n ** 18n) / price8;
 }
+
+const SEND_ON_CHAIN_TIMEOUT_MS = 90_000;
 
 async function sendOnChain(
   toAddress: string,
@@ -51,7 +65,12 @@ async function sendOnChain(
       return { error: `Relayer balance insufficient (have ${ethers.formatEther(balance)} AVAX, need ${ethers.formatEther(amountWei)} AVAX)` };
     }
     const tx = await relayer.sendTransaction({ to: toAddress, value: amountWei });
-    await tx.wait();
+    await Promise.race([
+      tx.wait(),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('TX_CONFIRM_TIMEOUT')), SEND_ON_CHAIN_TIMEOUT_MS)
+      ),
+    ]);
     return { txHash: tx.hash };
   } catch (e: any) {
     return { error: e.message };

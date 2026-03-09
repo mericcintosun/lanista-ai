@@ -1,7 +1,6 @@
 import { Worker } from 'bullmq';
 import { supabase } from '../lib/supabase.js';
 import { signCombatProof } from '../services/webhook.js';
-import { resolvePredictions } from '../services/spark.js';
 import { evaluateStrategy, resolveAction, DEFAULT_STRATEGY } from './strategy.js';
 import type { Strategy, GameState } from './strategy.js';
 import { calculateElo } from '../services/elo.js';
@@ -333,11 +332,6 @@ export const matchWorker = new Worker('match-queue', async (job) => {
 
       console.log(`[Worker] Match ${matchId} finished. Winner: ${winnerId}`);
 
-      try {
-        await resolvePredictions(matchId, winnerId);
-      } catch (predErr: any) {
-        console.error('[Worker] resolvePredictions error:', predErr?.message ?? predErr);
-      }
     }
   } catch (err) {
     console.error('[Worker] Finalize DB error:', err);

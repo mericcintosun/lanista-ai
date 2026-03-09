@@ -1,21 +1,40 @@
 import { ethers } from 'ethers';
+import { redis } from '../routes/shared.js';
 import { creditSparkPurchase } from '../services/spark.js';
 
 const SPARK_TREASURY_ABI = [
-  'event SparksPurchased(address indexed buyer, uint256 sparkAmount, uint256 avaxPaid, string userId)'
+  'event SparksPurchased(address indexed buyer, uint256 sparkAmount, uint256 avaxPaid, uint256 ownerShare, uint256 rewardShare, string userId)'
 ];
 
 const POLL_INTERVAL_MS = 15_000;
+const REDIS_LAST_BLOCK_KEY = 'spark:event_listener:last_block';
+
 let provider: ethers.JsonRpcProvider | null = null;
 let contract: ethers.Contract | null = null;
-let lastProcessedBlock = 0;
 let isRunning = false;
+
+async function getLastProcessedBlock(): Promise<number> {
+  try {
+    const val = await redis.get(REDIS_LAST_BLOCK_KEY);
+    return val ? parseInt(val, 10) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+async function saveLastProcessedBlock(block: number): Promise<void> {
+  try {
+    await redis.set(REDIS_LAST_BLOCK_KEY, block.toString());
+  } catch (err: any) {
+    console.error('[Spark] Failed to persist last block:', err.message);
+  }
+}
 
 /**
  * Process a single SparksPurchased log and credit the user.
  */
 async function processLog(log: ethers.EventLog): Promise<void> {
-  const [buyer, sparkAmount, avaxPaid, userId] = log.args as unknown as [string, bigint, bigint, string];
+  const [buyer, sparkAmount, , , , userId] = log.args as unknown as [string, bigint, bigint, bigint, bigint, string];
   const amount = Number(sparkAmount);
   const txHash = log.transactionHash ?? '';
 
@@ -29,14 +48,16 @@ async function processLog(log: ethers.EventLog): Promise<void> {
 
 /**
  * Poll for new SparksPurchased events and credit spark_balances.
- * Uses block range to avoid missing events; stores last processed block in memory.
+ * lastProcessedBlock is persisted in Redis so restarts do not re-process old events.
+ * On first ever start (no Redis key), only scans the last 50 blocks as a safe bootstrap window.
  */
 async function pollEvents(): Promise<void> {
   if (!contract || !provider) return;
 
   try {
     const currentBlock = await provider.getBlockNumber();
-    const fromBlock = lastProcessedBlock || Math.max(0, currentBlock - 1000);
+    const persisted = await getLastProcessedBlock();
+    const fromBlock = persisted > 0 ? persisted : Math.max(0, currentBlock - 50);
 
     if (fromBlock > currentBlock) return;
 
@@ -49,7 +70,7 @@ async function pollEvents(): Promise<void> {
       }
     }
 
-    lastProcessedBlock = currentBlock + 1;
+    await saveLastProcessedBlock(currentBlock + 1);
   } catch (err: any) {
     console.error('[Spark] Poll error:', err.message);
   }
