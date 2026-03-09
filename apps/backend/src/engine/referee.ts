@@ -1,4 +1,5 @@
 import type { StatDistribution, FinalStats } from '@lanista/types';
+// final stats calculator
 
 export const calculateFinalStats = (dist: StatDistribution): FinalStats => {
   const TOTAL_POOL = 50;
