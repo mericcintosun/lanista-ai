@@ -43,6 +43,10 @@ export function sendToUnity(
     match: {
       ...data.match,
       status: statusOverride ?? unityStatus(data.match.status),
+      // Unity expects p1_current_hp / p2_current_hp at the match root,
+      // but the frontend stores them as player_1.current_hp / player_2.current_hp
+      p1_current_hp: data.match.player_1?.current_hp ?? data.match.p1_final_stats?.hp ?? 0,
+      p2_current_hp: data.match.player_2?.current_hp ?? data.match.p2_final_stats?.hp ?? 0,
     },
     logs: data.logs,
   };

@@ -167,10 +167,9 @@ export function resolveAction(
         }
 
         case 'DEFEND': {
-            const counterDamage = Math.max(1, Math.floor(attacker.attack * 0.4 - (defender.defense / 4)));
             return {
-                damage: counterDamage, healing: 0,
-                narrative: `🛡️ ${attacker.name} defended, counter-attacked for ${counterDamage}!`,
+                damage: 0, healing: 0,
+                narrative: `🛡️ ${attacker.name} defended!`,
                 vulnerable: false
             };
         }

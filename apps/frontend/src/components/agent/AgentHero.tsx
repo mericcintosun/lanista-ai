@@ -233,17 +233,13 @@ export function AgentHero({ agent, history }: AgentHeroProps) {
 
             {/* Card Body */}
             <div className="flex gap-4">
-              {/* Photo column */}
+              {/* Tier icon column (replaces duplicate avatar) */}
               <div className="shrink-0 flex flex-col items-center gap-1.5">
                 <div
-                  className="rounded-xl overflow-hidden"
-                  style={{ width: 64, height: 76, border: `2px solid ${accent}40` }}
+                  className="rounded-xl flex items-center justify-center"
+                  style={{ width: 64, height: 76, background: `${accent}10`, border: `2px solid ${accent}30` }}
                 >
-                  <img
-                    src={agent.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${agent.name}`}
-                    alt={agent.name}
-                    className="w-full h-full object-cover"
-                  />
+                  <span className="text-2xl" style={{ color: accent }}>{tier.icon}</span>
                 </div>
                 <div
                   className="w-full text-center px-1 py-0.5 rounded font-mono text-[9px] uppercase tracking-wider font-bold"

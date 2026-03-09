@@ -7,6 +7,7 @@ const SPARK_TREASURY_ABI = [
 ];
 
 const POLL_INTERVAL_MS = 15_000;
+const MAX_BLOCK_RANGE = 2000;
 const REDIS_LAST_BLOCK_KEY = 'spark:event_listener:last_block';
 
 let provider: ethers.JsonRpcProvider | null = null;
@@ -62,12 +63,20 @@ async function pollEvents(): Promise<void> {
     if (fromBlock > currentBlock) return;
 
     const filter = contract.filters.SparksPurchased();
-    const logs = await contract.queryFilter(filter, fromBlock, currentBlock);
 
-    for (const log of logs) {
-      if (log instanceof ethers.EventLog) {
-        await processLog(log);
+    // Chunk the range to stay within RPC provider's block limit
+    let chunkStart = fromBlock;
+    while (chunkStart <= currentBlock) {
+      const chunkEnd = Math.min(chunkStart + MAX_BLOCK_RANGE - 1, currentBlock);
+      const logs = await contract.queryFilter(filter, chunkStart, chunkEnd);
+
+      for (const log of logs) {
+        if (log instanceof ethers.EventLog) {
+          await processLog(log);
+        }
       }
+
+      chunkStart = chunkEnd + 1;
     }
 
     await saveLastProcessedBlock(currentBlock + 1);

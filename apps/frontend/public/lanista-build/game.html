@@ -7,11 +7,6 @@
     <title>Lanista</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
-    <!-- Preload critical Unity assets for faster startup -->
-    <link rel="preload" href="Build/0ce7ed3b7ad99018dc98cc9c71e42dc4.loader.js" as="script">
-    <link rel="preload" href="Build/37b41afa6cc1d523f4f5827bb5a723ce.framework.js.br" as="script">
-    <link rel="preload" href="Build/5821a3f20fb8f06f9b995d69bb8ee656.wasm.br" as="fetch" crossorigin="">
-    <link rel="preload" href="Build/10605279a9ccbdeb6161a725606ff96e.data.br" as="fetch" crossorigin="">
   </head>
   <body class="dark">
     <div id="unity-container" class="unity-desktop">
@@ -28,15 +23,15 @@
     </div>
     <div id="unity-fullscreen-button" style="display: none;"></div>
     <script>
-
-
+	
+	
       const hideFullScreenButton = "true";
       const buildUrl = "Build";
-      const loaderUrl = buildUrl + "/0ce7ed3b7ad99018dc98cc9c71e42dc4.loader.js";
+      const loaderUrl = buildUrl + "/e0d5ab4d8fad3f8396e278d6ffb1ac61.loader.js";
       const config = {
-        dataUrl: buildUrl + "/10605279a9ccbdeb6161a725606ff96e.data.br",
+        dataUrl: buildUrl + "/3dec0c0319c54c1a75dce47b64ee76bb.data.br",
         frameworkUrl: buildUrl + "/37b41afa6cc1d523f4f5827bb5a723ce.framework.js.br",
-        codeUrl: buildUrl + "/5821a3f20fb8f06f9b995d69bb8ee656.wasm.br",
+        codeUrl: buildUrl + "/4f1c380a6ac903ad220f11e09f3b9da9.wasm.br",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "KLIK",
         productName: "Lanista",
@@ -50,7 +45,7 @@
       const progressBarFull = document.querySelector("#unity-progress-bar-full");
       const fullscreenButton = document.querySelector("#unity-fullscreen-button");
       const spinner = document.querySelector('.spinner');
-    var MyGameInstance = null;
+	  var MyGameInstance = null;
       const canFullscreen = (function() {
         for (const key of [
             'exitFullscreen',
@@ -66,18 +61,18 @@
         return false;
       }());
 
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent))
-    {
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) 
+	  {
         container.className = "unity-mobile";
         config.devicePixelRatio = 1;
       }
-    else
-    {
-    canvas.style.width = "100%";
-    canvas.style.height = "100%";
-    }
+	  else
+	  {
+		canvas.style.width = "100%";
+		canvas.style.height = "100%";
+	  }
       loadingCover.style.display = "";
-
+	
       const script = document.createElement("script");
       script.src = loaderUrl;
       script.onload = () => {
@@ -85,9 +80,9 @@
           spinner.style.display = "none";
           progressBarEmpty.style.display = "";
           progressBarFull.style.width = `${100 * progress}%`;
-        }).then((unityInstance) =>
-    {
-    MyGameInstance = unityInstance;
+        }).then((unityInstance) => 
+		{
+		MyGameInstance = unityInstance;
           loadingCover.style.display = "none";
           if (canFullscreen) {
             if (!hideFullScreenButton) {
@@ -105,50 +100,43 @@
 
 
     </script>
-
+	
 
 <script>
 
-
+  
   function SetMode(mode) //Comes from frontend, goes to game
   {
-    if (!window.MyGameInstance) return;
-    window.MyGameInstance.SendMessage("LanistaAPI", "SetMode", mode);
+	  window.MyGameInstance.SendMessage("LanistaAPI", "SetMode", mode);
   }
 
   function SetMatchId(matchId) //Comes from frontend, goes to game
   {
-    if (!window.MyGameInstance) return;
-    window.MyGameInstance.SendMessage("LanistaAPI", "SetMatchId", matchId);
+	  window.MyGameInstance.SendMessage("LanistaAPI", "SetMatchId", matchId);
   }
 
   function LoadJsonGameData(jsonData) //Comes from frontend, goes to game
   {
-    if (!window.MyGameInstance) return;
     window.MyGameInstance.SendMessage("LanistaAPI", "LoadJsonGameData", jsonData);
   }
 
   function ThrowObjectToPlayer1(objectIndex) //Comes from frontend, goes to game
   {
-    if (!window.MyGameInstance) return;
     window.MyGameInstance.SendMessage("LanistaAPI", "ThrowObjectToPlayer1", objectIndex);
   }
 
   function ThrowObjectToPlayer2(objectIndex) //Comes from frontend, goes to game
   {
-    if (!window.MyGameInstance) return;
     window.MyGameInstance.SendMessage("LanistaAPI", "ThrowObjectToPlayer2", objectIndex);
   }
 
   function LoadPlayer1IconUrl(url)
   {
-    if (!window.MyGameInstance) return;
     window.MyGameInstance.SendMessage("LanistaAPI", "LoadPlayer1IconUrl", url);
   }
 
   function LoadPlayer2IconUrl(url)
   {
-    if (!window.MyGameInstance) return;
     window.MyGameInstance.SendMessage("LanistaAPI", "LoadPlayer2IconUrl", url);
   }
 

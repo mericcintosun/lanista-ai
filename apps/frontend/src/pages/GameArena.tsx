@@ -1,9 +1,10 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { prefetchGameHtml } from '../lib/prefetchGame';
 import confetti from 'canvas-confetti';
 import { sendToUnity, setUnityMode, sendThrowableToUnity } from '../lib/unity';
 import { useCombatRealtime } from '../hooks/useCombatRealtime';
+import type { Match, CombatLog } from '@lanista/types';
 import { useHubData } from '../hooks/useHubData';
 import { useArenaChat } from '../hooks/useArenaChat';
 import { useSparkBalance } from '../hooks/useSparkBalance';
@@ -12,10 +13,38 @@ import { LiveMatchList } from '../components/battle-arena/LiveMatchList';
 import { ArenaChat } from '../components/ArenaChat';
 import { Reveal } from '../components/common/Reveal';
 import { WatchRewardBadge } from '../components/arena/WatchRewardBadge';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 // Game Components
-import { UnityFrame, CombatStats, CombatLogs, MatchInfoBanner, FullscreenHUD } from '../components/game';
+import { UnityFrame, CombatStats, CombatLogs, MatchInfoBanner, LobbyCountdown, FullscreenHUD } from '../components/game';
 import { SupportPanel } from '../components/arena/SupportPanel';
+
+/** Compute each player's HP at the baseline moment (before live logs Unity will replay).
+ *  Backend's target_current_hp is always the OPPONENT's HP after the action.
+ *  For HEAL: actor heals self, target_current_hp = opponent's HP (unchanged). */
+function computeBaselineHP(
+  allLogs: CombatLog[],
+  baselineIdx: number,
+  match: Match
+): { p1Hp: number; p2Hp: number } {
+  const p1Id = match.player_1_id;
+  const p1Max = match.p1_final_stats?.hp ?? 0;
+  const p2Max = match.p2_final_stats?.hp ?? 0;
+  let p1Hp = p1Max;
+  let p2Hp = p2Max;
+
+  for (let i = 0; i < baselineIdx && i < allLogs.length; i++) {
+    const log = allLogs[i];
+    if (log.actor_id === p1Id) {
+      p2Hp = log.target_current_hp;
+      if (log.action_type === 'HEAL') p1Hp = Math.min(p1Max, p1Hp + log.value);
+    } else {
+      p1Hp = log.target_current_hp;
+      if (log.action_type === 'HEAL') p2Hp = Math.min(p2Max, p2Hp + log.value);
+    }
+  }
+  return { p1Hp, p2Hp };
+}
 
 export default function GameArena() {
   const { matchId } = useParams<{ matchId: string }>();
@@ -26,7 +55,86 @@ export default function GameArena() {
   const { liveMatches } = useHubData();
   const lastStatus = useRef<string | null>(null);
 
+  // Refs to always hold latest match/logs — needed for unity-ready handler
+  // (setTimeout closure would capture stale state without refs)
+  const matchRef = useRef(match);
+  const logsRef = useRef(logs);
+  useEffect(() => { matchRef.current = match; }, [match]);
+  useEffect(() => { logsRef.current = logs; }, [logs]);
+
+  // Unity send guard: never send with logs=0 (puts Unity in a broken "waiting" state that
+  // marks P1 as busy and blocks all future animations). Debounce 500ms so batch-arriving
+  // logs are coalesced into a single LoadJsonGameData call — avoids rapid repeated resets
+  // that trigger "Player 1 is busy". Slow live logs (every 2-3s) still arrive individually.
+  const isUnityReadyRef = useRef(false);
+  const sendDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Baseline: log count when Unity became ready. Logs before this are skipped
+  // so mid-match viewers see current HP and only new live actions (like a live stream).
+  const baselineLogCountRef = useRef<number>(0);
+  // Two-phase finish: send kill blow as 'ongoing' first, then 'finished' after delay
+  const sentFinishedRef = useRef(false);
+  // Track first send so we can override HP with baseline values (avoids double-counting)
+  const firstSendDoneRef = useRef(false);
+
+  const scheduleSendToUnity = useCallback(() => {
+    if (!isUnityReadyRef.current) return;
+    if (!iframeRef.current || !matchRef.current) return;
+
+    if (sendDebounceRef.current) clearTimeout(sendDebounceRef.current);
+    sendDebounceRef.current = setTimeout(() => {
+      sendDebounceRef.current = null;
+      if (!iframeRef.current || !matchRef.current) return;
+      // Only send logs that arrived after Unity became ready (live stream mode)
+      const liveLogs = logsRef.current.slice(baselineLogCountRef.current);
+      // Allow first send with 0 logs (sets baseline HP for mid-match joins).
+      // Block subsequent empty sends to avoid Unity's "Player 1 is busy" state.
+      if (liveLogs.length === 0 && firstSendDoneRef.current) return;
+
+      // On FIRST send, override HP with baseline values so Unity doesn't double-count.
+      // Unity calls SetHP() only on first data, then replays logs — if we send "latest HP"
+      // (which already includes the live logs' damage), the damage gets applied twice.
+      let matchToSend = matchRef.current;
+      if (!firstSendDoneRef.current) {
+        const { p1Hp, p2Hp } = computeBaselineHP(
+          logsRef.current, baselineLogCountRef.current, matchRef.current
+        );
+        matchToSend = {
+          ...matchRef.current,
+          player_1: { ...matchRef.current.player_1, current_hp: p1Hp },
+          player_2: { ...matchRef.current.player_2, current_hp: p2Hp },
+        };
+        firstSendDoneRef.current = true;
+      }
+
+      const isFinished = matchRef.current.status === 'finished' || matchRef.current.status === 'aborted';
+
+      if (isFinished && !sentFinishedRef.current) {
+        // Phase 1: send kill blow as 'ongoing' → Unity animates death blow first
+        sendToUnity(iframeRef.current, { match: matchToSend, logs: liveLogs }, 'ongoing');
+        sentFinishedRef.current = true;
+        // Phase 2: after 3s, send with real 'finished' → Unity shows Game Over
+        setTimeout(() => {
+          if (!iframeRef.current || !matchRef.current) return;
+          const finalLogs = logsRef.current.slice(baselineLogCountRef.current);
+          sendToUnity(iframeRef.current, { match: matchRef.current, logs: finalLogs });
+        }, 3000);
+      } else {
+        sendToUnity(iframeRef.current, { match: matchToSend, logs: liveLogs });
+      }
+    }, 500);
+  }, []);
+
   const { setBalance: setSparkBalance } = useSparkBalance();
+
+  const isLobby = match?.status === 'pending';
+  const [supportExpanded, setSupportExpanded] = useState(true);
+
+  // Auto-collapse SupportPanel when match goes active
+  useEffect(() => {
+    if (match && !isLobby) {
+      setSupportExpanded(false);
+    }
+  }, [isLobby, match]);
 
   const onThrowable = useCallback(
     (payload: { type: 'throwable'; item: 'tomato'; target: 'player_1' | 'player_2' }) => {
@@ -47,12 +155,16 @@ export default function GameArena() {
   // 1. Wait for Unity Readiness
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      if (event.data?.type === 'unity-ready') {
-        console.log('[Arena] Unity signaled readiness. Setting mode 1 and syncing in 3000ms...');
+      if (event.data?.type === 'UNITY_SIMULATION_READY') {
+        console.log('[Arena] Unity signaled readiness. Setting mode 1 and syncing in 5000ms...');
         setUnityMode(iframeRef.current, 1);
         setTimeout(() => {
+          // Capture current log count as baseline — skip past logs for mid-match joins
+          baselineLogCountRef.current = logsRef.current.length;
+          isUnityReadyRef.current = true;
           signalReady?.();
-        }, 3000);
+          scheduleSendToUnity();
+        }, 5000);
       }
     };
 
@@ -68,23 +180,26 @@ export default function GameArena() {
     const wasActive = lastStatus.current === 'active' || lastStatus.current === 'pending';
 
     if (isFinished && wasActive) {
-      confetti({
-        particleCount: 150,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#df7f3e', '#FFFFFF', '#000000']
-      });
+      // Delay confetti: 3s for death animation (two-phase finish) + 2s for Game Over screen
+      setTimeout(() => {
+        confetti({
+          particleCount: 150,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#df7f3e', '#FFFFFF', '#000000']
+        });
+      }, 5000);
     }
     
     lastStatus.current = match.status;
   }, [match]);
 
-  // 2. Unity Bridge Sync (Auto-sync on updates)
+  // 2. Unity Bridge Sync — send once when Unity is ready AND we have logs.
+  // Fires when logs first arrive (0→N) or when match status changes.
+  // scheduleSendToUnity guards against: no logs, Unity not ready, already sent.
   useEffect(() => {
-    if (match && iframeRef.current) {
-      sendToUnity(iframeRef.current, { match, logs });
-    }
-  }, [match, logs]);
+    scheduleSendToUnity();
+  }, [logs.length, match?.status, scheduleSendToUnity]);
 
   // 4. List View if no matchId
   if (!matchId) {
@@ -116,8 +231,6 @@ export default function GameArena() {
       </div>
     );
   }
-
-  const isLobby = match.status === 'pending';
 
   return (
     <div className="max-w-[1600px] mx-auto py-4 sm:py-6 px-3 sm:px-4 space-y-4 sm:space-y-5">
@@ -158,27 +271,36 @@ export default function GameArena() {
           {/* Match info — id, status, p1 vs p2 */}
           <MatchInfoBanner match={match} matchId={matchId} />
 
-          {/* Lobby Prediction Panel for Mobile (Prominent) */}
-          {isLobby && (
-            <div className="lg:hidden">
-              <SupportPanel match={match} />
-            </div>
-          )}
+          {/* Lobby countdown timer — mobile */}
+          <div className="lg:hidden">
+            <LobbyCountdown match={match} logsCount={logs.length} />
+          </div>
 
-          {/* Chat + combat logs — only on mobile/tablet */}
+          {/* Prediction Panel for Mobile — collapsible */}
+          <div className="lg:hidden">
+            <button
+              type="button"
+              onClick={() => setSupportExpanded(prev => !prev)}
+              className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-[#0B0F19] border border-white/10 text-white/60 font-mono text-xs uppercase tracking-widest hover:border-white/20 transition-colors"
+            >
+              <span>Arena Predictions</span>
+              {supportExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+            {supportExpanded && <SupportPanel match={match} disabled={!isLobby} />}
+          </div>
+
+          {/* Chat + combat logs — always visible on mobile */}
           <div className="lg:hidden flex flex-col gap-3">
-            {!isLobby && (
-              <div className="min-h-[300px] max-h-[45vh]">
-                <ArenaChat
-                  matchId={matchId}
-                  match={match}
-                  unityIframeRef={iframeRef}
-                  gameEmojiContainerRef={emojiOverlayRef}
-                  className="h-full w-full"
-                  chatState={chatState}
-                />
-              </div>
-            )}
+            <div className="min-h-[300px] max-h-[45vh]">
+              <ArenaChat
+                matchId={matchId}
+                match={match}
+                unityIframeRef={iframeRef}
+                gameEmojiContainerRef={emojiOverlayRef}
+                className="h-full w-full"
+                chatState={chatState}
+              />
+            </div>
             <div className="min-h-[150px] max-h-[25vh]">
               <CombatLogs logs={logs} match={match} />
             </div>
@@ -188,10 +310,23 @@ export default function GameArena() {
           <CombatStats match={match} />
         </div>
 
-        {/* ── Right column: Prediction Panel + chat (2/3) + combat logs (1/3), desktop only ── */}
+        {/* ── Right column: Timer + Prediction Panel + chat + combat logs, desktop only ── */}
         <div className="hidden lg:flex lg:flex-col lg:col-span-4 order-2 gap-3 sm:gap-4 self-stretch min-h-0 overflow-hidden">
-          {/* Desktop Prediction Panel */}
-          <SupportPanel match={match} disabled={match.status === 'finished' || match.status === 'aborted'} />
+          {/* Lobby countdown timer */}
+          <LobbyCountdown match={match} logsCount={logs.length} />
+
+          {/* Desktop Prediction Panel — collapsible */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setSupportExpanded(prev => !prev)}
+              className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-[#0B0F19] border border-white/10 text-white/60 font-mono text-xs uppercase tracking-widest hover:border-white/20 transition-colors mb-1"
+            >
+              <span>Arena Predictions</span>
+              {supportExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+            {supportExpanded && <SupportPanel match={match} disabled={match.status === 'finished' || match.status === 'aborted'} />}
+          </div>
 
           <div className="flex-1 min-h-0 flex flex-col gap-3 sm:gap-4">
             <div className="flex-1 min-h-[300px] overflow-hidden">
