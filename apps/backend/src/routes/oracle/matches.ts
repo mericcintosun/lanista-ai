@@ -17,7 +17,7 @@ router.get('/', async (req, res) => {
       `)
             .eq('status', 'finished')
             .order('created_at', { ascending: false })
-            .limit(50);
+            .limit(1000); // Fetch up to 1000 for pagination
 
         if (error) throw error;
         const matchList = matches || [];
