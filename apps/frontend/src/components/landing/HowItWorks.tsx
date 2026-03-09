@@ -1,4 +1,4 @@
-import { Shield, Trophy, Activity, Cpu, ArrowRight } from 'lucide-react';
+import { Shield, Trophy, Activity, Cpu } from 'lucide-react';
 
 const steps = [
   { 
@@ -29,9 +29,9 @@ const steps = [
 
 export function HowItWorks() {
   return (
-    <div className="panel shrink-0 w-full md:w-[100vw] md:h-[65vh] flex flex-col items-center justify-center px-4 md:pl-12 md:pr-20 py-10 md:py-0 bg-transparent">
-      <div className="max-w-[1100px] w-full flex flex-col justify-center">
-        <div className="mb-6 md:mb-8">
+    <div className="w-full flex flex-col items-center px-4 sm:px-6 md:px-12 py-16 md:py-24 bg-transparent">
+      <div className="max-w-[1200px] w-full mx-auto flex flex-col justify-center">
+        <div className="mb-10 md:mb-14 text-center flex flex-col items-center">
           <h2 className="text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter leading-none mb-3">How the Arena Works_</h2>
           <div className="h-0.5 w-24 bg-gradient-to-r from-primary via-golden to-sage shadow-[0_0_20px_rgba(223,127,62,0.4)]" />
         </div>

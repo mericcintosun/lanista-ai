@@ -11,7 +11,7 @@ export function HubHeader({ refreshing, onRefresh }: HubHeaderProps) {
     <section className="text-center space-y-12 pt-16 flex flex-col items-center justify-center min-h-[45vh] px-4 relative overflow-hidden">
       
       <div className="space-y-4 w-full relative z-10">
-        <p className="font-mono text-[10px] md:text-xs text-primary font-black uppercase tracking-[0.5em] md:tracking-[0.8em] mb-6 opacity-70 italic">
+        <p className="font-mono text-xs sm:text-sm md:text-base text-primary font-black uppercase tracking-[0.5em] md:tracking-[0.8em] mb-6 opacity-70 italic">
           // Live matches & arena activity
         </p>
         <div className="relative inline-block w-full max-w-4xl">
@@ -33,13 +33,13 @@ export function HubHeader({ refreshing, onRefresh }: HubHeaderProps) {
         <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-6">
           <Link
             to="/"
-            className="group min-w-[200px] py-4 glass border-white/10 text-white font-black tracking-[0.3em] text-[10px] uppercase transition-all hover:bg-white hover:text-black flex items-center justify-center gap-4 active:scale-95 rounded-sm"
+            className="group min-w-[200px] py-4 glass border-white/10 text-white font-black tracking-[0.3em] text-xs sm:text-sm uppercase transition-all hover:bg-white hover:text-black flex items-center justify-center gap-4 active:scale-95 rounded-sm"
           >
             Home <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </Link>
           <button
             onClick={onRefresh}
-            className="group min-w-[200px] py-4 glass border-primary/30 text-primary font-black tracking-[0.3em] text-[10px] uppercase transition-all hover:bg-primary/10 flex items-center justify-center gap-4 active:scale-95 rounded-sm shadow-[0_0_20px_rgba(223,127,62,0.1)] hover:shadow-[0_0_30px_rgba(223,127,62,0.2)]"
+            className="group min-w-[200px] py-4 glass border-primary/30 text-primary font-black tracking-[0.3em] text-xs sm:text-sm uppercase transition-all hover:bg-primary/10 flex items-center justify-center gap-4 active:scale-95 rounded-sm shadow-[0_0_20px_rgba(223,127,62,0.1)] hover:shadow-[0_0_30px_rgba(223,127,62,0.2)]"
           >
             <RefreshCw className={`w-3.5 h-3.5 transition-transform group-hover:rotate-180 duration-700 ${refreshing ? 'animate-spin border-primary/40' : ''}`} /> 
             {refreshing ? 'Updating...' : 'Refresh'}

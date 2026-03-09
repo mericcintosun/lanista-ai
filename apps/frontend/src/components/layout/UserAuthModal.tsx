@@ -120,7 +120,7 @@ export function UserAuthModal({ onClose }: UserAuthModalProps) {
                 {isLogin ? 'Welcome Back' : 'Join Lanista'}
               </h2>
               <p className="text-zinc-500 text-sm mt-1 font-mono">
-                {isLogin ? 'Authenticate to enter the arena.' : 'Register your commander identity.'}
+                {isLogin ? 'Authenticate to enter the arena.' : 'Register your player identity.'}
               </p>
             </motion.div>
             <button
@@ -274,7 +274,7 @@ export function UserAuthModal({ onClose }: UserAuthModalProps) {
 
             <motion.div layout="position" className="mt-8 flex items-center justify-center gap-2 text-sm font-mono border-t border-white/5 pt-6">
               <span className="text-zinc-500">
-                {isLogin ? "New to the arena?" : 'Already a commander?'}
+                {isLogin ? "New to the arena?" : 'Already a player?'}
               </span>
               <button
                 onClick={() => setIsLogin(!isLogin)}

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Zap, ExternalLink, Link2 } from 'lucide-react';
@@ -16,6 +17,15 @@ export function CombatRecordList({
   loading, 
   onOpenLootModal 
 }: CombatRecordListProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+  
+  const totalPages = Math.ceil(matches.length / ITEMS_PER_PAGE);
+  const paginatedMatches = matches.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-4">
@@ -28,12 +38,12 @@ export function CombatRecordList({
           <div className="w-12 h-12 border border-white/10 rounded-full flex items-center justify-center">
             <div className="w-2 h-2 bg-white rounded-full animate-ping" />
           </div>
-          <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest italic">Loading…</p>
+          <p className="font-mono text-xs sm:text-sm text-zinc-500 uppercase tracking-widest italic">Loading…</p>
         </div>
       ) : (
         <div className="space-y-4">
-          <AnimatePresence>
-            {matches.length > 0 ? matches.map((match, i) => {
+          <AnimatePresence mode="popLayout">
+            {paginatedMatches.length > 0 ? paginatedMatches.map((match, i) => {
               const isOnChain = match.tx_hash && match.tx_hash.startsWith('0x') && match.tx_hash.length > 40;
               const isPendingProof = match.tx_hash && match.tx_hash.startsWith('{');
               const winner = match.winner_id === match.player_1_id ? match.player_1 : match.player_2;
@@ -60,7 +70,7 @@ export function CombatRecordList({
                         }`}>
                         {isOnChain ? '[ SECURED ]' : '[ PENDING ]'}
                       </div>
-                      <div className="font-mono text-[10px] sm:text-xs text-zinc-400 uppercase tracking-widest font-bold">
+                      <div className="font-mono text-xs sm:text-sm text-zinc-400 uppercase tracking-widest font-bold">
                         {new Date(match.created_at).toLocaleDateString('en-GB')} {new Date(match.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
                       </div>
                     </div>
@@ -75,9 +85,9 @@ export function CombatRecordList({
                           >
                             {winner?.name}
                           </Link>
-                          <span className="block font-mono text-xs text-zinc-400 uppercase tracking-widest font-bold">UID: {winner?.wallet_address?.substring(0, 10)}...</span>
+                          <span className="block font-mono text-xs sm:text-sm text-zinc-400 uppercase tracking-widest font-bold">UID: {winner?.wallet_address?.substring(0, 10)}...</span>
                           {isOnChain && (
-                            <span className="mt-1 inline-flex items-center rounded-full bg-zinc-900/80 border border-zinc-700 px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.16em] text-zinc-300">
+                            <span className="mt-1 inline-flex items-center rounded-full bg-zinc-900/80 border border-zinc-700 px-2 py-0.5 text-[10px] sm:text-xs font-mono uppercase tracking-[0.16em] text-zinc-300">
                               {hasRankUpRequest && hasLoot ? `Item #${itemId}` : hasRankUpRequest ? 'Reward pending' : '—'}
                             </span>
                           )}
@@ -105,7 +115,7 @@ export function CombatRecordList({
                           >
                             {loser?.name}
                           </Link>
-                          <span className="block font-mono text-xs text-zinc-600 uppercase tracking-widest font-bold">UID: {loser?.wallet_address?.substring(0, 10)}...</span>
+                          <span className="block font-mono text-xs sm:text-sm text-zinc-600 uppercase tracking-widest font-bold">UID: {loser?.wallet_address?.substring(0, 10)}...</span>
                         </div>
                       </div>
                     </div>
@@ -116,7 +126,7 @@ export function CombatRecordList({
                           <button
                             type="button"
                             onClick={() => onOpenLootModal(match.id)}
-                            className="font-mono text-[10px] text-zinc-200 bg-zinc-900/70 border border-zinc-600 hover:border-primary/60 hover:text-primary transition-colors uppercase tracking-[0.16em] px-3 py-1.5 rounded-full inline-flex items-center gap-2"
+                            className="font-mono text-xs text-zinc-200 bg-zinc-900/70 border border-zinc-600 hover:border-primary/60 hover:text-primary transition-colors uppercase tracking-[0.16em] px-3 py-1.5 rounded-full inline-flex items-center gap-2"
                           >
                             Battle log
                             <ExternalLink className="w-3 h-3" />
@@ -126,7 +136,7 @@ export function CombatRecordList({
                               href={`${FUJI_EXPLORER}/tx/${match.tx_hash}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="font-mono text-[10px] text-zinc-500 hover:text-cyan-400 border border-white/10 hover:border-cyan-500/40 px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 transition-colors"
+                              className="font-mono text-xs text-zinc-500 hover:text-cyan-400 border border-white/10 hover:border-cyan-500/40 px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 transition-colors"
                               title="View on Avalanche Explorer"
                             >
                               <Link2 className="w-3 h-3" />
@@ -145,10 +155,49 @@ export function CombatRecordList({
               );
             }) : (
               <div className="text-center py-20 border border-dashed border-white/5 bg-white/[0.01]">
-                <p className="font-mono text-[10px] text-zinc-800 uppercase tracking-[0.4em]">No battles yet.</p>
+                <p className="font-mono text-xs sm:text-sm text-zinc-800 uppercase tracking-[0.4em]">No battles yet.</p>
               </div>
             )}
           </AnimatePresence>
+
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 pt-8">
+              {Array.from({ length: totalPages }).map((_, index) => {
+                const page = index + 1;
+                // Simple pagination to avoid too many buttons if there are 100 pages
+                // Shows first, last, current, and adjacent pages
+                if (
+                  page === 1 || 
+                  page === totalPages || 
+                  (page >= currentPage - 2 && page <= currentPage + 2)
+                ) {
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => {
+                        setCurrentPage(page);
+                        // Optional: Scroll back up when changing page
+                        window.scrollTo({ top: 300, behavior: 'smooth' });
+                      }}
+                      className={`w-10 h-10 rounded-lg font-mono text-sm font-bold transition-all border ${
+                        currentPage === page
+                          ? 'border-primary bg-primary/20 text-primary'
+                          : 'border-white/10 text-zinc-400 hover:border-white/40 hover:text-white'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                } else if (
+                  page === currentPage - 3 || 
+                  page === currentPage + 3
+                ) {
+                  return <span key={page} className="text-zinc-600 px-1">...</span>;
+                }
+                return null;
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>

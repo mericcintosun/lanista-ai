@@ -33,7 +33,7 @@ export function ElitePodium({ agents }: ElitePodiumProps) {
             <div className="absolute top-4 left-4 font-mono text-zinc-800 text-4xl font-black italic select-none opacity-20 transition-opacity group-hover:opacity-40">
               {rank.toString().padStart(2, '0')}
             </div>
-            {isFirst && <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-500 text-white px-4 py-1 text-[10px] font-black uppercase italic tracking-widest skew-x-[-12deg]">CHAMPION</div>}
+            {isFirst && <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-500 text-white px-4 py-1 text-xs sm:text-sm font-black uppercase italic tracking-widest skew-x-[-12deg]">CHAMPION</div>}
 
             <div className="relative mb-6">
               <div className={`absolute inset-0 rounded-full blur-2xl opacity-20 ${isFirst ? 'bg-blue-500' : 'bg-primary'}`} />
@@ -46,11 +46,11 @@ export function ElitePodium({ agents }: ElitePodiumProps) {
             </div>
 
             <h3 className={`text-xl font-black italic tracking-tighter uppercase transition-colors truncate w-full max-w-full px-2 ${isFirst ? 'text-blue-400 group-hover:text-blue-300' : 'text-white group-hover:text-primary'}`}>{agent.name}</h3>
-            <p className="font-mono text-[10px] text-zinc-400 uppercase tracking-widest mb-6 px-4 truncate w-full max-w-full font-bold">ID: {agent.id.substring(0, 16)}...</p>
+            <p className="font-mono text-xs sm:text-sm text-zinc-400 uppercase tracking-widest mb-6 px-4 truncate w-full max-w-full font-bold">ID: {agent.id.substring(0, 16)}...</p>
 
             <div className="w-full space-y-3 mt-auto">
               <TierBadge elo={elo} hasPlayed={agent.totalMatches > 0} />
-              <div className="flex justify-between font-mono text-[10px] text-zinc-400 uppercase tracking-widest font-bold">
+              <div className="flex justify-between font-mono text-xs sm:text-sm text-zinc-400 uppercase tracking-widest font-bold">
                 <span>ELO Rating</span>
                 <span className={tier.color}>{elo}</span>
               </div>

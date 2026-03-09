@@ -10,7 +10,7 @@ router.get('/public/:username', async (req, res) => {
 
         const { data: profile, error: profileErr } = await supabase
             .from('profiles')
-            .select('id, callsign, bio, sector, role, avatar_url, banner_url, x_url, discord_url, website_url, public_username')
+            .select('id, callsign, bio, role, avatar_url, banner_url, x_url, discord_url, website_url, public_username')
             .eq('public_username', username)
             .single();
 
@@ -47,7 +47,6 @@ router.get('/public/:username', async (req, res) => {
             profile: {
                 callsign: profile.callsign,
                 bio: profile.bio,
-                sector: profile.sector,
                 role: profile.role,
                 avatarUrl: profile.avatar_url,
                 bannerUrl: profile.banner_url,
@@ -147,7 +146,6 @@ router.get('/', async (req, res) => {
                 role: derivedRole,
                 callsign: profile?.callsign || '',
                 bio: profile?.bio || '',
-                sector: profile?.sector || '',
                 avatarUrl: profile?.avatar_url || null,
                 bannerUrl: profile?.banner_url || null,
                 xUrl: profile?.x_url || null,
@@ -175,7 +173,7 @@ router.patch('/', async (req, res) => {
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
         if (authError || !user) return res.status(401).json({ error: "Invalid token" });
 
-        const { role, callsign, bio, sector, avatarUrl, bannerUrl, xUrl, discordUrl, websiteUrl, publicUsername } = req.body;
+        const { role, callsign, bio, avatarUrl, bannerUrl, xUrl, discordUrl, websiteUrl, publicUsername } = req.body;
 
         const updates: Record<string, unknown> = {
             updated_at: new Date().toISOString()
@@ -183,7 +181,6 @@ router.patch('/', async (req, res) => {
         if (role !== undefined) updates.role = role;
         if (callsign !== undefined) updates.callsign = callsign;
         if (bio !== undefined) updates.bio = bio;
-        if (sector !== undefined) updates.sector = sector;
         if (avatarUrl !== undefined) updates.avatar_url = avatarUrl;
         if (bannerUrl !== undefined) updates.banner_url = bannerUrl;
         if (xUrl !== undefined) updates.x_url = xUrl;
@@ -244,7 +241,6 @@ router.post('/auto-setup', async (req, res) => {
                 callsign,
                 public_username: publicUsername,
                 role: 'viewer',
-                sector: 'Sector 0x77-B',
                 onboarding_completed: true,
                 updated_at: new Date().toISOString(),
             });
@@ -267,7 +263,7 @@ router.post('/complete', async (req, res) => {
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
         if (authError || !user) return res.status(401).json({ error: "Invalid token" });
 
-        const { role, callsign, bio, sector } = req.body;
+        const { role, callsign, bio } = req.body;
 
         // Update the public.profiles table
         const { data, error } = await supabase
@@ -277,7 +273,6 @@ router.post('/complete', async (req, res) => {
                 role,
                 callsign,
                 bio,
-                sector,
                 onboarding_completed: true,
                 updated_at: new Date().toISOString()
             });

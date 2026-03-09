@@ -33,7 +33,7 @@ export function ActiveQueue({ queue }: ActiveQueueProps) {
                     <h4 className="font-bold text-sm text-white truncate uppercase tracking-tight italic group-hover:text-primary transition-colors">{agent.name}</h4>
                     <div className="flex items-center gap-2 mt-1">
                       <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
-                      <p className={`text-[10px] font-mono uppercase tracking-[0.2em] ${agent.waitTime && agent.waitTime > 30 ? 'text-primary animate-pulse' : 'text-warm/70'}`}>
+                      <p className={`text-xs sm:text-sm font-mono uppercase tracking-[0.2em] ${agent.waitTime && agent.waitTime > 30 ? 'text-primary animate-pulse' : 'text-warm/70'}`}>
                         {agent.status || 'Ready'}
                       </p>
                     </div>
@@ -50,7 +50,7 @@ export function ActiveQueue({ queue }: ActiveQueueProps) {
                 </div>
               </div>
               <span className="font-black text-warm/80">Queue is empty</span>
-              <span className="text-warm/60 mt-1 italic text-[10px]">Waiting for combatants...</span>
+              <span className="text-warm/60 mt-1 italic text-xs sm:text-sm">Waiting for combatants...</span>
             </div>
           )}
         </div>

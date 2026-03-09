@@ -12,9 +12,7 @@ interface EditProfileModalProps {
     role?: string | null;
     callsign?: string;
     bio?: string;
-    sector?: string;
     avatarUrl?: string | null;
-    bannerUrl?: string | null;
     xUrl?: string | null;
     discordUrl?: string | null;
     websiteUrl?: string | null;
@@ -33,7 +31,6 @@ export function EditProfileModal({
     role: '',
     callsign: '',
     bio: '',
-    sector: 'Sector 0x77-B',
     xUrl: '',
     discordUrl: '',
     websiteUrl: '',
@@ -41,13 +38,10 @@ export function EditProfileModal({
   });
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const [bannerFile, setBannerFile] = useState<File | null>(null);
-  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
-  const bannerInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (profileData) {
@@ -55,14 +49,12 @@ export function EditProfileModal({
         role: profileData.role || '',
         callsign: profileData.callsign || '',
         bio: profileData.bio || '',
-        sector: profileData.sector || 'Sector 0x77-B',
         xUrl: profileData.xUrl || '',
         discordUrl: profileData.discordUrl || '',
         websiteUrl: profileData.websiteUrl || '',
         publicUsername: profileData.publicUsername || '',
       });
       setAvatarPreview(profileData.avatarUrl || null);
-      setBannerPreview(profileData.bannerUrl || null);
     }
   }, [profileData]);
 
@@ -74,14 +66,6 @@ export function EditProfileModal({
     }
   };
 
-  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.size <= 5 * 1024 * 1024 && /^image\/(jpeg|png|webp|gif)$/.test(file.type)) {
-      setBannerFile(file);
-      setBannerPreview(URL.createObjectURL(file));
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -90,7 +74,6 @@ export function EditProfileModal({
 
     try {
       let avatarUrl = profileData?.avatarUrl ?? null;
-      let bannerUrl = profileData?.bannerUrl ?? null;
       const userId = session.user.id;
 
       if (avatarFile) {
@@ -104,17 +87,6 @@ export function EditProfileModal({
         avatarUrl = urlData.publicUrl;
       }
 
-      if (bannerFile) {
-        const ext = bannerFile.name.split('.').pop() || 'jpg';
-        const path = `${userId}/banner.${ext}`;
-        const { error: uploadErr } = await supabase.storage
-          .from('profile-media')
-          .upload(path, bannerFile, { upsert: true });
-        if (uploadErr) throw new Error(uploadErr.message);
-        const { data: urlData } = supabase.storage.from('profile-media').getPublicUrl(path);
-        bannerUrl = urlData.publicUrl;
-      }
-
       const res = await fetch(`${API_URL}/user/profile`, {
         method: 'PATCH',
         headers: {
@@ -125,9 +97,7 @@ export function EditProfileModal({
           role: formData.role || profileData?.role || 'commander',
           callsign: formData.callsign,
           bio: formData.bio,
-          sector: formData.sector,
           avatarUrl: avatarUrl || undefined,
-          bannerUrl: bannerUrl || undefined,
           xUrl: formData.xUrl || undefined,
           discordUrl: formData.discordUrl || undefined,
           websiteUrl: formData.websiteUrl || undefined,
@@ -149,8 +119,6 @@ export function EditProfileModal({
       setLoading(false);
     }
   };
-
-  const SECTORS = ['Sector 0x77-B', 'Core-Alpha', 'Outer-Rim'];
 
   return createPortal(
     <AnimatePresence>
@@ -188,7 +156,7 @@ export function EditProfileModal({
                 Edit Profile
               </h2>
               <p className="text-zinc-500 text-sm mt-1 font-mono">
-                Update your commander identity.
+                Update your player identity.
               </p>
             </div>
             <button
@@ -248,30 +216,6 @@ export function EditProfileModal({
                   </button>
                   <p className="text-[9px] text-zinc-600">Max 5MB</p>
                 </div>
-                <div className="space-y-1.5 flex-1">
-                  <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">
-                    Banner
-                  </label>
-                  <input
-                    ref={bannerInputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp,image/gif"
-                    className="hidden"
-                    onChange={handleBannerChange}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => bannerInputRef.current?.click()}
-                    className="w-full h-16 rounded-xl border-2 border-dashed border-white/20 bg-zinc-900/50 flex items-center justify-center overflow-hidden hover:border-primary/50 transition-all"
-                  >
-                    {bannerPreview ? (
-                      <img src={bannerPreview} alt="Banner" className="w-full h-full object-cover" />
-                    ) : (
-                      <ImagePlus className="w-6 h-6 text-zinc-500" />
-                    )}
-                  </button>
-                  <p className="text-[9px] text-zinc-600">Max 5MB</p>
-                </div>
               </div>
 
               <div className="space-y-1.5">
@@ -295,8 +239,8 @@ export function EditProfileModal({
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { id: 'commander', name: 'Commander', icon: Shield, info: 'Manages bot gladiator teams' },
-                    { id: 'observer', name: 'Analyst', icon: Eye, info: 'Tracks data & Oracle markets' },
+                    { id: 'commander', name: 'Player', icon: Shield, info: 'Manages Lany teams' },
+                    { id: 'observer', name: 'Spectator', icon: Eye, info: 'Follows matches & stats' },
                   ].map((r) => (
                     <button
                       key={r.id}
@@ -328,28 +272,6 @@ export function EditProfileModal({
                   value={formData.bio}
                   onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                 />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">
-                  Sector
-                </label>
-                <div className="grid grid-cols-1 gap-2">
-                  {SECTORS.map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, sector: s })}
-                      className={`p-3 rounded-xl border-2 transition-all text-left font-mono text-xs uppercase tracking-widest ${
-                        formData.sector === s
-                          ? 'border-primary bg-primary/5 text-white'
-                          : 'border-white/5 bg-zinc-900/30 text-zinc-500 hover:border-white/10'
-                      }`}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
               </div>
 
               <div className="space-y-1.5 pt-2 border-t border-white/5">

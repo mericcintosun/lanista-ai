@@ -46,7 +46,7 @@ export function TierBadge({ elo, hasPlayed, prominent = false }: { elo: number; 
     );
   }
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-black uppercase tracking-widest border ${tier.color} ${tier.border} ${tier.bg} ${tier.glow}`}>
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-mono font-black uppercase tracking-widest border ${tier.color} ${tier.border} ${tier.bg} ${tier.glow}`}>
       <span>{tier.icon}</span> {tier.name}
     </span>
   );
@@ -71,7 +71,7 @@ export function TierProgressBar({ elo, hasPlayed, compact = false }: { elo: numb
   if (!hasPlayed) return (
     <div className="flex items-center gap-2">
       <div className="flex-1 h-1 bg-white/5 rounded-full" />
-      <span className="font-mono text-[9px] text-zinc-600 uppercase tracking-widest">UNRANKED</span>
+      <span className="font-mono text-[10px] sm:text-xs text-zinc-600 uppercase tracking-widest">UNRANKED</span>
     </div>
   );
 
@@ -95,16 +95,16 @@ export function TierProgressBar({ elo, hasPlayed, compact = false }: { elo: numb
       </div>
       {/* Label */}
       {!compact && (
-        <div className="flex justify-between items-center">
-          <span className={`font-mono text-[9px] font-bold uppercase tracking-widest ${tier.color}`}>
+        <div className="flex justify-between items-center mt-1.5">
+          <span className={`font-mono text-[10px] sm:text-xs font-bold uppercase tracking-widest ${tier.color}`}>
             {elo} ELO
           </span>
           {prog.nextName ? (
-            <span className="font-mono text-[9px] text-zinc-500 uppercase tracking-widest">
+            <span className="font-mono text-[10px] sm:text-xs text-zinc-500 uppercase tracking-widest">
               {prog.toNext} TO {prog.nextName}
             </span>
           ) : (
-            <span className="font-mono text-[9px] text-fuchsia-400 uppercase tracking-widest">MAX RANK</span>
+            <span className="font-mono text-[10px] sm:text-xs text-fuchsia-400 uppercase tracking-widest">MAX RANK</span>
           )}
         </div>
       )}

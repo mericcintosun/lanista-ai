@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { Gamepad2, MessageCircle } from 'lucide-react';
+import { Gamepad2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ParticleBackground from './ParticleBackground';
 import { getLenis } from '../lib/lenis-instance';
@@ -13,6 +13,7 @@ import { UserAuthModal } from './layout/UserAuthModal';
 import { MobileMenu } from './layout/MobileMenu';
 import { LootDropBanner } from './notifications/LootDropBanner';
 import { useLootDropNotifications } from '../hooks/useLootDropNotifications';
+import { FeedbackPopup } from './common/FeedbackPopup';
 
 // ─── NAV HEIGHT CONSTANTS ────────────────────────────────────────────────────
 const NAV_H_LARGE = 80; // px — default
@@ -134,15 +135,20 @@ export function Layout() {
 
       <LootDropBanner />
 
-      {/* ── FIXED FEEDBACK BUTTON ── */}
+      {/* ── FEEDBACK POPUP ── */}
+      <FeedbackPopup />
+
+      {/* ── GLOBAL FEEDBACK BUTTON ── */}
       <a
         href="https://forms.gle/HkhSb6SsZ53SK1FJ9"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-[100] flex items-center justify-center w-12 h-12 rounded-full bg-warm/15 border border-warm/30 text-warm shadow-[0_0_20px_rgba(223,127,62,0.2)] hover:bg-warm/25 hover:border-warm/50 hover:shadow-[0_0_24px_rgba(223,127,62,0.35)] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-warm/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-        aria-label="Geri bildirim formu / Feedback form"
+        className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-[90] w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center shadow-xl hover:scale-110 hover:shadow-primary/20 transition-all border border-white/20"
+        title="Provide Feedback"
       >
-        <MessageCircle className="w-5 h-5" strokeWidth={1.5} />
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+           <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+        </svg>
       </a>
     </div>
   );

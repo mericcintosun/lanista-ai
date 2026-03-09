@@ -83,7 +83,6 @@ export default function Landing() {
             className="flex h-full w-max will-change-transform gap-6 items-center"
           >
             <HorizontalScroll />
-            <HowItWorks />
             <div
               className="shrink-0 w-[6vw] max-w-[80px]"
               aria-hidden
@@ -94,8 +93,12 @@ export default function Landing() {
         {/* Mobile & tablet: vertical stacked story, no pinning */}
         <div className="md:hidden flex flex-col gap-0 py-4">
           <HorizontalScroll />
-          <HowItWorks />
         </div>
+      </section>
+
+      {/* ⚙️ How It Works Section */}
+      <section className="bg-transparent border-t border-white/5">
+        <HowItWorks />
       </section>
 
       {/* 🏆 Leaderboard Section (Vertical) */}

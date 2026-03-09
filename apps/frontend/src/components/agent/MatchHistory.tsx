@@ -16,7 +16,7 @@ export function MatchHistory({ history, agent }: MatchHistoryProps) {
   if (history.length === 0) {
     return (
       <div className="p-12 text-center border-t border-red-900/30">
-        <p className="font-mono text-zinc-600 text-[10px] uppercase tracking-widest">No combat logs found for this agent.</p>
+        <p className="font-mono text-zinc-600 text-xs sm:text-sm uppercase tracking-widest">No combat logs found for this agent.</p>
       </div>
     );
   }
@@ -46,12 +46,12 @@ export function MatchHistory({ history, agent }: MatchHistoryProps) {
                 {/* Result Tag */}
                 <div className="sm:col-span-2 flex items-center gap-3">
                   {match.status === 'finished' ? (
-                    <span className={`px-2 py-1 flex items-center justify-center font-mono text-[10px] font-bold tracking-widest rounded ${isWinner ? 'bg-secondary/10 text-secondary border border-secondary/20' : 'bg-primary/10 text-primary border border-primary/20'
+                    <span className={`px-2 py-1 flex items-center justify-center font-mono text-xs sm:text-sm font-bold tracking-widest rounded ${isWinner ? 'bg-secondary/10 text-secondary border border-secondary/20' : 'bg-primary/10 text-primary border border-primary/20'
                       }`}>
                       {isWinner ? 'VICTORY' : 'DEFEAT'}
                     </span>
                   ) : (
-                    <span className="px-2 py-1 font-mono text-[10px] font-bold tracking-widest rounded bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">
+                    <span className="px-2 py-1 font-mono text-xs sm:text-sm font-bold tracking-widest rounded bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">
                       {match.status.toUpperCase()}
                     </span>
                   )}
@@ -59,7 +59,7 @@ export function MatchHistory({ history, agent }: MatchHistoryProps) {
 
                 {/* Opponent info */}
                 <div className="sm:col-span-5 flex items-center gap-3 cursor-pointer group" onClick={() => navigate(`/agent/${opponentId}`)}>
-                  <span className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest hidden sm:block">VS</span>
+                  <span className="font-mono text-xs text-zinc-500 uppercase tracking-widest hidden sm:block">VS</span>
                   <img
                     src={opponent?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${opponent?.name || opponentId}`}
                     className="w-8 h-8 rounded-full bg-red-900/20 border border-red-900/30 group-hover:border-red-700/50 transition-colors p-1"
@@ -67,17 +67,17 @@ export function MatchHistory({ history, agent }: MatchHistoryProps) {
                   />
                   <div>
                     <p className="font-bold text-sm text-white group-hover:text-red-400 uppercase italic tracking-tighter">{opponent?.name || 'Unknown Agent'}</p>
-                    <p className="font-mono text-[9px] text-zinc-600">{opponentId.substring(0, 8)}</p>
+                    <p className="font-mono text-xs text-zinc-600">{opponentId.substring(0, 8)}</p>
                   </div>
                 </div>
 
                 {/* Date & ELO Change */}
                 <div className="sm:col-span-3 flex flex-col justify-center gap-1 opacity-80">
-                  <div className="font-mono text-[10px] text-zinc-400 uppercase">
+                  <div className="font-mono text-xs text-zinc-400 uppercase">
                     {new Date(match.created_at || '').toLocaleDateString()} {new Date(match.created_at || '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
                   {showEloChange ? (
-                    <div className={`font-mono text-[10px] font-bold ${eloChange! > 0 ? 'text-secondary' : 'text-primary'}`}>
+                    <div className={`font-mono text-xs font-bold ${eloChange! > 0 ? 'text-secondary' : 'text-primary'}`}>
                       {eloChange! > 0 ? '+' : ''}{eloChange} ELO
                     </div>
                   ) : null}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Shield, Fingerprint, Check, Trophy, Swords, Target, BadgeCheck, Copy } from 'lucide-react';
+import { Shield, Fingerprint, Check, Copy, Trophy, Swords, Target, BadgeCheck, Zap } from 'lucide-react';
 import { TierBadge, TierProgressBar } from '../EloTier';
 import { getEloTier } from '../../lib/elo';
 import { AgentBalance } from './AgentBalance';
@@ -15,7 +15,6 @@ interface AgentHeroProps {
 
 export function AgentHero({ agent, history }: AgentHeroProps) {
   const [copiedId, setCopiedId] = useState(false);
-  const [copiedWallet, setCopiedWallet] = useState(false);
   const [passport, setPassport] = useState<any>(null);
   const [claimedTx, setClaimedTx] = useState<string | null>(null);
   const session = useAuthStore((s) => s.session);
@@ -26,17 +25,26 @@ export function AgentHero({ agent, history }: AgentHeroProps) {
   const totalMatches = agent.true_total_matches ?? agent.total_matches ?? history.filter(m => m.status === 'finished').length;
   const winRate = totalMatches > 0 ? Math.round((wins / totalMatches) * 100) : 0;
   const tier = getEloTier(elo, totalMatches > 0);
-  const tierBorder = tier.border.replace('/40', '/30');
+
+  // Tier-specific accent color (CSS value for inline styles)
+  const tierAccentMap: Record<string, string> = {
+    MASTER:   '#d946ef',
+    DIAMOND:  '#22d3ee',
+    PLATINUM: '#34d399',
+    GOLD:     '#eab308',
+    SILVER:   '#a1a1aa',
+    BRONZE:   '#ea580c',
+    IRON:     '#71717a',
+  };
+  const accent = tierAccentMap[tier.name] ?? '#71717a';
 
   useEffect(() => {
     if (!agent.id) return;
     fetch(`${API_URL}/agents/${agent.id}/passport`)
       .then(res => res.json())
-      .then(data => {
-        if (data.passport) setPassport(data.passport);
-      })
+      .then(data => { if (data.passport) setPassport(data.passport); })
       .catch(() => {});
-  }, [agent.id, setPassport]);
+  }, [agent.id]);
 
   const copy = (text: string, setFn: (v: boolean) => void) => {
     navigator.clipboard.writeText(text);
@@ -44,164 +52,267 @@ export function AgentHero({ agent, history }: AgentHeroProps) {
     setTimeout(() => setFn(false), 2000);
   };
 
+  const shortId = agent.id ? agent.id.substring(0, 8).toUpperCase() : '—';
+
   return (
-    <div className="space-y-6">
-      {/* ── TOP HERO CARD ── */}
-      <div className={`bg-transparent border ${tierBorder} p-6 sm:p-8 rounded-[2rem] relative overflow-visible`}>
-        <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-8">
-          {/* Left: Avatar + Info */}
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8 flex-1 min-w-0">
-            {/* Avatar */}
-            <div className="shrink-0 relative">
-              <div className={`absolute -inset-2 ${tier.bg} blur-2xl rounded-full opacity-50`} />
-              <img
-                src={agent.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${agent.name}`}
-                alt={agent.name}
-                className={`w-32 h-32 rounded-3xl object-cover border-2 ${tierBorder} shadow-2xl relative`}
-              />
+    <div className="space-y-3">
+
+      {/* ══ HERO CARD ══════════════════════════════════════════════════════ */}
+      <div
+        className="rounded-2xl p-4 sm:p-5 relative overflow-hidden"
+        style={{ background: '#111113', border: '1px solid #222226' }}
+      >
+        {/* Tier glow blob — top right */}
+        <div
+          className="absolute top-0 right-0 w-56 h-56 rounded-full pointer-events-none"
+          style={{ background: accent, opacity: 0.06, filter: 'blur(64px)', transform: 'translate(30%, -30%)' }}
+        />
+
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5">
+
+          {/* Avatar */}
+          <div className="shrink-0 relative self-start sm:self-auto">
+            <div
+              className="absolute -inset-1 rounded-2xl pointer-events-none"
+              style={{ background: accent, opacity: 0.15, filter: 'blur(10px)' }}
+            />
+            <img
+              src={agent.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${agent.name}`}
+              alt={agent.name}
+              className="w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-xl object-cover relative"
+              style={{ border: `2px solid ${accent}40` }}
+            />
+          </div>
+
+          {/* Info */}
+          <div className="flex-1 min-w-0 space-y-2">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-black text-white uppercase italic tracking-tight leading-none">
+                {agent.name}
+              </h1>
+              {agent.description && (
+                <p className="text-zinc-500 text-xs italic mt-1 truncate max-w-sm">
+                  "{agent.description}"
+                </p>
+              )}
             </div>
 
-            {/* Name, description, details */}
-            <div className="flex-1 space-y-4 text-center sm:text-left min-w-0">
-              <div>
-                <h1 className="text-4xl sm:text-5xl font-black text-white uppercase italic tracking-tighter mb-2">
-                  {agent.name}
-                </h1>
-                {agent.description && (
-                  <p className={`text-zinc-500 text-sm max-w-xl italic mt-2 border-l-2 ${tierBorder} pl-4`}>
-                    "{agent.description}"
-                  </p>
-                )}
+            {/* Pill tags */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              {/* ID */}
+              <div
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
+                style={{ background: '#1a1a1d', border: '1px solid #2a2a2e' }}
+              >
+                <Fingerprint className="w-3 h-3 text-zinc-500 shrink-0" />
+                <span className="font-mono text-[11px] text-zinc-300 tracking-wider">ID: {shortId}</span>
+                <button
+                  onClick={() => copy(agent.id, setCopiedId)}
+                  className="text-zinc-600 hover:text-zinc-300 transition-colors ml-0.5"
+                >
+                  {copiedId ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                </button>
               </div>
 
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
-                  <div className={`flex items-center bg-transparent border ${tierBorder} rounded-lg px-3 py-1.5 gap-2`}>
-                    <Fingerprint className="w-3.5 h-3.5 text-zinc-500" />
-                    <span className="font-mono text-xs text-zinc-400 uppercase tracking-widest">CORE ID: {agent.id.substring(0, 10)}...</span>
-                    <button onClick={() => copy(agent.id, setCopiedId)} className="text-zinc-600 hover:text-white transition-colors">
-                      {copiedId ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                    </button>
-                  </div>
+              {/* AVAX */}
+              <AgentBalance address={agent.wallet_address} initialBalance={agent.avax_balance} />
 
-                  {agent.wallet_address && (
-                    <div className={`flex items-center bg-transparent border ${tierBorder} rounded-lg px-3 py-1.5 gap-2`}>
-                      <Shield className="w-3.5 h-3.5 text-zinc-500" />
-                      <span className="font-mono text-xs text-zinc-400 uppercase tracking-widest">WALLET: {agent.wallet_address.substring(0, 6)}...</span>
-                      <button onClick={() => agent.wallet_address && copy(agent.wallet_address, setCopiedWallet)} className="text-zinc-600 hover:text-white transition-colors">
-                        {copiedWallet ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  )}
+              {/* Date */}
+              {agent.created_at && (
+                <div
+                  className="px-2.5 py-1 rounded-lg font-mono text-[11px] text-zinc-400"
+                  style={{ background: '#1a1a1d', border: '1px solid #2a2a2e' }}
+                >
+                  {new Date(agent.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })}
                 </div>
+              )}
 
-                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
-                  <AgentBalance address={agent.wallet_address} initialBalance={agent.avax_balance} />
-                  {isOwner && session && !claimedTx && (agent as any).pending_reward_wei && BigInt((agent as any).pending_reward_wei ?? '0') > 0n && (
-                    <ClaimRewardButton
-                      botId={agent.id}
-                      pendingRewardWei={(agent as any).pending_reward_wei}
-                      accessToken={session.access_token}
-                      onClaimed={(tx) => setClaimedTx(tx)}
-                    />
-                  )}
-                  {claimedTx && <ClaimRewardSuccess txHash={claimedTx} />}
-                  {agent.created_at && (
-                    <div className={`bg-transparent px-3 py-1.5 rounded-lg border ${tierBorder} font-mono text-xs text-zinc-500 uppercase tracking-widest`}>
-                      INIT: {new Date(agent.created_at).toLocaleDateString()}
-                    </div>
-                  )}
-                </div>
-              </div>
+              {/* Claim / Success */}
+              {isOwner && session && !claimedTx && (agent as any).pending_reward_wei && BigInt((agent as any).pending_reward_wei ?? '0') > 0n && (
+                <ClaimRewardButton
+                  botId={agent.id}
+                  pendingRewardWei={(agent as any).pending_reward_wei}
+                  accessToken={session.access_token}
+                  onClaimed={(tx) => setClaimedTx(tx)}
+                />
+              )}
+              {claimedTx && <ClaimRewardSuccess txHash={claimedTx} />}
             </div>
           </div>
 
-          {/* Right: Rank panel - vertically centered */}
-          <div className="shrink-0 flex justify-center md:justify-end">
+          {/* Tier badge — right side on desktop, hidden on mobile (shown in stats) */}
+          <div className="hidden sm:flex shrink-0">
             <TierBadge elo={elo} hasPlayed={totalMatches > 0} prominent />
           </div>
         </div>
       </div>
 
-      {/* ── STATS ROW ── */}
-      <div className={`grid grid-cols-2 md:grid-cols-4 bg-transparent border ${tierBorder} rounded-2xl overflow-hidden`}>
-        <div className={`p-6 border-r ${tierBorder} flex flex-col items-center text-center group hover:bg-white/[0.02] transition-colors`}>
-          <Trophy className={`w-4 h-4 mb-3 ${tier.color} transition-colors`} />
-          <span className="text-2xl font-black text-white tabular-nums">{elo}</span>
-          <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.2em] mt-1">Global ELO</span>
-        </div>
-        <div className={`p-6 border-r ${tierBorder} flex flex-col items-center text-center group hover:bg-white/[0.02] transition-colors`}>
-          <Swords className={`w-4 h-4 mb-3 ${tier.color} transition-colors`} />
-          <span className="text-2xl font-black text-white tabular-nums">{totalMatches}</span>
-          <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.2em] mt-1">Total Matches</span>
-        </div>
-        <div className={`p-6 border-r ${tierBorder} flex flex-col items-center text-center group hover:bg-white/[0.02] transition-colors`}>
-          <Target className="w-4 h-4 text-zinc-500 mb-3 group-hover:text-emerald-400 transition-colors" />
-          <span className="text-2xl font-black text-emerald-400 tabular-nums">{winRate}%</span>
-          <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.2em] mt-1">Win Rate</span>
-        </div>
-        <div className="p-6 flex flex-col items-center text-center group hover:bg-white/[0.02] transition-colors">
-          <Shield className={`w-4 h-4 mb-3 ${tier.color} transition-colors`} />
-          <div className="flex items-center gap-2">
-            <span className="text-2xl font-black text-emerald-400">{wins}</span>
-            <span className="text-zinc-600 font-black text-xl">-</span>
-            <span className={`text-2xl font-black ${tier.color} opacity-80`}>{totalMatches - wins}</span>
+      {/* ══ STATS ROW ══════════════════════════════════════════════════════ */}
+      <div
+        className="grid grid-cols-2 sm:grid-cols-4 rounded-xl overflow-hidden"
+        style={{ border: '1px solid #222226' }}
+      >
+        {[
+          { icon: <Trophy className="w-3.5 h-3.5" style={{ color: accent }} />, value: elo, label: 'ELO', valueColor: accent },
+          { icon: <Swords className="w-3.5 h-3.5" style={{ color: accent }} />, value: totalMatches, label: 'Matches', valueColor: '#ffffff' },
+          { icon: <Target className="w-3.5 h-3.5 text-emerald-400" />, value: `${winRate}%`, label: 'Win Rate', valueColor: '#34d399' },
+          {
+            icon: <Shield className="w-3.5 h-3.5" style={{ color: accent }} />,
+            value: <span className="flex items-center gap-1">
+              <span className="text-emerald-400">{wins}</span>
+              <span className="text-zinc-600">–</span>
+              <span style={{ color: accent, opacity: 0.8 }}>{totalMatches - wins}</span>
+            </span>,
+            label: 'W / L',
+            valueColor: undefined,
+          },
+        ].map((stat, i, arr) => (
+          <div
+            key={i}
+            className="flex flex-col items-center justify-center py-4 px-3 gap-1 group hover:brightness-110 transition-all"
+            style={{
+              background: '#111113',
+              borderRight: i < arr.length - 1 ? '1px solid #222226' : undefined,
+              borderBottom: i < 2 ? '1px solid #222226' : undefined,
+            }}
+          >
+            <div className="flex items-center gap-1.5 mb-0.5">
+              {stat.icon}
+              <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">{stat.label}</span>
+            </div>
+            <span
+              className="text-xl font-black tabular-nums leading-none"
+              style={stat.valueColor ? { color: stat.valueColor } : {}}
+            >
+              {stat.value}
+            </span>
           </div>
-          <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.2em] mt-1">W/L Record</span>
-        </div>
+        ))}
       </div>
 
-      {/* ── PASSPORT & PROGRESS ── */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6">
-        {/* Passport Card */}
-        <div className={`md:col-span-8 bg-transparent p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl md:rounded-[2rem] border ${tierBorder} relative overflow-hidden group`}>
-          <div className={`absolute top-0 right-0 w-48 sm:w-64 h-48 sm:h-64 ${tier.bg} blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none`} />
+      {/* ══ PASSPORT + TIER PROGRESS ═══════════════════════════════════════ */}
+      <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+
+        {/* ── ID CARD ── */}
+        <div
+          className="sm:col-span-8 rounded-2xl overflow-hidden relative"
+          style={{ background: '#0f0f11', border: '1px solid #222226' }}
+        >
+          {/* Top accent line */}
+          <div className="h-0.5 w-full" style={{ background: `linear-gradient(90deg, ${accent}00 0%, ${accent} 40%, ${accent}00 100%)` }} />
           
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 sm:gap-6 mb-6 sm:mb-8 relative z-10">
-            <div className="flex items-center gap-3 sm:gap-5">
-              <div className={`w-12 h-12 sm:w-14 md:w-16 sm:h-14 md:h-16 rounded-xl sm:rounded-2xl ${tier.bg} ${tier.border} flex items-center justify-center shrink-0`}>
-                <Shield className={`w-6 h-6 sm:w-7 md:w-8 sm:h-7 md:h-8 ${tier.color}`} />
+          {/* Glow blob */}
+          <div
+            className="absolute top-0 right-0 w-40 h-40 rounded-full pointer-events-none"
+            style={{ background: accent, opacity: 0.05, filter: 'blur(50px)', transform: 'translate(20%, -20%)' }}
+          />
+
+          <div className="relative z-10 p-4 sm:p-5">
+            {/* Card Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2.5">
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                  style={{ background: `${accent}15`, border: `1px solid ${accent}30` }}
+                >
+                  <Shield className="w-4 h-4" style={{ color: accent }} />
+                </div>
+                <div>
+                  <p className="text-white font-bold text-sm uppercase tracking-widest leading-none">Digital Passport</p>
+                  <p className="text-[10px] font-mono text-zinc-600 uppercase tracking-wider mt-0.5">Lany Identity · On-Chain</p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <h3 className="text-lg sm:text-xl md:text-2xl font-black text-white uppercase italic tracking-tighter">Gladiator Passport</h3>
-                <p className={`text-[10px] sm:text-xs font-mono ${tier.color} opacity-70 uppercase tracking-widest mt-0.5 sm:mt-1`}>Lany Identity • Immutable On-Chain Record</p>
+              <div
+                className="flex items-center gap-1.5 px-2 py-1 rounded-lg shrink-0"
+                style={{ background: `${accent}15`, border: `1px solid ${accent}30` }}
+              >
+                <BadgeCheck className="w-3.5 h-3.5" style={{ color: accent }} />
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider" style={{ color: accent }}>Verified</span>
               </div>
             </div>
-            <div className={`flex items-center gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 ${tier.bg} ${tier.border} rounded-lg sm:rounded-xl shrink-0 self-start sm:self-auto`}>
-              <BadgeCheck className={`w-4 h-4 sm:w-5 sm:h-5 ${tier.color}`} />
-              <span className="text-[10px] sm:text-xs font-mono text-zinc-400 uppercase tracking-widest font-black">On-chain</span>
+
+            {/* Card Body */}
+            <div className="flex gap-4">
+              {/* Photo column */}
+              <div className="shrink-0 flex flex-col items-center gap-1.5">
+                <div
+                  className="rounded-xl overflow-hidden"
+                  style={{ width: 64, height: 76, border: `2px solid ${accent}40` }}
+                >
+                  <img
+                    src={agent.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${agent.name}`}
+                    alt={agent.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div
+                  className="w-full text-center px-1 py-0.5 rounded font-mono text-[9px] uppercase tracking-wider font-bold"
+                  style={{ background: `${accent}15`, border: `1px solid ${accent}25`, color: accent }}
+                >
+                  {tier.icon} {tier.name}
+                </div>
+              </div>
+
+              {/* Fields grid */}
+              <div className="flex-1 grid grid-cols-2 gap-x-4 gap-y-2.5 min-w-0">
+                {[
+                  { label: 'Agent Name', value: agent.name, color: '#ffffff', bold: true },
+                  { label: 'Passport #', value: passport?.tokenId ? `#${passport.tokenId}` : '—', color: accent },
+                  { label: 'Honor Score', value: passport?.reputationScore ?? '—', color: accent },
+                  { label: 'Battles', value: totalMatches, color: '#ffffff' },
+                  { label: 'Victories', value: wins, color: '#34d399' },
+                  { label: 'Enrolled', value: agent.created_at ? new Date(agent.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—', color: '#a1a1aa' },
+                ].map((f) => (
+                  <div key={f.label}>
+                    <span className="block text-[9px] font-mono text-zinc-600 uppercase tracking-widest mb-0.5">{f.label}</span>
+                    <span
+                      className="text-sm font-bold italic truncate block leading-tight"
+                      style={{ color: f.color }}
+                    >
+                      {f.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
+
+            {/* Barcode footer */}
+            <div
+              className="mt-4 pt-2.5 flex items-center justify-between"
+              style={{ borderTop: '1px solid #222226' }}
+            >
+              <span className="font-mono text-[8px] text-zinc-700 uppercase tracking-[0.25em] truncate max-w-[70%]">
+                {agent.id}
+              </span>
+              <span className="font-mono text-[8px] text-zinc-700 uppercase tracking-widest shrink-0">LANISTA · ARENA</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── TIER PROGRESS ── */}
+        <div
+          className="sm:col-span-4 rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-4 relative overflow-hidden"
+          style={{ background: '#0f0f11', border: '1px solid #222226' }}
+        >
+          {/* Glow */}
+          <div
+            className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full pointer-events-none"
+            style={{ background: accent, opacity: 0.07, filter: 'blur(40px)' }}
+          />
+          <div className="relative z-10 flex items-center gap-2">
+            <Zap className="w-4 h-4 shrink-0" style={{ color: accent }} />
+            <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest">Arena Rank</span>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 relative z-10">
-            <div className={`bg-transparent p-3 sm:p-4 rounded-xl sm:rounded-2xl border ${tierBorder}`}>
-              <span className="block text-[9px] sm:text-[10px] font-mono text-zinc-600 uppercase tracking-widest mb-0.5 sm:mb-1">Passport #</span>
-              <span className="text-lg sm:text-xl md:text-2xl font-black text-white italic truncate block">#{passport?.tokenId || '8004'}</span>
-            </div>
-            <div className={`bg-transparent p-3 sm:p-4 rounded-xl sm:rounded-2xl border ${tierBorder}`}>
-              <span className="block text-[9px] sm:text-[10px] font-mono text-zinc-600 uppercase tracking-widest mb-0.5 sm:mb-1">Honor Score</span>
-              <span className={`text-lg sm:text-xl md:text-2xl font-black ${tier.color} italic`}>{passport?.reputationScore || '000'}</span>
-            </div>
-            <div className={`bg-transparent p-3 sm:p-4 rounded-xl sm:rounded-2xl border ${tierBorder}`}>
-              <span className="block text-[9px] sm:text-[10px] font-mono text-zinc-600 uppercase tracking-widest mb-0.5 sm:mb-1">Battles</span>
-              <span className="text-lg sm:text-xl md:text-2xl font-black text-white italic">{totalMatches}</span>
-            </div>
-            <div className={`bg-transparent p-3 sm:p-4 rounded-xl sm:rounded-2xl border ${tierBorder}`}>
-              <span className="block text-[9px] sm:text-[10px] font-mono text-zinc-600 uppercase tracking-widest mb-0.5 sm:mb-1">Wins</span>
-              <span className="text-lg sm:text-xl md:text-2xl font-black text-emerald-400 italic">{wins}</span>
-            </div>
+          <div className="relative z-10 flex-1 flex flex-col justify-center">
+            <TierProgressBar elo={elo} hasPlayed={totalMatches > 0} />
           </div>
-          
-          <p className="mt-4 sm:mt-6 md:mt-8 text-[8px] sm:text-[9px] font-mono text-zinc-600 uppercase tracking-[0.2em] sm:tracking-[0.3em] font-black italic leading-relaxed">
-            Identity and reputation are permanently recorded and cannot be altered.
+
+          <p className="relative z-10 text-[10px] font-mono text-zinc-600 uppercase tracking-widest text-center">
+            Progression Status
           </p>
         </div>
 
-        {/* Level/Tier Section */}
-        <div className={`md:col-span-4 bg-transparent border ${tierBorder} p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl md:rounded-[2rem] flex flex-col justify-center items-center text-center`}>
-           <TierProgressBar elo={elo} hasPlayed={totalMatches > 0} />
-           <p className="mt-4 text-xs font-mono text-zinc-500 uppercase tracking-widest">Arena Progression Status</p>
-        </div>
       </div>
     </div>
   );

@@ -5,14 +5,11 @@ import { useOracleData } from '../hooks/useOracleData';
 import { PageHeader } from '../components/common/PageHeader';
 import {
   ContractStats,
-  NetworkTelemetry,
   CombatRecordList,
   LootProofModal
 } from '../components/oracle';
 import { Reveal } from '../components/common/Reveal';
 
-const ORACLE_CONTRACT =
-  import.meta.env.VITE_ORACLE_CONTRACT_ADDRESS || '0xd1B33F04B0B4C9D8b465c5C11fE4c96F99fbf6cC';
 const FUJI_EXPLORER = 'https://testnet.snowtrace.io';
 const LOOT_CONTRACT =
   import.meta.env.VITE_RANK_UP_LOOT_NFT_ADDRESS || '0xaE1Aa40228A5eeD0e0D0218f6402C4911b97efd8';
@@ -25,14 +22,7 @@ export default function Oracle() {
     fetchLootDetails 
   } = useOracleData();
 
-  const [copied, setCopied] = useState(false);
   const [lootModalMatchId, setLootModalMatchId] = useState<string | null>(null);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(ORACLE_CONTRACT);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   const openLootModal = (matchId: string) => {
     setLootModalMatchId(matchId);
@@ -52,7 +42,7 @@ export default function Oracle() {
       <Reveal>
         <PageHeader 
           title="THE ORACLE" 
-          subtitle="// ARCHIVE"
+          subtitle=""
           description={
             <>
               Log of all combat results. <br />
@@ -72,17 +62,9 @@ export default function Oracle() {
 
       <Reveal delay={0.2} direction="up" distance={20}>
         <ContractStats 
-          contractAddress={ORACLE_CONTRACT}
-          explorerUrl={FUJI_EXPLORER}
           onChainCount={onChainCount}
           totalCount={totalCount}
-          onCopy={handleCopy}
-          copied={copied}
         />
-      </Reveal>
-
-      <Reveal delay={0.3} direction="up" distance={20}>
-        <NetworkTelemetry />
       </Reveal>
 
       <Reveal delay={0.4}>

@@ -77,7 +77,7 @@ export function LiveEngagements({ liveMatches }: LiveEngagementsProps) {
               </div>
               <div className="font-mono text-xs text-warm/70 uppercase tracking-[0.2em] text-center">
                 <span className="block font-black">Offline</span>
-                <span className="block text-warm/50 mt-1 italic text-[10px]">Waiting for broadcast...</span>
+                <span className="block text-warm/50 mt-1 italic text-xs sm:text-sm">Waiting for broadcast...</span>
               </div>
             </div>
           )}

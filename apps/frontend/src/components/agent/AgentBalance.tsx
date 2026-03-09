@@ -26,7 +26,7 @@ export function AgentBalance({ address, initialBalance }: AgentBalanceProps) {
       }
     }
     fetchBalance();
-    const interval = setInterval(fetchBalance, 30000); // 30s poller
+    const interval = setInterval(fetchBalance, 30000);
     return () => clearInterval(interval);
   }, [address]);
 
@@ -36,11 +36,17 @@ export function AgentBalance({ address, initialBalance }: AgentBalanceProps) {
   const isLow = numBal < 0.01;
 
   return (
-    <div className="font-mono text-xs uppercase tracking-widest bg-transparent px-3 py-1.5 rounded-md border border-red-900/30 flex items-center gap-2">
-      <span className={`w-1.5 h-1.5 rounded-full ${loading ? 'bg-zinc-600 animate-pulse' : isLow ? 'bg-yellow-500' : 'bg-[#00FF00]'}`} />
-      <span className="text-zinc-500">ENERGY (AVAX):</span>
-      <span className={isLow ? 'text-yellow-500 font-bold' : 'text-white'}>
-        {loading ? '...' : numBal.toFixed(4)}
+    <div
+      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-mono text-[11px]"
+      style={{ background: '#1a1a1d', border: '1px solid #2a2a2e' }}
+    >
+      <span
+        className={`w-1.5 h-1.5 rounded-full shrink-0 ${loading ? 'animate-pulse' : ''}`}
+        style={{ background: loading ? '#52525b' : isLow ? '#eab308' : '#22c55e' }}
+      />
+      <span className="text-zinc-500">AVAX</span>
+      <span style={{ color: isLow ? '#eab308' : '#ffffff', fontWeight: isLow ? 700 : 400 }}>
+        {loading ? '…' : numBal.toFixed(4)}
       </span>
     </div>
   );

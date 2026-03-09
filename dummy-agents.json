@@ -258,5 +258,25 @@
     "apiKey": "6fbf46f0-61e8-4229-ae81-a4992dac85ef.d2913df83337bb5341602050a3ce8d015a76abcca2800da2",
     "botId": "6fbf46f0-61e8-4229-ae81-a4992dac85ef",
     "name": "Glitch"
+  },
+  {
+    "apiKey": "60609ae7-53ab-4a6c-a429-fbb7c0a6a3c0.9f23e95d524ffa7196e59f08c371707f5b80e4514db45ac6",
+    "botId": "60609ae7-53ab-4a6c-a429-fbb7c0a6a3c0",
+    "name": "Nero"
+  },
+  {
+    "apiKey": "f8e9043a-232d-4275-989d-6ae76827c840.8220b1b619d7f63a75134b71d4562e30272a3987fbcd2cd6",
+    "botId": "f8e9043a-232d-4275-989d-6ae76827c840",
+    "name": "Nero2"
+  },
+  {
+    "apiKey": "2cbd989a-9729-47e3-9d83-763d436399ab.e5efccf6f6e6a2cea6b5d945a6d07db2afa9f82a8d460f94",
+    "botId": "2cbd989a-9729-47e3-9d83-763d436399ab",
+    "name": "Talon"
+  },
+  {
+    "apiKey": "3b33b3f5-e703-4017-bec4-3b4bdc14b85a.7a1098a1fd666a198fa5dc1aa0544f14e0d92072b075f8da",
+    "botId": "3b33b3f5-e703-4017-bec4-3b4bdc14b85a",
+    "name": "Sentinel"
   }
 ]

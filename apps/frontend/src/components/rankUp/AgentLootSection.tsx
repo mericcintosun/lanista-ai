@@ -85,9 +85,21 @@ export function AgentLootSection({ walletAddress, agentName, initialInventory }:
     Array.isArray(initialInventory) ? initialInventory : []
   );
   const [loading, setLoading] = useState(hasValidWallet && !initialInventory);
+  // Synchronise prop changes to initialInventory using the idiomatic React
+  // "store previous value in state" pattern — avoids calling setState inside an effect.
+  const [prevInitialInventory, setPrevInitialInventory] = useState(initialInventory);
+  if (initialInventory !== prevInitialInventory) {
+    setPrevInitialInventory(initialInventory);
+    if (Array.isArray(initialInventory)) {
+      setItems(initialInventory);
+      setLoading(false);
+    }
+  }
+
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const effectiveItems = hasValidWallet ? items : [];
 
+  // Manual refresh handler — called from a button click, not from an effect.
   const fetchInventory = useCallback(() => {
     if (!hasValidWallet || !walletAddress) return;
     setLoading(true);
@@ -100,15 +112,27 @@ export function AgentLootSection({ walletAddress, agentName, initialInventory }:
       .finally(() => setLoading(false));
   }, [walletAddress, hasValidWallet]);
 
+  // Auto-fetch on mount / wallet change when no pre-fetched inventory was provided.
+  // setState is only ever called inside async promise callbacks here, never synchronously.
   useEffect(() => {
-    if (Array.isArray(initialInventory)) {
-      setItems(initialInventory);
-      setLoading(false);
-      return;
-    }
-    if (!hasValidWallet) return;
-    fetchInventory();
-  }, [walletAddress, hasValidWallet, initialInventory, fetchInventory]);
+    if (Array.isArray(initialInventory) || !hasValidWallet || !walletAddress) return;
+    const controller = new AbortController();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentionally set loading=true synchronously before the async fetch to give immediate UI feedback; all data setState calls are in promise callbacks.
+    setLoading(true);
+    fetch(`${API_URL}/oracle/inventory/${encodeURIComponent(walletAddress)}`, {
+      cache: 'no-store',
+      signal: controller.signal,
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        setItems(Array.isArray(data?.items) ? data.items : []);
+      })
+      .catch((err) => {
+        if (err?.name !== 'AbortError') setItems([]);
+      })
+      .finally(() => setLoading(false));
+    return () => controller.abort();
+  }, [walletAddress, hasValidWallet, initialInventory]);
 
   if (!walletAddress) return null;
 
@@ -219,38 +243,41 @@ export function AgentLootSection({ walletAddress, agentName, initialInventory }:
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-md rounded-2xl border border-white/10 bg-zinc-900/95 backdrop-blur-xl p-6 shadow-2xl shadow-black/50"
+              className="relative w-full max-w-sm rounded-2xl border border-white/10 bg-zinc-900/95 backdrop-blur-xl shadow-2xl flex flex-col overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              <button
-                type="button"
-                aria-label="Close"
-                className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
-                onClick={() => setSelectedItem(null)}
-              >
-                <X className="w-5 h-5" />
-              </button>
-              <div className="aspect-square rounded-xl bg-black/50 border border-white/10 overflow-hidden mb-5 flex items-center justify-center p-8">
+              <div className="relative w-full aspect-square bg-black border-b border-white/5">
                 <img
                   src={tokenIdToImagePath(selectedItem.tokenId)}
                   alt={tokenIdToName(selectedItem.tokenId)}
-                  className="max-w-full max-h-full object-contain"
+                  className="w-full h-full object-cover"
                 />
+                <button
+                  type="button"
+                  aria-label="Close"
+                  className="absolute top-3 right-3 p-2 text-white/70 bg-black/50 hover:bg-black/80 hover:text-white backdrop-blur-md rounded-full transition-colors z-10"
+                  onClick={() => setSelectedItem(null)}
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-              <div className="font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
-                {tokenIdToRankAndSlot(selectedItem.tokenId).rankName} tier
-              </div>
-              <h3 className="font-black italic text-2xl text-white mb-3">
-                {tokenIdToName(selectedItem.tokenId)}
-              </h3>
-              <p className="text-sm text-zinc-400 leading-relaxed">
-                {tokenIdToDescription(selectedItem.tokenId)}
-              </p>
-              {selectedItem.balance > 1 && (
-                <div className="mt-4 text-xs text-zinc-500 font-mono">
-                  Balance: × {selectedItem.balance}
+
+              <div className="p-6">
+                <div className="font-mono text-[10px] sm:text-xs uppercase tracking-widest text-primary mb-2">
+                  {tokenIdToRankAndSlot(selectedItem.tokenId).rankName} tier
                 </div>
-              )}
+                <h3 className="font-black italic text-2xl text-white mb-3">
+                  {tokenIdToName(selectedItem.tokenId)}
+                </h3>
+                <p className="text-sm text-zinc-400 leading-relaxed">
+                  {tokenIdToDescription(selectedItem.tokenId)}
+                </p>
+                {selectedItem.balance > 1 && (
+                  <div className="mt-4 text-xs text-zinc-500 font-mono">
+                    Balance: × {selectedItem.balance}
+                  </div>
+                )}
+              </div>
             </motion.div>
           </motion.div>
         )}

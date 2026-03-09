@@ -1,16 +1,14 @@
+import { Shield, Settings, Copy, Swords, Share2, Sparkles, ExternalLink, Layout, Trophy } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
-import { Activity, Trophy, Swords, Zap, Copy, Check, Globe, Shield, Sparkles, LogOut, Layout, Settings, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 import { API_URL } from '../lib/api';
-import { toast } from 'react-hot-toast';
 import { getEloTier, ELO_TIERS } from '../lib/elo';
 import { useSparkBalance } from '../hooks/useSparkBalance';
 import { useAuthStore } from '../lib/auth-store';
 import { Link } from 'react-router-dom';
-import { PageHeader } from '../components/common/PageHeader';
-import { Reveal } from '../components/common/Reveal';
+import { TierBadge } from '../components/EloTier';
 import { EditProfileModal } from '../components/profile/EditProfileModal';
 
 const XIcon = ({ className }: { className?: string }) => (
@@ -34,7 +32,6 @@ export default function UserProfile() {
   const [bindLoading, setBindLoading] = useState(false);
   const [bindError, setBindError] = useState<string | null>(null);
   const [bindSuccess, setBindSuccess] = useState<string | null>(null);
-  const [uuidCopied, setUuidCopied] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
 
   const fetchProfileData = useCallback(async (token: string) => {
@@ -61,7 +58,7 @@ export default function UserProfile() {
 
         if (searchParams.get('newAuth') === 'true') {
           if ((data.profile?.activeAgents ?? 0) === 0) {
-            toast.success("Welcome Commander! Don't forget to claim your Lany to enter the arena.", { duration: 8000, icon: '🏆' });
+            toast.success("Welcome Player! Don't forget to claim your Lany to enter the arena.", { duration: 8000, icon: '🏆' });
           }
           searchParams.delete('newAuth');
           setSearchParams(searchParams, { replace: true });
@@ -160,7 +157,7 @@ export default function UserProfile() {
       {!bindCode && !bindSuccess && (
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <label className="block font-mono text-[10px] text-zinc-500 uppercase tracking-widest">Lany ID</label>
+            <label className="block font-mono text-xs sm:text-sm text-zinc-500 uppercase tracking-widest">Lany ID</label>
             <input 
               type="text" 
               placeholder="Enter Lany identifier" 
@@ -170,7 +167,7 @@ export default function UserProfile() {
             />
           </div>
           <div className="space-y-1.5">
-            <label className="block font-mono text-[10px] text-zinc-500 uppercase tracking-widest">API Key</label>
+            <label className="block font-mono text-xs sm:text-sm text-zinc-500 uppercase tracking-widest">API Key</label>
             <input 
               type="password" 
               placeholder="Enter API key" 
@@ -192,7 +189,7 @@ export default function UserProfile() {
       {bindCode && !bindSuccess && (
         <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="block font-mono text-[10px] text-zinc-500 uppercase tracking-widest">Bind Code</label>
+            <label className="block font-mono text-xs sm:text-sm text-zinc-500 uppercase tracking-widest">Bind Code</label>
             <div className="flex gap-2">
               <span className="flex-1 min-w-0 font-mono text-xs text-zinc-400 p-3 bg-black/40 rounded-lg border border-white/5 select-all truncate">{bindCode}</span>
               <button onClick={() => { navigator.clipboard.writeText(bindCode!); toast.success('Copied!'); }} className="p-3 bg-white/5 border border-white/10 rounded-lg text-white hover:bg-white/10 hover:border-white/20 shrink-0 transition-colors">
@@ -209,7 +206,7 @@ export default function UserProfile() {
           <div className="space-y-2">
             <div className="flex gap-2">
               <div className="flex-1 min-w-0 space-y-1.5">
-                <label className="block font-mono text-[10px] text-zinc-500 uppercase tracking-widest">@handle</label>
+                <label className="block font-mono text-xs sm:text-sm text-zinc-500 uppercase tracking-widest">@handle</label>
                 <input 
                   type="text" 
                   placeholder="@username" 
@@ -219,7 +216,7 @@ export default function UserProfile() {
                 />
               </div>
               <div className="flex-[2] min-w-0 space-y-1.5">
-                <label className="block font-mono text-[10px] text-zinc-500 uppercase tracking-widest">Tweet URL</label>
+                <label className="block font-mono text-xs sm:text-sm text-zinc-500 uppercase tracking-widest">Tweet URL</label>
                 <input 
                   type="url" 
                   placeholder="https://x.com/..." 
@@ -243,9 +240,9 @@ export default function UserProfile() {
   );
 
   if (loading) return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-black">
-      <div className="w-12 h-12 border border-primary border-t-transparent rounded-full animate-spin mb-4" />
-      <span className="font-mono text-sm uppercase tracking-widest text-zinc-500">Decrypting Profile...</span>
+    <div className="flex flex-col items-center justify-center min-h-[50vh]">
+      <div className="w-16 h-16 border-2 border-primary border-t-transparent rounded-full animate-spin mb-6" />
+      <span className="font-mono text-xl sm:text-2xl uppercase tracking-[0.2em] text-zinc-400 font-bold">Decrypting Profile...</span>
     </div>
   );
   
@@ -254,9 +251,9 @@ export default function UserProfile() {
   const user = session.user;
   const agents = profileData?.agents || [];
   const activeAgents = agents.length;
-  const arenaPoints = profileData?.arenaPoints ?? 0;
+  // const arenaPoints = profileData?.arenaPoints ?? 0;
   const totalMatchSum = profileData?.totalMatches ?? 0;
-  const apiWinRate = profileData?.winRate ?? 0;
+  // const apiWinRate = profileData?.winRate ?? 0;
   const apiRank = profileData?.rank;
 
   let highestElo = 0;
@@ -265,208 +262,311 @@ export default function UserProfile() {
     if (elo > highestElo) highestElo = elo;
   });
 
-  const averageWinRate = totalMatchSum > 0 ? apiWinRate : (activeAgents > 0
-    ? agents.reduce((acc: number, a: any) => {
-        const m = a.total_matches ?? (a.wins || 0) + (a.losses || 0);
-        return acc + (m > 0 ? ((a.wins || 0) / m) * 100 : 0);
-      }, 0) / activeAgents
-    : 0);
+  // const averageWinRate = totalMatchSum > 0 ? apiWinRate : (activeAgents > 0
+  //   ? agents.reduce((acc: number, a: any) => {
+  //       const m = a.total_matches ?? (a.wins || 0) + (a.losses || 0);
+  //       return acc + (m > 0 ? ((a.wins || 0) / m) * 100 : 0);
+  //     }, 0) / activeAgents
+  //   : 0);
   const rankTier = apiRank
     ? (ELO_TIERS.find(t => t.name === apiRank) ?? getEloTier(highestElo, totalMatchSum > 0))
     : getEloTier(highestElo, totalMatchSum > 0);
 
-  return (
-    <div className="pb-24 space-y-10 max-w-6xl mx-auto px-4 sm:px-6 relative pt-0">
-      <Reveal>
-        <PageHeader
-          title={profileData?.role === 'observer' ? 'OBSERVER PROFILE' : 'COMMANDER PROFILE'}
-          titleSize="sm"
-          badge={
-            <div className={`px-4 py-1.5 border rounded-full font-mono text-xs tracking-[0.3em] font-black uppercase ${profileData?.role === 'commander' ? 'bg-primary/20 border-primary/30 text-primary' : 'bg-cyan-500/20 border-cyan-500/30 text-cyan-400'}`}>
-              {profileData?.role || 'Observer'}
-            </div>
-          }
-          actions={
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setShowEditModal(true)}
-                className="px-5 py-2.5 bg-white/5 border border-white/10 text-zinc-400 font-black rounded-lg hover:bg-white/10 hover:text-white hover:border-white/20 transition-all text-xs uppercase tracking-widest flex items-center gap-2"
-              >
-                <Settings className="w-3.5 h-3.5" /> Edit Profile
-              </button>
-              <button
-                onClick={() => supabase.auth.signOut().then(() => navigate('/'))}
-                className="px-6 py-2.5 bg-primary/10 border border-primary/20 text-primary/60 font-black rounded-lg hover:bg-primary hover:text-white transition-all text-xs uppercase tracking-widest flex items-center gap-2"
-              >
-                <LogOut className="w-3 h-3" /> Terminate Session
-              </button>
-            </div>
-          }
-        />
-      </Reveal>
+  const userRole = activeAgents > 0 ? 'commander' : 'observer';
 
-      {/* STATS STRIP */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 [&>*]:min-w-0">
-        {[
-          { label: 'Rank', value: rankTier.name, icon: Trophy, color: rankTier.color, sub: activeAgents > 0 ? `ELO ${highestElo}` : '—' },
-          { label: 'Lanys', value: activeAgents, icon: Swords, color: 'text-primary', sub: 'active' },
-          { label: 'Win Rate', value: `${averageWinRate.toFixed(0)}%`, icon: Activity, color: 'text-green-500', sub: `${totalMatchSum} matches` },
-          { label: 'Credits', value: arenaPoints.toLocaleString(), icon: Zap, color: 'text-cyan-500', sub: '' },
-          { label: 'Spark', value: sparkLoading ? '…' : sparkBalance.toLocaleString(), icon: Sparkles, color: 'text-amber-400', sub: '' }
-        ].map((stat, i) => (
-          <Reveal key={i} delay={i * 0.05}>
-            <div className="h-full min-h-[96px] bg-zinc-900/40 border border-white/5 rounded-xl p-5 backdrop-blur-xl group hover:border-white/10 transition-all flex flex-col justify-between">
-              <div className="flex items-center gap-1.5 text-zinc-500 font-mono text-xs uppercase tracking-widest mb-1.5">
-                <stat.icon size={12} className={stat.color} /> {stat.label}
-              </div>
-              <div className={`text-xl font-black italic uppercase tracking-tighter ${stat.color}`}>{stat.value}</div>
-              {stat.sub && <div className="text-[10px] text-zinc-600 font-mono uppercase tracking-widest mt-0.5">{stat.sub}</div>}
+  const tierAccentMap: Record<string, string> = {
+    MASTER:   '#d946ef',
+    DIAMOND:  '#22d3ee',
+    PLATINUM: '#34d399',
+    GOLD:     '#eab308',
+    SILVER:   '#a1a1aa',
+    BRONZE:   '#ea580c',
+    IRON:     '#71717a',
+  };
+  const accent = tierAccentMap[rankTier.name] ?? '#71717a';
+
+  return (
+    <div className="pb-24 space-y-3 max-w-6xl mx-auto px-4 sm:px-6 relative pt-4">
+      {/* ══ HERO CARD ══════════════════════════════════════════════════════ */}
+      <div
+        className="rounded-2xl p-4 sm:p-5 relative overflow-hidden"
+        style={{ background: '#111113', border: '1px solid #222226' }}
+      >
+        {/* Tier glow blob — top right */}
+        {userRole === 'commander' && (
+          <div
+            className="absolute top-0 right-0 w-56 h-56 rounded-full pointer-events-none"
+            style={{ background: accent, opacity: 0.06, filter: 'blur(64px)', transform: 'translate(30%, -30%)' }}
+          />
+        )}
+
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-5">
+          {/* Avatar */}
+          <div className="shrink-0 relative self-start sm:self-auto group cursor-pointer" onClick={() => setShowEditModal(true)}>
+            {userRole === 'commander' && (
+              <div
+                className="absolute -inset-1 rounded-2xl pointer-events-none"
+                style={{ background: accent, opacity: 0.15, filter: 'blur(10px)' }}
+              />
+            )}
+            <img
+              src={profileData?.avatarUrl || user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`}
+              alt="Avatar"
+              className="w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-xl object-cover relative group-hover:brightness-110 transition-all"
+              style={{ border: userRole === 'commander' ? `2px solid ${accent}40` : '2px solid #2a2a2e' }}
+            />
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl relative flex items-center justify-center pointer-events-none" style={{ marginTop: '-100%' }}>
+              <Settings className="w-5 h-5 text-white" />
             </div>
-          </Reveal>
+          </div>
+
+          <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:justify-between items-start gap-4">
+            {/* Info */}
+            <div className="space-y-2">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-black text-white uppercase italic tracking-tight leading-none">
+                  {profileData?.callsign || 'PLAYER'}
+                </h1>
+              </div>
+
+              {/* Pill tags */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                {profileData?.xUrl && (
+                  <a
+                    href={profileData.xUrl} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:border-zinc-500 transition-colors"
+                    style={{ background: '#1a1a1d', border: '1px solid #2a2a2e' }}
+                  >
+                    <XIcon className="w-3 h-3 fill-zinc-400" />
+                    <span className="font-mono text-[11px] text-zinc-400 tracking-wider">X.COM</span>
+                  </a>
+                )}
+                {profileData?.discordUrl && (
+                  <a
+                    href={profileData.discordUrl} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:border-indigo-500/50 transition-colors"
+                    style={{ background: '#1a1a1d', border: '1px solid #2a2a2e' }}
+                  >
+                    <span className="font-mono text-[11px] text-zinc-400 tracking-wider">DISCORD</span>
+                  </a>
+                )}
+                {profileData?.websiteUrl && (
+                  <a
+                    href={profileData.websiteUrl} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:border-cyan-500/50 transition-colors"
+                    style={{ background: '#1a1a1d', border: '1px solid #2a2a2e' }}
+                  >
+                    <ExternalLink className="w-3 h-3 text-cyan-400" />
+                    <span className="font-mono text-[11px] text-zinc-400 tracking-wider">WEBSITE</span>
+                  </a>
+                )}
+              </div>
+              {profileData?.bio && (
+                  <p className="text-zinc-400 text-sm italic mt-2 truncate max-w-md">
+                    {profileData.bio}
+                  </p>
+                )}
+            </div>
+
+            {/* Right Side: Edit & Tier */}
+            <div className="flex flex-col items-start sm:items-end shrink-0 gap-3">
+              <button
+                 onClick={() => setShowEditModal(true)}
+                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:border-zinc-500 hover:bg-white/5 transition-colors"
+                 style={{ background: 'transparent', border: '1px dashed #2a2a2e' }}
+                 title="Edit Profile"
+              >
+                 <Settings className="w-3.5 h-3.5 text-zinc-500" />
+                 <span className="font-mono text-xs text-zinc-500 tracking-wider">EDIT PROFILE</span>
+              </button>
+              
+              {userRole === 'commander' && (
+                <div className="flex flex-col items-start sm:items-end shrink-0">
+                  <span className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest mb-2 mr-1">Highest Agent Rank</span>
+                  <TierBadge elo={highestElo} hasPlayed={totalMatchSum > 0} prominent />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ══ STATS ROW ══════════════════════════════════════════════════════ */}
+      <div
+        className="grid grid-cols-3 rounded-xl overflow-hidden"
+        style={{ border: '1px solid #222226' }}
+      >
+        {[
+          { icon: <Swords className="w-3.5 h-3.5 text-primary" />, value: activeAgents, label: 'Lanys', valueColor: '#fff' },
+          { icon: <Sparkles className="w-3.5 h-3.5 text-amber-400" />, value: sparkLoading ? '…' : sparkBalance.toLocaleString(), label: 'Spark', valueColor: '#fbbf24' },
+          { icon: <Trophy className="w-3.5 h-3.5" style={{ color: accent }} />, value: rankTier.name, label: 'Highest Agent Rank', valueColor: accent },
+        ].map((stat, i, arr) => (
+          <div
+            key={i}
+            className="flex flex-col items-center justify-center py-4 px-3 gap-1 group hover:brightness-110 transition-all"
+            style={{
+              background: '#111113',
+              borderRight: i < arr.length - 1 ? '1px solid #222226' : undefined,
+              borderBottom: i < 2 ? '1px solid #222226' : undefined,
+            }}
+          >
+            <div className="flex items-center gap-1.5 mb-0.5">
+              {stat.icon}
+              <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">{stat.label}</span>
+            </div>
+            <span
+              className="text-xl font-black tabular-nums leading-none"
+              style={{ color: stat.valueColor }}
+            >
+              {stat.value}
+            </span>
+          </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,280px)_minmax(400px,1fr)_minmax(0,280px)] gap-4 lg:gap-6 items-start lg:items-stretch lg:min-h-[320px]">
-        {/* LINK LANY - Left on desktop */}
-        <Reveal direction="left" delay={0.2} className="min-h-0 order-1 lg:order-1">
-          <div className="h-full flex flex-col glass bg-zinc-900/60 border border-primary/20 rounded-2xl p-5 relative overflow-hidden">
-            <div className="mb-4 shrink-0">
-               <h3 className="text-base font-black text-white italic uppercase tracking-tighter flex items-center gap-2">
-                  <XIcon className="w-4 h-4 fill-primary shrink-0" /> Link Lany
-               </h3>
+      {/* ══ BOTTOM GRIDS ═══════════════════════════════════════ */}
+      <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+
+        {/* ── ID CARD ── */}
+        <div
+          className="sm:col-span-4 rounded-2xl overflow-hidden relative"
+          style={{ background: '#0f0f11', border: '1px solid #222226' }}
+        >
+          {/* Top accent line */}
+          <div className="h-0.5 w-full" style={{ background: `linear-gradient(90deg, ${accent}00 0%, ${accent} 40%, ${accent}00 100%)` }} />
+          
+          <div className="relative z-10 p-4 sm:p-5 h-full flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2.5">
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                  style={{ background: userRole === 'commander' ? `${accent}15` : '#1a1a1d', border: userRole === 'commander' ? `1px solid ${accent}30` : '1px solid #2a2a2e' }}
+                >
+                  <Shield className="w-4 h-4" style={{ color: userRole === 'commander' ? accent : '#a1a1aa' }} />
+                </div>
+                <div>
+                  <p className="text-white font-bold text-sm uppercase tracking-widest leading-none">Player Dossier</p>
+                </div>
+              </div>
             </div>
-            <div className="flex-1 min-h-0 overflow-auto">
-               {renderClaimForm()}
+
+            <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 min-w-0 mt-2">
+              {[
+                { label: 'Role', value: userRole, color: '#ffffff' },
+                { label: 'Highest Agent Rank', value: userRole === 'commander' ? rankTier.name : '—', color: accent },
+              ].map((f) => (
+                <div key={f.label}>
+                  <span className="block text-xs font-mono text-zinc-500 uppercase tracking-widest mb-1">{f.label}</span>
+                  <span
+                    className="text-lg font-black italic truncate block leading-tight uppercase"
+                    style={{ color: f.color }}
+                  >
+                    {f.value}
+                  </span>
+                </div>
+              ))}
+              
+              {profileData?.publicUsername && (
+                <div className="pt-2 border-t border-white/5">
+                  <span className="block text-[9px] font-mono text-zinc-600 uppercase tracking-widest mb-1.5">Profile URL</span>
+                  <div className="flex items-center gap-1.5">
+                    <a href={`/profile/${profileData.publicUsername}`} className="flex-1 font-mono text-[9px] text-primary hover:underline truncate py-1.5 px-2 bg-primary/5 rounded border border-primary/20 shadow-inner">
+                      <span className="opacity-50 text-zinc-400">lanista.ai/profile/</span>{profileData.publicUsername}
+                    </a>
+                    <button
+                      onClick={() => {
+                        const url = `${window.location.origin}/profile/${profileData.publicUsername}`;
+                        window.open(`https://x.com/intent/tweet?text=Check%20out%20my%20Lanista%20profile!&url=${encodeURIComponent(url)}`, '_blank');
+                      }}
+                      className="p-1.5 rounded border border-white/10 bg-white/5 text-zinc-400 hover:text-white hover:bg-[#1DA1F2]/20 hover:border-[#1DA1F2]/50 hover:text-[#1DA1F2] shrink-0 transition-all group"
+                      title="Share on X"
+                    >
+                      <Share2 size={10} className="group-hover:hidden" />
+                      <XIcon className="w-[10px] h-[10px] hidden group-hover:block fill-[#1DA1F2] text-[#1DA1F2]" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        const url = `${window.location.origin}/profile/${profileData.publicUsername}`;
+                        navigator.clipboard.writeText(url);
+                        toast.success('Profile URL copied!');
+                      }}
+                      className="p-1.5 rounded border border-white/10 bg-white/5 text-zinc-400 hover:text-white shrink-0 hover:bg-white/10 transition-all"
+                      title="Copy profile link"
+                    >
+                     <Copy size={10} />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        </Reveal>
+        </div>
 
-        {/* DOSSIER - Center (dominant) */}
-        <Reveal direction="up" delay={0.25} className="min-h-0 order-2 lg:order-2 flex justify-center w-full min-w-0">
-          <div className="w-full max-w-[520px] mx-auto lg:mx-0 h-full min-h-[320px] bg-zinc-900/40 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-3xl flex flex-col shadow-xl shadow-black/20">
-            {profileData?.bannerUrl && (
-              <div className="w-full h-32 lg:h-36 bg-zinc-800 shrink-0">
-                <img src={profileData.bannerUrl} alt="Banner" className="w-full h-full object-cover opacity-80" />
+        {/* ── LINK LANY ── */}
+        <div
+          className="sm:col-span-4 rounded-2xl p-4 sm:p-5 flex flex-col gap-4 relative overflow-hidden"
+          style={{ background: '#0f0f11', border: '1px solid #222226' }}
+        >
+          <div className="relative z-10 flex items-center gap-2 shrink-0">
+            <Layout className="w-4 h-4 shrink-0" style={{ color: accent }} />
+            <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest">Link Lany</span>
+          </div>
+          <div className="relative z-10 flex-1 overflow-y-auto pr-1">
+            {renderClaimForm()}
+          </div>
+        </div>
+
+        {/* ── LANYS LIST ── */}
+        <div
+          className="sm:col-span-4 rounded-2xl p-4 sm:p-5 flex flex-col gap-4 relative overflow-hidden"
+          style={{ background: '#0f0f11', border: '1px solid #222226' }}
+        >
+          {/* Glow */}
+           {userRole === 'commander' && (
+            <div
+              className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full pointer-events-none"
+              style={{ background: accent, opacity: 0.07, filter: 'blur(40px)' }}
+            />
+          )}
+
+          <div className="relative z-10 flex items-center gap-2 shrink-0">
+            <Swords className="w-4 h-4 shrink-0" style={{ color: userRole === 'commander' ? accent : '#a1a1aa' }} />
+            <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest">Lanys</span>
+            <span className="ml-auto text-xs font-mono text-zinc-600">{activeAgents} TOTAL</span>
+          </div>
+
+          <div className="relative z-10 flex-1 overflow-y-auto pr-1 flex flex-col gap-2 min-h-[160px]">
+            {agents.map((agent: any) => (
+              <Link key={agent.id} to={`/agent/${agent.id}`} className="group shrink-0 block">
+                <div 
+                  className="rounded-xl p-2.5 transition-all flex items-center gap-3 shrink-0"
+                  style={{ background: '#1a1a1d', border: '1px solid #2a2a2e' }}
+                >
+                  <img
+                    src={agent.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${agent.name}`}
+                    alt={agent.name}
+                    className="w-10 h-10 rounded-lg shrink-0 group-hover:scale-105 transition-transform object-cover"
+                    style={{ border: '1px solid #333339' }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-black text-white italic uppercase group-hover:text-primary transition-colors truncate">{agent.name}</h4>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="font-mono text-[8px] text-zinc-400">{agent.elo ?? 1200} ELO</span>
+                      <span className="font-mono text-[8px] text-zinc-500">{agent.total_matches ?? (agent.wins || 0) + (agent.losses || 0)} M</span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+            {agents.length === 0 && (
+              <div className="flex-1 flex flex-col items-center justify-center p-4 text-center border border-dashed border-white/5 rounded-xl">
+                 <Shield className="w-5 h-5 text-zinc-700 mb-2" />
+                <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Link a Lany to get started</span>
               </div>
             )}
-               <div className="flex flex-col flex-1 min-h-0 p-5 lg:p-6">
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={
-                        profileData?.avatarUrl ||
-                        user.user_metadata?.avatar_url ||
-                        `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`
-                      }
-                      alt="Avatar"
-                      className="w-14 h-14 lg:w-16 lg:h-16 rounded-xl border border-white/10 bg-black p-0.5 shrink-0 object-cover"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-xl lg:text-2xl font-black text-white italic uppercase tracking-tighter truncate">{profileData?.callsign || 'COMMANDER'}</h3>
-                      <p className="text-xs font-mono text-zinc-500 uppercase tracking-widest truncate">{user.email}</p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 pt-4 mt-4 border-t border-white/5 flex-1">
-                    <div className="flex items-center gap-2">
-                       <Globe size={13} className="text-primary shrink-0" />
-                       <span className="font-mono text-xs text-zinc-400 uppercase truncate">{profileData?.sector || 'Unknown'}</span>
-                    </div>
-                    {profileData?.bio && (
-                      <p className="font-mono text-xs text-zinc-500 leading-relaxed line-clamp-2">{profileData.bio}</p>
-                    )}
-                    {(profileData?.xUrl || profileData?.discordUrl || profileData?.websiteUrl) && (
-                      <div className="flex flex-wrap gap-2 pt-1">
-                        {profileData.xUrl && (
-                          <a href={profileData.xUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
-                            <XIcon className="w-3 h-3 fill-primary" /> X
-                          </a>
-                        )}
-                        {profileData.discordUrl && (
-                          <a href={profileData.discordUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-400 hover:underline flex items-center gap-1">
-                            Discord
-                          </a>
-                        )}
-                        {profileData.websiteUrl && (
-                          <a href={profileData.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-cyan-400 hover:underline flex items-center gap-1">
-                            <ExternalLink size={9} /> Website
-                          </a>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {profileData?.publicUsername && (
-                    <div className="flex items-center gap-1.5 py-2">
-                      <span className="flex-1 font-mono text-[10px] text-zinc-500 truncate">
-                        /profile/{profileData.publicUsername}
-                      </span>
-                      <button
-                        onClick={() => {
-                          const url = `${window.location.origin}/profile/${profileData.publicUsername}`;
-                          navigator.clipboard.writeText(url);
-                          toast.success('Profile URL copied!');
-                        }}
-                        className="p-2 rounded-lg border border-white/10 bg-white/5 text-zinc-500 hover:text-white shrink-0"
-                      >
-                        <Copy size={11} />
-                      </button>
-                    </div>
-                  )}
-
-                  <div className="pt-2 mt-auto">
-                    <div className="flex items-center gap-1.5">
-                      <span className="flex-1 font-mono text-[10px] text-zinc-600 p-2.5 bg-black/40 rounded-lg border border-white/5 truncate">{user.id}</span>
-                      <button 
-                        onClick={() => {
-                          navigator.clipboard.writeText(user.id);
-                          setUuidCopied(true);
-                          setTimeout(() => setUuidCopied(false), 2000);
-                        }}
-                        className={`p-2 rounded-lg border transition-all shrink-0 ${uuidCopied ? 'bg-green-500/20 border-green-500/50 text-green-400' : 'bg-white/5 border-white/10 text-zinc-500 hover:text-white'}`}
-                      >
-                        {uuidCopied ? <Check size={11} /> : <Copy size={11} />}
-                      </button>
-                    </div>
-                  </div>
-               </div>
-            </div>
-        </Reveal>
-
-        {/* MY LANYS - Right on desktop */}
-        <Reveal direction="right" delay={0.3} className="min-h-0 order-3 lg:order-3">
-          <div className="h-full flex flex-col bg-zinc-900/40 border border-white/5 rounded-2xl p-5 backdrop-blur-xl overflow-hidden">
-            <div className="flex items-center justify-between mb-3 shrink-0">
-               <h3 className="text-base font-black italic text-white uppercase tracking-tighter flex items-center gap-1.5">
-                  <Layout className="w-4 h-4 text-primary" /> My Lanys
-               </h3>
-               {activeAgents > 0 && <span className="font-mono text-xs text-zinc-500 uppercase">{activeAgents} active</span>}
-            </div>
-
-            <div className="flex-1 min-h-0 grid grid-cols-1 gap-2 overflow-auto">
-                  {activeAgents > 0 ? (
-                    agents.map((agent: any, idx: number) => (
-                      <Link key={idx} to={`/agent/${agent.id}`} className="group shrink-0">
-                        <div className="bg-black/30 border border-white/5 rounded-xl p-3 hover:border-primary/40 transition-all flex items-center gap-3">
-                           <img src={agent.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${agent.name}`} className="w-10 h-10 rounded-lg border border-white/10 shrink-0 group-hover:scale-105 transition-transform" />
-                           <div className="flex-1 min-w-0">
-                              <h4 className="text-base font-black text-white italic uppercase group-hover:text-primary transition-colors truncate">{agent.name}</h4>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                 <span className="font-mono text-[10px] text-zinc-400">{agent.elo ?? 1200} ELO</span>
-                                 <span className="font-mono text-[10px] text-zinc-500">{agent.total_matches ?? (agent.wins || 0) + (agent.losses || 0)} m</span>
-                              </div>
-                           </div>
-                        </div>
-                      </Link>
-                    ))
-                  ) : (
-                    <div className="border border-dashed border-white/5 rounded-xl p-6 text-center flex flex-col items-center justify-center space-y-2 min-h-[100px]">
-                       <Shield className="w-6 h-6 text-zinc-700" />
-                       <p className="font-mono text-xs text-zinc-600 uppercase tracking-wider">Link a Lany to get started</p>
-                    </div>
-                  )}
-                </div>
           </div>
-        </Reveal>
+        </div>
+
       </div>
 
       {showEditModal && session && (
