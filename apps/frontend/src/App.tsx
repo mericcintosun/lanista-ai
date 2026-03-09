@@ -1,7 +1,8 @@
 import { useEffect, lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate, useSearchParams, Navigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { AuthProvider } from './components/AuthProvider';
+import { useAuthStore } from './lib/auth-store';
 // import { BattleArena } from './components/BattleArena';
 import Landing from './pages/Landing';
 import Hub from './pages/Hub';
@@ -44,6 +45,12 @@ function GlobalMatchDirector() {
   return null;
 }
 
+function LandingOrRedirect() {
+  const session = useAuthStore((s) => s.session);
+  if (session) return <Navigate to="/hub" replace />;
+  return <Landing />;
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -70,7 +77,7 @@ function App() {
       <GlobalMatchDirector />
       <Routes>
         <Route element={<Layout />}>
-          <Route path="/" element={<Landing />} />
+          <Route path="/" element={<LandingOrRedirect />} />
           <Route path="/hub" element={<Hub />} />
           {/* <Route path="/arena" element={<BattleArena />} />
           <Route path="/arena/:matchId" element={<BattleArena />} /> */}

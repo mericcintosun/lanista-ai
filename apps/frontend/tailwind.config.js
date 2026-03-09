@@ -5,6 +5,9 @@ export default {
   ],
   theme: {
     extend: {
+      screens: {
+        '3xl': '2200px',
+      },
       colors: {
         background: '#0d0d0d',
         surface: {

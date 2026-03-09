@@ -102,6 +102,22 @@
     50% { box-shadow: 0 0 40px rgba(223, 127, 62, 0.3); }
   }
 
+  .subtitle-pill-badge {
+    position: relative;
+  }
+
+  .subtitle-pill-inner {
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 0.5px solid rgba(255, 255, 255, 0.35);
+    box-shadow:
+      0 2px 8px rgba(0, 0, 0, 0.2),
+      0 8px 24px rgba(0, 0, 0, 0.15),
+      0 16px 48px -12px rgba(0, 0, 0, 0.12);
+  }
+
 }
 
 .glitch-effect {
