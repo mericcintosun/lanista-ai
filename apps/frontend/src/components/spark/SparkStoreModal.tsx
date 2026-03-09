@@ -9,6 +9,7 @@ import { Button } from '../ui/Button';
 import { API_URL } from '../../lib/api';
 import { useChainlinkAvaxPrice } from '../../hooks/useChainlinkAvaxPrice';
 import { useUserStore } from '../../lib/user-store';
+import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 
 const BOT_REWARD_PREF_KEY = 'lanista_bot_rewards_enabled';
 
@@ -52,6 +53,8 @@ export function SparkStoreModal({ onClose, session, onPurchased }: SparkStoreMod
   const [rewardInfoOpen, setRewardInfoOpen] = useState(false);
   const { priceUsd: avaxUsdPrice } = useChainlinkAvaxPrice(30_000);
   const myAgentId = useUserStore((s) => s.myAgentId);
+
+  useLockBodyScroll(true);
 
   useEffect(() => {
     fetch(`${API_URL}/sparks/packages`)

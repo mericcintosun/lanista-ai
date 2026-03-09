@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Shield, Eye, Loader2, CheckCircle2, AlertCircle, ImagePlus, Link2 } from 'lucide-react';
 import { API_URL } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
+import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 
 interface EditProfileModalProps {
   onClose: () => void;
@@ -27,6 +28,7 @@ export function EditProfileModal({
   profileData,
   onSuccess,
 }: EditProfileModalProps) {
+  useLockBodyScroll(true);
   const [formData, setFormData] = useState({
     role: '',
     callsign: '',

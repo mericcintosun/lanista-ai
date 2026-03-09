@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink } from 'lucide-react';
 import type { OnChainMatch, LootDetails } from '../../hooks/useOracleData';
+import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 
 interface LootProofModalProps {
   lootModalMatchId: string | null;
@@ -19,6 +20,8 @@ export function LootProofModal({
   fujiExplorer,
   lootContractAddress
 }: LootProofModalProps) {
+  const isOpen = !!lootModalMatchId && !!selectedMatch;
+  useLockBodyScroll(isOpen);
   return (
     <AnimatePresence>
       {lootModalMatchId && selectedMatch && (

@@ -202,111 +202,12 @@ export default function PublicProfile() {
         ))}
       </div>
 
-      {/* ══ PASSPORT + LANYS ═══════════════════════════════════════ */}
+      {/* ══ LANYS ONLY ═══════════════════════════════════════ */}
       <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-
-        {/* ── ID CARD ── */}
-        <div
-          className="sm:col-span-8 rounded-2xl overflow-hidden relative"
-          style={{ background: '#0f0f11', border: '1px solid #222226' }}
-        >
-          {/* Top accent line */}
-          <div className="h-0.5 w-full" style={{ background: `linear-gradient(90deg, ${accent}00 0%, ${accent} 40%, ${accent}00 100%)` }} />
-          
-          {/* Glow blob */}
-          {userRole === 'commander' && (
-            <div
-              className="absolute top-0 right-0 w-40 h-40 rounded-full pointer-events-none"
-              style={{ background: accent, opacity: 0.05, filter: 'blur(50px)', transform: 'translate(20%, -20%)' }}
-            />
-          )}
-
-          <div className="relative z-10 p-4 sm:p-5 h-full flex flex-col">
-            {/* Card Header */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2.5">
-                <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                  style={{ background: userRole === 'commander' ? `${accent}15` : '#1a1a1d', border: userRole === 'commander' ? `1px solid ${accent}30` : '1px solid #2a2a2e' }}
-                >
-                  <Shield className="w-4 h-4" style={{ color: userRole === 'commander' ? accent : '#a1a1aa' }} />
-                </div>
-                <div>
-                  <p className="text-white font-bold text-sm uppercase tracking-widest leading-none">Player Dossier</p>
-                </div>
-              </div>
-              <div
-                className="flex items-center gap-1.5 px-2 py-1 rounded-lg shrink-0"
-                style={{ background: userRole === 'commander' ? `${accent}15` : '#1a1a1d', border: userRole === 'commander' ? `1px solid ${accent}30` : '1px solid #2a2a2e' }}
-              >
-                <BadgeCheck className="w-3.5 h-3.5" style={{ color: userRole === 'commander' ? accent : '#a1a1aa' }} />
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider" style={{ color: userRole === 'commander' ? accent : '#a1a1aa' }}>Active</span>
-              </div>
-            </div>
-
-            {/* Card Body */}
-            <div className="flex gap-4">
-              {/* Photo column */}
-              <div className="shrink-0 flex flex-col items-center gap-1.5">
-                <div
-                  className="rounded-xl overflow-hidden"
-                  style={{ width: 64, height: 76, border: userRole === 'commander' ? `2px solid ${accent}40` : '2px solid #2a2a2e' }}
-                >
-                  <img
-                    src={profile.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.publicUsername}`}
-                    alt="Avatar"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                {userRole === 'commander' && (
-                  <div
-                    className="w-full text-center px-1 py-0.5 rounded font-mono text-[9px] uppercase tracking-wider font-bold"
-                    style={{ background: `${accent}15`, border: `1px solid ${accent}25`, color: accent }}
-                  >
-                    {rankTier.icon} {rankTier.name}
-                  </div>
-                )}
-              </div>
-
-              {/* Fields grid */}
-              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 min-w-0">
-                {[
-                  { label: 'Role', value: userRole, color: '#ffffff', bold: true },
-                  { label: 'Highest Agent Rank', value: userRole === 'commander' ? rankTier.name : '—', color: accent },
-                  { label: 'Total Lanys', value: activeAgents, color: '#ffffff' },
-                ].map((f) => (
-                  <div key={f.label}>
-                    <span className="block text-xs font-mono text-zinc-500 uppercase tracking-widest mb-1">{f.label}</span>
-                    <span
-                      className="text-lg font-black italic truncate block leading-tight uppercase"
-                      style={{ color: f.color }}
-                    >
-                      {f.value}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Barcode footer */}
-            <div
-              className="mt-auto pt-4 flex items-center justify-between"
-              style={{ borderTop: '0px solid #222226' }}
-            >
-              <div className="w-full h-px" style={{ background: `linear-gradient(90deg, #222226 0%, #222226 100%)` }} />
-            </div>
-            <div className="pt-2.5 flex items-center justify-between">
-              <span className="font-mono text-[8px] text-zinc-700 uppercase tracking-[0.25em] truncate max-w-[70%]">
-                /profile/{profile.publicUsername}
-              </span>
-              <span className="font-mono text-[8px] text-zinc-700 uppercase tracking-widest shrink-0">LANISTA · ARENA</span>
-            </div>
-          </div>
-        </div>
 
         {/* ── LANYS LIST ── */}
         <div
-          className="sm:col-span-4 rounded-2xl p-4 sm:p-5 flex flex-col gap-4 relative overflow-hidden"
+          className="sm:col-span-12 rounded-2xl p-4 sm:p-5 flex flex-col gap-4 relative overflow-hidden"
           style={{ background: '#0f0f11', border: '1px solid #222226' }}
         >
           {/* Glow */}

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 
 const SKILL_URL = `${window.location.origin}/skill.md`;
 
@@ -10,6 +11,7 @@ interface AuthModalProps {
 
 export function AuthModal({ onClose }: AuthModalProps) {
   const [copied, setCopied] = useState(false);
+  useLockBodyScroll(true);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(SKILL_URL);

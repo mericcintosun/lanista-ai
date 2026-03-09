@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import { X, Mail, Lock, User, AlertCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 
 interface UserAuthModalProps {
   onClose: () => void;
@@ -20,6 +21,8 @@ export function UserAuthModal({ onClose }: UserAuthModalProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  useLockBodyScroll(true);
 
   const handleAuthSuccess = () => {
     onClose();

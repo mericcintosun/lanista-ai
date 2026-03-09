@@ -427,82 +427,7 @@ export default function UserProfile() {
       {/* ══ BOTTOM GRIDS ═══════════════════════════════════════ */}
       <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
 
-        {/* ── ID CARD ── */}
-        <div
-          className="sm:col-span-4 rounded-2xl overflow-hidden relative"
-          style={{ background: '#0f0f11', border: '1px solid #222226' }}
-        >
-          {/* Top accent line */}
-          <div className="h-0.5 w-full" style={{ background: `linear-gradient(90deg, ${accent}00 0%, ${accent} 40%, ${accent}00 100%)` }} />
-          
-          <div className="relative z-10 p-4 sm:p-5 h-full flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2.5">
-                <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                  style={{ background: userRole === 'commander' ? `${accent}15` : '#1a1a1d', border: userRole === 'commander' ? `1px solid ${accent}30` : '1px solid #2a2a2e' }}
-                >
-                  <Shield className="w-4 h-4" style={{ color: userRole === 'commander' ? accent : '#a1a1aa' }} />
-                </div>
-                <div>
-                  <p className="text-white font-bold text-sm uppercase tracking-widest leading-none">Player Dossier</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 min-w-0 mt-2">
-              {[
-                { label: 'Role', value: userRole, color: '#ffffff' },
-                { label: 'Highest Agent Rank', value: userRole === 'commander' ? rankTier.name : '—', color: accent },
-              ].map((f) => (
-                <div key={f.label}>
-                  <span className="block text-xs font-mono text-zinc-500 uppercase tracking-widest mb-1">{f.label}</span>
-                  <span
-                    className="text-lg font-black italic truncate block leading-tight uppercase"
-                    style={{ color: f.color }}
-                  >
-                    {f.value}
-                  </span>
-                </div>
-              ))}
-              
-              {profileData?.publicUsername && (
-                <div className="pt-2 border-t border-white/5">
-                  <span className="block text-[9px] font-mono text-zinc-600 uppercase tracking-widest mb-1.5">Profile URL</span>
-                  <div className="flex items-center gap-1.5">
-                    <a href={`/profile/${profileData.publicUsername}`} className="flex-1 font-mono text-[9px] text-primary hover:underline truncate py-1.5 px-2 bg-primary/5 rounded border border-primary/20 shadow-inner">
-                      <span className="opacity-50 text-zinc-400">lanista.ai/profile/</span>{profileData.publicUsername}
-                    </a>
-                    <button
-                      onClick={() => {
-                        const url = `${window.location.origin}/profile/${profileData.publicUsername}`;
-                        window.open(`https://x.com/intent/tweet?text=Check%20out%20my%20Lanista%20profile!&url=${encodeURIComponent(url)}`, '_blank');
-                      }}
-                      className="p-1.5 rounded border border-white/10 bg-white/5 text-zinc-400 hover:text-white hover:bg-[#1DA1F2]/20 hover:border-[#1DA1F2]/50 hover:text-[#1DA1F2] shrink-0 transition-all group"
-                      title="Share on X"
-                    >
-                      <Share2 size={10} className="group-hover:hidden" />
-                      <XIcon className="w-[10px] h-[10px] hidden group-hover:block fill-[#1DA1F2] text-[#1DA1F2]" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        const url = `${window.location.origin}/profile/${profileData.publicUsername}`;
-                        navigator.clipboard.writeText(url);
-                        toast.success('Profile URL copied!');
-                      }}
-                      className="p-1.5 rounded border border-white/10 bg-white/5 text-zinc-400 hover:text-white shrink-0 hover:bg-white/10 transition-all"
-                      title="Copy profile link"
-                    >
-                     <Copy size={10} />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* ── LINK LANY ── */}
+        {/* ── LINK LANY (LEFT) ── */}
         <div
           className="sm:col-span-4 rounded-2xl p-4 sm:p-5 flex flex-col gap-4 relative overflow-hidden"
           style={{ background: '#0f0f11', border: '1px solid #222226' }}
@@ -516,7 +441,70 @@ export default function UserProfile() {
           </div>
         </div>
 
-        {/* ── LANYS LIST ── */}
+        {/* ── PROFILE LINK (CENTER) ── */}
+        <div
+          className="sm:col-span-4 rounded-2xl p-4 sm:p-5 flex flex-col gap-4 relative overflow-hidden"
+          style={{ background: '#0f0f11', border: '1px solid #222226' }}
+        >
+          <div className="relative z-10 flex items-center gap-2 shrink-0">
+            <Share2 className="w-4 h-4 shrink-0 text-primary" />
+            <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest">Profile Link</span>
+          </div>
+
+          <div className="relative z-10 flex-1 flex flex-col justify-center">
+            {profileData?.publicUsername ? (
+              <div className="space-y-3">
+                <span className="block text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
+                  Public Profile URL
+                </span>
+                <a
+                  href={`/profile/${profileData.publicUsername}`}
+                  className="block w-full rounded-xl border border-primary/30 bg-primary/5 px-3 py-3 shadow-inner hover:border-primary hover:bg-primary/10 transition-colors"
+                >
+                  <span className="block text-[11px] font-mono text-zinc-400 uppercase tracking-[0.18em] mb-1">
+                    lanista.ai / profile
+                  </span>
+                  <span className="block text-lg sm:text-xl font-black text-primary truncate">
+                    {profileData.publicUsername}
+                  </span>
+                </a>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      const url = `${window.location.origin}/profile/${profileData.publicUsername}`;
+                      window.open(`https://x.com/intent/tweet?text=Check%20out%20my%20Lanista%20profile!&url=${encodeURIComponent(url)}`, '_blank');
+                    }}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-white/10 bg-white/5 text-[11px] font-mono uppercase tracking-widest text-zinc-300 hover:bg-[#1DA1F2]/15 hover:border-[#1DA1F2]/50 hover:text-[#1DA1F2] transition-all group"
+                    title="Share on X"
+                  >
+                    <Share2 size={12} className="group-hover:hidden" />
+                    <XIcon className="w-3 h-3 hidden group-hover:block fill-[#1DA1F2] text-[#1DA1F2]" />
+                    <span>Share</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      const url = `${window.location.origin}/profile/${profileData.publicUsername}`;
+                      navigator.clipboard.writeText(url);
+                      toast.success('Profile URL copied!');
+                    }}
+                    className="px-3 py-2 rounded-lg border border-white/10 bg-white/5 text-[11px] font-mono uppercase tracking-widest text-zinc-300 hover:bg-white/10 hover:text-white transition-all flex items-center gap-1.5"
+                    title="Copy profile link"
+                  >
+                    <Copy size={12} />
+                    <span>Copy</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-xs font-mono text-zinc-500 uppercase tracking-widest leading-relaxed">
+                Set a <span className="text-primary">public username</span> in your profile settings to unlock a shareable arena dossier.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── LANYS LIST (RIGHT) ── */}
         <div
           className="sm:col-span-4 rounded-2xl p-4 sm:p-5 flex flex-col gap-4 relative overflow-hidden"
           style={{ background: '#0f0f11', border: '1px solid #222226' }}
