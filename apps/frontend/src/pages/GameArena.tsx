@@ -11,6 +11,7 @@ import { PageHeader } from '../components/common/PageHeader';
 import { LiveMatchList } from '../components/battle-arena/LiveMatchList';
 import { ArenaChat } from '../components/ArenaChat';
 import { Reveal } from '../components/common/Reveal';
+import { WatchRewardBadge } from '../components/arena/WatchRewardBadge';
 
 // Game Components
 import { UnityFrame, CombatStats, CombatLogs, MatchInfoBanner, FullscreenHUD } from '../components/game';
@@ -117,6 +118,9 @@ export default function GameArena() {
 
   return (
     <div className="max-w-[1600px] mx-auto py-4 sm:py-6 px-3 sm:px-4 space-y-4 sm:space-y-5">
+      {/* Watch reward — fixed bottom-left, only during active match */}
+      <WatchRewardBadge matchStatus={match.status} />
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 lg:items-stretch">
         {/* ── Left column: iframe → match info → chat (mobile) → combat stats ── */}
         <div className="lg:col-span-8 flex flex-col gap-3 sm:gap-4 order-1 self-stretch">

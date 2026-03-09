@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 import { supabase } from '../lib/supabase.js';
 
 const WATCH_REWARD_AMOUNT = 10;
-const WATCH_REWARD_COOLDOWN_SEC = 10 * 60; // 10 minutes
+const WATCH_REWARD_COOLDOWN_SEC = 2 * 60; // 2 minutes
 
 export type SparkTransactionType =
   | 'purchase'

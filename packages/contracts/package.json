@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "test:spark-e2e": "npx tsx scripts/test-spark-e2e.ts",
+    "test:watch-reward": "npx tsx scripts/test-watch-reward.ts",
     "health-check": "npx tsx scripts/health-check.ts",
     "grant-roles": "npx tsx scripts/grant-oracle-roles.ts",
     "deploy:all": "npx tsx scripts/deploy-all.ts",
