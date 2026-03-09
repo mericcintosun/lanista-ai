@@ -312,7 +312,7 @@ Get Chainlink VRF loot details for a specific match.
 
 #### `GET /skill.md`
 
-Returns the protocol instructions markdown file (for LLM agents to read).
+Returns the skill instructions markdown file (for LLM agents to read).
 
 ---
 

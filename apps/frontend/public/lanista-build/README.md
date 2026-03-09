@@ -4,11 +4,21 @@ This guide explains how to integrate and control the Lanista Unity WebGL build t
 
 ## Overview
 
-The WebGL build exposes three main JavaScript functions that allow external applications to control the game flow and provide match data:
+The WebGL build exposes JavaScript functions that allow external applications to control the game flow and provide match data:
 
+**Core Functions:**
 - `SetMode(mode)` - Configure the operation mode
 - `SetMatchId(matchId)` - Set the match ID for external API calls
 - `LoadJsonGameData(jsonData)` - Load match data directly as JSON
+
+**Interactive Functions:**
+- `ThrowObjectToPlayer1(objectIndex)` - Throw an object at Player 1
+- `ThrowObjectToPlayer2(objectIndex)` - Throw an object at Player 2
+- `LoadPlayer1IconUrl(url)` - Load Player 1's icon from a URL
+- `LoadPlayer2IconUrl(url)` - Load Player 2's icon from a URL
+
+**Callback Functions:**
+- `OnSimulationReady()` - Called by Unity when the game is ready to receive data
 
 ## Getting Started
 
@@ -153,6 +163,102 @@ Loads match data directly into the game.
   "logs": []
 }
 ```
+
+---
+
+### ThrowObjectToPlayer1(objectIndex)
+
+Throws an object at Player 1 during the match.
+
+**Parameters:**
+- `objectIndex` (number): The index of the object to throw (0-based). Put 0 to throw tomatoe. There is only tomatoe for now.
+
+**Returns:** None
+
+**Example:**
+```javascript
+// Throw object at index 0 to Player 1
+ThrowObjectToPlayer1(0);
+```
+
+---
+
+### ThrowObjectToPlayer2(objectIndex)
+
+Throws an object at Player 2 during the match.
+
+**Parameters:**
+- `objectIndex` (number): The index of the object to throw (0-based). Put 0 to throw tomatoe. There is only tomatoe for now.
+
+**Returns:** None
+
+**Example:**
+```javascript
+// Throw object at index 0 to Player 2
+ThrowObjectToPlayer2(0);
+```
+
+---
+
+### LoadPlayer1IconUrl(url)
+
+Loads Player 1's icon/avatar from a URL.
+
+**Parameters:**
+- `url` (string): The URL of the image to load for Player 1
+
+**Returns:** None
+
+**Example:**
+```javascript
+// Load Player 1's icon
+LoadPlayer1IconUrl("https://example.com/player1-avatar.png");
+```
+
+---
+
+### LoadPlayer2IconUrl(url)
+
+Loads Player 2's icon/avatar from a URL.
+
+**Parameters:**
+- `url` (string): The URL of the image to load for Player 2
+
+**Returns:** None
+
+**Example:**
+```javascript
+// Load Player 2's icon
+LoadPlayer2IconUrl("https://example.com/player2-avatar.png");
+```
+
+---
+
+### OnSimulationReady()
+
+**Callback function** called by Unity when the game has fully loaded and is ready to receive match data.
+
+**Parameters:** None
+
+**Returns:** None
+
+**Called by:** Unity game (not called by your application)
+
+**Use case:** Use this callback to know when it's safe to call `SetMode()`, `SetMatchId()`, or `LoadJsonGameData()`.
+
+**Example:**
+```javascript
+// This function will be automatically called by Unity when ready
+function OnSimulationReady() {
+  console.log("Game is ready!");
+  
+  // Now you can safely configure the game
+  SetMode(1);
+  LoadJsonGameData(yourMatchData);
+}
+```
+
+**Note:** This function is already defined in the HTML template. Unity will call it automatically when the game initialization is complete.
 
 ## Debugging
 

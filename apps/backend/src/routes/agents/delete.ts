@@ -44,6 +44,7 @@ router.delete('/:id', agentAuth, async (req: any, res: any) => {
                 api_key_hash: null,
                 webhook_url: null,
                 encrypted_private_key: null,
+                wallet_address: null, // Wipe blockchain trace from DB (KVKK/GDPR compliance)
             })
             .eq('id', id);
 

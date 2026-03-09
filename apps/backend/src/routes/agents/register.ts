@@ -5,23 +5,42 @@ import WalletManagerEvm from '@tetherto/wdk-wallet-evm';
 import { supabase } from '../../lib/supabase.js';
 import { generateApiKey } from '../../services/auth.js';
 import { encrypt } from '../../services/crypto.js';
+import { fetchPersonality, isUrlAllowed } from '../../services/agent-personality.js';
 import { respondError } from '../shared.js';
+import rateLimit from 'express-rate-limit';
 
 const router = Router();
 
+const registerLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // Limit each IP to 10 requests per `window`
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many registrations from this IP, please try again after 15 minutes." }
+});
+
 // Creates a new bot with WDK wallet and API key
-router.post('/', async (req: any, res: any) => {
+router.post('/', registerLimiter, async (req: any, res: any) => {
     const { name, description, personality_url, webhook_url } = req.body;
-    if (!name || typeof name !== 'string') {
-        return res.status(400).json({ error: "Missing required 'name' for the agent." });
+    if (!name || typeof name !== 'string' || name.length > 100) {
+        return res.status(400).json({ error: "Missing or invalid 'name'. Maximum length is 100 characters." });
+    }
+    
+    if (description && (typeof description !== 'string' || description.length > 500)) {
+        return res.status(400).json({ error: "Description must be a string under 500 characters." });
     }
 
-    if (!webhook_url || typeof webhook_url !== 'string') {
-        return res.status(400).json({ error: "Missing required 'webhook_url' for the agent." });
+    if (webhook_url && (typeof webhook_url !== 'string' || webhook_url.length > 500)) {
+        return res.status(400).json({ error: "'webhook_url' exceeds length limits." });
+    }
+
+    if (webhook_url && !isUrlAllowed(webhook_url)) {
+        return res.status(400).json({ error: "Invalid webhook URL. Internal/Localhost URLs are not allowed." });
     }
 
     try {
-        const { apiKey, hash } = generateApiKey();
+        const botId = uuidv4();
+        const { apiKey, hash } = generateApiKey(botId);
 
         if (!process.env.SUPABASE_URL) {
             return res.status(503).json({ error: "Database not connected. Registration offline." });
@@ -42,7 +61,7 @@ router.post('/', async (req: any, res: any) => {
         const finalAvatarUrl = `https://api.dicebear.com/9.x/bottts/svg?seed=${encodeURIComponent(botName)}`;
 
         const { data, error } = await supabase.from('bots').insert({
-            id: uuidv4(),
+            id: botId,
             name: botName,
             description,
             personality_url,
@@ -54,12 +73,32 @@ router.post('/', async (req: any, res: any) => {
             status: 'active',
             hp: 100,
             attack: 10,
-            defense: 10
+            defense: 10,
+            elo: 0,
+            wins: 0,
+            total_matches: 0
         }).select().single();
 
         if (error) {
             console.error("Agent registration error:", error);
             return res.status(400).json({ error: "Registration failed. Check your input." });
+        }
+
+        if (process.env.AGENT_PASSPORT_CONTRACT_ADDRESS) {
+            try {
+                const { blockchainQueue } = await import('../../engine/blockchain-worker.js');
+                const baseUrl = (process.env.API_PUBLIC_URL || process.env.FRONTEND_URL || '').replace(/\/$/, '');
+                const metadataURI = baseUrl
+                    ? `${baseUrl}/api/nft/passport-metadata/by-wallet/${encodeURIComponent(walletAddress)}`
+                    : '';
+                await blockchainQueue.add('mint-passport', {
+                    botWallet: walletAddress,
+                    ownerWallet: null,
+                    metadataURI
+                }, { attempts: 3, backoff: { type: 'exponential', delay: 2000 } });
+            } catch (e) {
+                console.warn('[Register] Passport mint queue error:', (e as Error)?.message);
+            }
         }
 
         res.json({

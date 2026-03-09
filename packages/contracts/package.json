@@ -3,6 +3,18 @@
   "version": "1.0.0",
   "description": "Lanista Arena Smart Contracts",
   "private": true,
+  "scripts": {
+    "test:spark-e2e": "npx tsx scripts/test-spark-e2e.ts",
+    "test:watch-reward": "npx tsx scripts/test-watch-reward.ts",
+    "health-check": "npx tsx scripts/health-check.ts",
+    "grant-roles": "npx tsx scripts/grant-oracle-roles.ts",
+    "deploy:all": "npx tsx scripts/deploy-all.ts",
+    "deploy": "npx tsx scripts/deploy.ts",
+    "deploy:rank-up": "npx tsx scripts/deploy-rank-up-only.ts",
+    "deploy:spark-treasury": "npx tsx scripts/deploy-spark-treasury.ts",
+    "deploy:oracle": "npx tsx scripts/deploy-oracle-only.ts",
+    "deploy:passport": "npx tsx scripts/deploy-passport-only.ts"
+  },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.1.0",
     "@nomicfoundation/hardhat-ethers": "^3.1.3",

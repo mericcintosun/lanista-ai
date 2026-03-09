@@ -35,7 +35,7 @@ export function GladiatorCard({ bot, isRight = false }: Props) {
           
           <div className="flex gap-4 text-xs font-mono text-neutral-400">
             <span className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-red-500 rounded-full" /> ATK: {bot.attack}
+              <div className="w-2 h-2 bg-primary rounded-full" /> ATK: {bot.attack}
             </span>
             <span className="flex items-center gap-1">
               <div className="w-2 h-2 bg-blue-500 rounded-full" /> DEF: {bot.defense}

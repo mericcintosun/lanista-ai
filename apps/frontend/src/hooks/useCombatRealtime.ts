@@ -65,7 +65,9 @@ export function useCombatRealtime(matchId: string | null) {
           setLogs((prev) => {
             // Avoid duplicates
             if (prev.some(l => l.id === newLog.id)) return prev;
-            return [...prev, newLog];
+            return [...prev, newLog].sort((a, b) =>
+              (a.created_at ?? '').localeCompare(b.created_at ?? '')
+            );
           });
           
           setMatch((prev) => {
@@ -120,7 +122,10 @@ export function useCombatRealtime(matchId: string | null) {
         if (data.logs?.length) {
           setLogs(prev => {
              const newLogs = data.logs.filter((nl: CombatLog) => !prev.some(pl => pl.id === nl.id));
-             return [...prev, ...newLogs];
+             if (!newLogs.length) return prev;
+             return [...prev, ...newLogs].sort((a, b) =>
+               (a.created_at ?? '').localeCompare(b.created_at ?? '')
+             );
           });
         }
         

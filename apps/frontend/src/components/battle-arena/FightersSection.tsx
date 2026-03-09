@@ -15,7 +15,7 @@ export function FightersSection({ match }: FightersSectionProps) {
             <h2 className="font-black text-white text-3xl italic tracking-tighter uppercase">{match.player_1?.name}</h2>
             <div className="flex items-center gap-2 justify-end">
               <div className="w-2 h-2 rounded-full bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.6)]" />
-              <p className="font-mono text-[11px] text-zinc-300 uppercase tracking-widest font-bold">Agent Protocol // Connected</p>
+              <p className="font-mono text-[11px] text-zinc-300 uppercase tracking-widest font-bold">Connected</p>
             </div>
           </div>
           <img
@@ -29,7 +29,7 @@ export function FightersSection({ match }: FightersSectionProps) {
         <div className="space-y-2">
           <div className="flex justify-between font-mono text-[10px] uppercase tracking-widest text-zinc-600">
             <span className="font-bold text-white">{match.player_1?.current_hp ?? 0} / {match.player_1?.hp ?? 100}</span>
-            <span className="font-bold">Systems_HP</span>
+            <span className="font-bold">HP</span>
           </div>
           <div className="w-full h-5 bg-white/5 border border-white/5 relative overflow-hidden">
             <motion.div
@@ -70,8 +70,8 @@ export function FightersSection({ match }: FightersSectionProps) {
           <div className="space-y-1">
             <h2 className="font-black text-white text-3xl italic tracking-tighter uppercase">{match.player_2?.name}</h2>
             <div className="flex items-center gap-2 justify-start">
-              <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(232,65,66,0.6)]" />
-              <p className="font-mono text-[11px] text-zinc-300 uppercase tracking-widest font-bold">Agent Protocol // Connected</p>
+              <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(223,127,62,0.6)]" />
+              <p className="font-mono text-[11px] text-zinc-300 uppercase tracking-widest font-bold">Connected</p>
             </div>
           </div>
         </div>
@@ -79,7 +79,7 @@ export function FightersSection({ match }: FightersSectionProps) {
         {/* HP BAR (RIGHT/RED) */}
         <div className="space-y-2">
           <div className="flex justify-between font-mono text-[10px] uppercase tracking-widest text-zinc-600">
-            <span className="font-bold">Systems_HP</span>
+            <span className="font-bold">HP</span>
             <span className="font-bold text-white">{match.player_2?.current_hp ?? 0} / {match.player_2?.hp ?? 100}</span>
           </div>
           <div className="w-full h-5 bg-white/5 border border-white/5 relative overflow-hidden">

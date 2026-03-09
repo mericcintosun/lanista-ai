@@ -1,0 +1,83 @@
+Iron Series
+iron item1 name: Ember's Share
+iron item1 desc: The share fallen from the arena's first feast. Earned with blood and sweat. Verified by Chainlink VRF.
+iron item2 name: Anvil Bread
+iron item2 desc: Kneaded with the fire of the first clashes. The rookie's first sustenance. Verified by Chainlink VRF.
+iron item3 name: Dungeon Fruit
+iron item3 desc: The only fruit grown in the dark depths. The first sweetness after blood and dust. Verified by Chainlink VRF.
+iron item4 name: Rusty Goblet
+iron item4 desc: The goblet raised in honor of the first victory. Rusty iron holds the wine. Verified by Chainlink VRF.
+iron item5 name: Broken Shackle
+iron item5 desc: A piece torn from the opened arena gate. Keep it as proof of the beginning. Verified by Chainlink VRF.
+
+Bronze Series
+bronze item1 name: Bronze Essence
+bronze item1 desc: The first taste dripping from the hive of victory. Dense, heavy, and real. Verified by Chainlink VRF.
+bronze item2 name: Victor's Morsel
+bronze item2 desc: The first taste of satisfaction in victory. Seized from rivals by force. Verified by Chainlink VRF.
+bronze item3 name: Arena Salt
+bronze item3 desc: The salt of the first sweat spilled into the arena. It will flavor all future feasts. Verified by Chainlink VRF.
+bronze item4 name: Ember Medallion
+bronze item4 desc: A token forged in the heart of the arena. The warmth that follows the fight. Verified by Chainlink VRF.
+bronze item5 name: War Horn
+bronze item5 desc: The first horn of victory sounded for you. Its echo makes the arena tremble. Verified by Chainlink VRF.
+
+Silver Series
+silver item1 name: Moon Shard
+silver item1 desc: A piece torn from the moon watching your ascension. Cold and ruthless. Verified by Chainlink VRF.
+silver item2 name: Glacial Nectar
+silver item2 desc: The dew of the night just before the silver dawn. Sharp and clear. Verified by Chainlink VRF.
+silver item3 name: Silver Thorn
+silver item3 desc: The thorn that made you bleed but couldn't kill you. It is your pride now. Verified by Chainlink VRF.
+silver item4 name: Fragment of Dawn
+silver item4 desc: The last piece remaining after the bloody night. The dawn now breaks for you. Verified by Chainlink VRF.
+silver item5 name: Sword's Drop
+silver item5 desc: A single drop trickling from the steel that withstood the clash. Made of pure silver. Verified by Chainlink VRF.
+
+Gold Series
+gold item1 name: Sun's Share
+gold item1 desc: The share the sun reserved for itself from the champion's table. You no longer look from below. Verified by Chainlink VRF.
+gold item2 name: Golden Honeycomb
+gold item2 desc: A pure essence from the hive of champions. Flawless and eternal. Verified by Chainlink VRF.
+gold item3 name: Seed of Glory
+gold item3 desc: A sprout that only grows in the field of champions. Plant it back into the soil. Verified by Chainlink VRF.
+gold item4 name: Royal Essence
+gold item4 desc: A nectar only those who wear the crown can taste. You have earned this blessing. Verified by Chainlink VRF.
+gold item5 name: Sip of Victory
+gold item5 desc: That deep sip taken from the goblet of glory. Golden and endless. Verified by Chainlink VRF.
+
+Platinum Series
+platinum item1 name: Unfading Shrapnel
+platinum item1 desc: An ore that never tarnishes. The first token borne by the elites. Verified by Chainlink VRF.
+platinum item2 name: Platinum Nectar
+platinum item2 desc: The drop trickling only from the vine that blooms at the very top. Rare and ice-cold. Verified by Chainlink VRF.
+platinum item3 name: Morsel of Immortality
+platinum item3 desc: It is said that a single bite grants a thousand years of memories. That memory is now yours. Verified by Chainlink VRF.
+platinum item4 name: Polar Sip
+platinum item4 desc: A sip of light filtered from the star that guides you. Flawless and clear. Verified by Chainlink VRF.
+platinum item5 name: Sovereign's Drop
+platinum item5 desc: The last drop fallen from the table of sovereigns. You are now at that table too. Verified by Chainlink VRF.
+
+Diamond Series
+diamond item1 name: Diamond Shard
+diamond item1 desc: A crystal that traps every light that falls upon it. The share reserved for legends. Verified by Chainlink VRF.
+diamond item2 name: Unbreakable Amber
+diamond item2 desc: That unique essence which will never spoil. Sealed into the heart of the diamond. Verified by Chainlink VRF.
+diamond item3 name: Prism Feast
+diamond item3 desc: A feast that divides light into thousands of colors. Taste the might of each color. Verified by Chainlink VRF.
+diamond item4 name: Eternal Frost
+diamond item4 desc: An ice that does not melt even in hellfire. The freezing breath of the diamond morning. Verified by Chainlink VRF.
+diamond item5 name: Legend's Share
+diamond item5 desc: That final blessing offered only to those who become legends. You are the one who seized it. Verified by Chainlink VRF.
+
+Master Series
+master item1 name: Wine of the Gods
+master item1 desc: A single drop trickled from the goblet of immortals. You are now at the same table with them. Verified by Chainlink VRF.
+master item2 name: Lanista's Boon
+master item2 desc: A share fallen directly from the Lanista's own table. Even a mere speck is enough to prove your power. Verified by Chainlink VRF.
+master item3 name: Endless Feast
+master item3 desc: That legendary feast which will never end. And you sit at the head of the table. Verified by Chainlink VRF.
+master item4 name: Champion's Eternity
+master item4 desc: Not just surviving; the right to be remembered in the arena forever. The true legacy of the master. Verified by Chainlink VRF.
+master item5 name: The Ultimate Share
+master item5 desc: That final piece that ends all the feast and blood. There is nothing beyond this. Verified by Chainlink VRF.

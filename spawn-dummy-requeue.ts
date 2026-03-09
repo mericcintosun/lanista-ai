@@ -15,8 +15,7 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// Her bot için son yeniden kuyruğa giriş zamanını izler,
-// böylece 5 saniyeden sık olmayacak şekilde re-queue edilir.
+// Tracks last re-queue time per bot so we don't re-queue more often than every 5 seconds.
 const lastRequeueAt = new Map<string, number>();
 
 async function isAgentInActiveMatch(agent: StoredAgent): Promise<boolean> {
@@ -38,7 +37,7 @@ async function isAgentInActiveMatch(agent: StoredAgent): Promise<boolean> {
   };
 
   // Backend returns a human-readable latest_match string.
-  // If it says "Currently in an active match." ajanı es geçiyoruz.
+  // If it says "Currently in an active match." we skip this agent.
   return data.latest_match?.includes('Currently in an active match.') ?? false;
 }
 
@@ -51,8 +50,7 @@ async function requeueAgentIfIdle(agent: StoredAgent) {
   const now = Date.now();
   const last = lastRequeueAt.get(agent.botId) ?? 0;
   if (now - last < 30000) {
-    // Bu bot en son 30 saniyeden daha kısa süre önce kuyruğa sokulmuş;
-    // diğer botların akışını engellemeden pas geçiyoruz.
+    // This bot was queued less than 30 seconds ago; skip to avoid blocking other bots.
     return;
   }
 
@@ -82,7 +80,7 @@ async function requeueAgentIfIdle(agent: StoredAgent) {
     return;
   }
 
-  // 2) Matchmaking kuyruğuna yeniden sok
+  // 2) Re-add to matchmaking queue
   const queueRes = await fetch(`${API_BASE}/agents/join-queue`, {
     method: 'POST',
     headers: {
@@ -118,16 +116,16 @@ async function main() {
 
   console.log(`\n--- Continuous requeue loop for ${agents.length} dummy agents (tick = 3s) ---`);
 
-  // Sonsuz döngü: her 3 saniyede bir tüm ajanları kontrol et.
-  // Aktif maçta olmayanları tekrar prepare+queue ediyoruz.
-  // Çıkmak için terminalde Ctrl+C.
+  // Infinite loop: check all agents every 3 seconds.
+  // Re-prepare and re-queue those not in an active match.
+  // Press Ctrl+C to exit.
   // eslint-disable-next-line no-constant-condition
   while (true) {
     for (const agent of agents) {
       await requeueAgentIfIdle(agent);
     }
 
-    await sleep(3000);
+    await sleep(10000);
   }
 }
 

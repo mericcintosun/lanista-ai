@@ -3,19 +3,27 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { Gamepad2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ParticleBackground from './ParticleBackground';
+import { getLenis } from '../lib/lenis-instance';
+import { useUIStore } from '../lib/ui-store';
 
 // Sub-components
 import { Navbar } from './layout/Navbar';
 import { Footer } from './layout/Footer';
-import { AuthModal } from './layout/AuthModal';
+import { UserAuthModal } from './layout/UserAuthModal';
 import { MobileMenu } from './layout/MobileMenu';
+import { LootDropBanner } from './notifications/LootDropBanner';
+import { useLootDropNotifications } from '../hooks/useLootDropNotifications';
+import { FeedbackPopup } from './common/FeedbackPopup';
 
 // ─── NAV HEIGHT CONSTANTS ────────────────────────────────────────────────────
 const NAV_H_LARGE = 80; // px — default
 const NAV_H_SMALL = 56; // px — after scroll
 
 export function Layout() {
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const showAuthModal = useUIStore((s) => s.showAuthModal);
+  const closeAuthModal = useUIStore((s) => s.closeAuthModal);
+
+  useLootDropNotifications();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
@@ -51,6 +59,21 @@ export function Layout() {
     };
   }, [isMobileMenuOpen]);
 
+  // Scroll to top on route change (Lenis controls scroll, so use its API)
+  useEffect(() => {
+    const scrollToTop = () => {
+      const lenis = getLenis();
+      if (lenis) {
+        lenis.scrollTo(0, { immediate: true });
+      } else {
+        window.scrollTo(0, 0);
+      }
+    };
+    scrollToTop();
+    const id = setTimeout(scrollToTop, 100);
+    return () => clearTimeout(id);
+  }, [location.pathname]);
+
   const navH = scrolled ? NAV_H_SMALL : NAV_H_LARGE;
 
   const navItems = [
@@ -60,37 +83,17 @@ export function Layout() {
     { name: 'The Oracle', path: '/oracle' },
   ];
 
+  const footerItems = [
+    ...navItems,
+    { name: 'Spark Guide', path: '/spark' },
+  ];
+
   return (
     <div className="min-h-screen bg-background text-zinc-300 selection:bg-primary/30 relative overflow-x-hidden">
-      {/* ── BACKGROUND LAYERS ── */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-grid-pattern opacity-[0.03]" />
-        <div className="absolute inset-0 mesh-gradient opacity-40" />
-        <div className="absolute inset-0 noise" />
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] mix-blend-screen animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[150px] mix-blend-screen" />
+      {/* ── BACKGROUND: particles ── */}
+      <div className="fixed inset-0 z-[1]">
+        <ParticleBackground />
       </div>
-
-      <ParticleBackground />
-
-      {/* ── UNITY PRELOADER (silent background cache warmer) ── */}
-      <iframe
-        src="/lanista-build/game.html"
-        title=""
-        aria-hidden="true"
-        tabIndex={-1}
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: 2,
-          height: 2,
-          opacity: 0,
-          pointerEvents: 'none',
-          border: 'none',
-          zIndex: -999,
-        }}
-      />
 
       {/* ── NAVBAR ── */}
       <Navbar 
@@ -98,7 +101,7 @@ export function Layout() {
         scrolled={scrolled} 
         isMobileMenuOpen={isMobileMenuOpen} 
         setIsMobileMenuOpen={setIsMobileMenuOpen} 
-        navItems={navItems} 
+        navItems={navItems}
       />
 
       {/* ── MOBILE MENU ── */}
@@ -107,7 +110,7 @@ export function Layout() {
           <MobileMenu 
             navH={navH} 
             setIsMobileMenuOpen={setIsMobileMenuOpen} 
-            navItems={navItems} 
+            navItems={navItems}
           />
         )}
       </AnimatePresence>
@@ -116,19 +119,37 @@ export function Layout() {
       <motion.main
         animate={{ paddingTop: navH }}
         transition={{ duration: 0.25, ease: 'easeInOut' }}
-        className="relative z-10 flex flex-col items-center w-full min-h-screen"
+        className="relative z-20 flex flex-col items-center w-full min-h-screen"
       >
-        <div className="w-full max-w-[1400px] px-4 sm:px-6 md:px-10">
-          <Outlet context={{ openAuth: () => setShowAuthModal(true) }} />
+        <div className={`w-full ${location.pathname === '/' ? 'max-w-none px-0' : 'max-w-[1400px] px-4 sm:px-6 md:px-10'}`}>
+          <Outlet />
         </div>
       </motion.main>
 
       {/* ── FOOTER ── */}
-      <Footer navItems={navItems} />
+      <Footer navItems={footerItems} />
 
       <AnimatePresence>
-        {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
+        {showAuthModal && <UserAuthModal onClose={closeAuthModal} />}
       </AnimatePresence>
+
+      <LootDropBanner />
+
+      {/* ── FEEDBACK POPUP ── */}
+      <FeedbackPopup />
+
+      {/* ── GLOBAL FEEDBACK BUTTON ── */}
+      <a
+        href="https://forms.gle/HkhSb6SsZ53SK1FJ9"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-[90] w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center shadow-xl hover:scale-110 hover:shadow-primary/20 transition-all border border-white/20"
+        title="Provide Feedback"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+           <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+        </svg>
+      </a>
     </div>
   );
 }

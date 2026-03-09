@@ -167,10 +167,9 @@ export function resolveAction(
         }
 
         case 'DEFEND': {
-            const counterDamage = Math.max(1, Math.floor(attacker.attack * 0.4 - (defender.defense / 4)));
             return {
-                damage: counterDamage, healing: 0,
-                narrative: `🛡️ ${attacker.name} defended, counter-attacked for ${counterDamage}!`,
+                damage: 0, healing: 0,
+                narrative: `🛡️ ${attacker.name} defended!`,
                 vulnerable: false
             };
         }
@@ -178,9 +177,12 @@ export function resolveAction(
         case 'HEAL': {
             const healAmount = Math.floor(attacker.max_hp * 0.1);
             const actualHeal = Math.min(healAmount, attacker.max_hp - attacker.hp);
+            const narrative = actualHeal > 0
+                ? `💚 ${attacker.name} healed for ${actualHeal} HP!`
+                : `💚 ${attacker.name} is already at full HP!`;
             return {
                 damage: 0, healing: actualHeal,
-                narrative: `💚 ${attacker.name} healed for ${actualHeal} HP!`,
+                narrative,
                 vulnerable: false
             };
         }

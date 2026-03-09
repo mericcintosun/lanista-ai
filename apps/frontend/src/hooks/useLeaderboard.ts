@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { API_URL } from '../lib/api';
+import type { EloTierName } from '../lib/elo';
 
 export interface AgentScore {
   id: string;
@@ -8,13 +9,28 @@ export interface AgentScore {
   wins: number;
   totalMatches: number;
   elo?: number;
+  reputationScore?: number;
   wallet_address?: string;
   displayRank?: number;
   trendDelta?: number;
 }
 
-export function useLeaderboard(liveUpdates: boolean = true) {
+export interface UseLeaderboardOptions {
+  liveUpdates?: boolean;
+  page?: number;
+  limit?: number;
+  tier?: EloTierName | '';
+}
+
+export function useLeaderboard(options: UseLeaderboardOptions | boolean = true) {
+  const opts = typeof options === 'boolean'
+    ? { liveUpdates: options, page: 1, limit: 20, tier: '' as const }
+    : { liveUpdates: true, page: 1, limit: 20, tier: '' as const, ...options };
+
+  const { liveUpdates, page, limit, tier } = opts;
   const [leaderboard, setLeaderboard] = useState<AgentScore[]>([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [previousRanks, setPreviousRanks] = useState<Record<string, number>>(() => {
     if (typeof window === 'undefined') return {};
@@ -27,15 +43,20 @@ export function useLeaderboard(liveUpdates: boolean = true) {
   });
 
   const fetchLeaderboard = useCallback(async () => {
+    setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/leaderboard`);
+      const params = new URLSearchParams();
+      params.set('page', String(page));
+      params.set('limit', String(limit));
+      if (tier) params.set('tier', tier);
+      const res = await fetch(`${API_URL}/leaderboard?${params.toString()}`);
       const data = await res.json();
       if (data.leaderboard) {
         const incoming: AgentScore[] = data.leaderboard;
-
+        const baseRank = (page - 1) * limit;
         const withDisplayRank: AgentScore[] = incoming.map((agent: AgentScore, idx: number) => ({
           ...agent,
-          displayRank: idx + 1,
+          displayRank: baseRank + idx + 1,
         }));
 
         const withTrend: AgentScore[] = withDisplayRank.map((agent) => {
@@ -45,12 +66,10 @@ export function useLeaderboard(liveUpdates: boolean = true) {
           return { ...agent, trendDelta: delta };
         });
 
-        if (Object.keys(previousRanks).length === 0) {
+        if (!tier && page === 1 && Object.keys(previousRanks).length === 0) {
           const nextPrev: Record<string, number> = {};
           withTrend.forEach((agent) => {
-            if (agent.displayRank) {
-              nextPrev[agent.id] = agent.displayRank;
-            }
+            if (agent.displayRank) nextPrev[agent.id] = agent.displayRank;
           });
           setPreviousRanks(nextPrev);
           if (typeof window !== 'undefined') {
@@ -58,17 +77,19 @@ export function useLeaderboard(liveUpdates: boolean = true) {
           }
         }
         setLeaderboard(withTrend);
+        setTotal(data.total ?? 0);
+        setTotalPages(data.totalPages ?? 1);
       }
     } catch (err) {
-      console.error("Failed to fetch leaderboard", err);
+      console.error('Failed to fetch leaderboard', err);
     } finally {
       setLoading(false);
     }
-  }, [previousRanks]);
+  }, [page, limit, tier, previousRanks]);
 
   useEffect(() => {
     fetchLeaderboard();
-  }, [fetchLeaderboard]); // Fixed dependency
+  }, [fetchLeaderboard]);
 
   useEffect(() => {
     if (!liveUpdates) return;
@@ -76,5 +97,5 @@ export function useLeaderboard(liveUpdates: boolean = true) {
     return () => clearInterval(intervalId);
   }, [liveUpdates, fetchLeaderboard]);
 
-  return { leaderboard, loading, refresh: fetchLeaderboard };
+  return { leaderboard, loading, total, totalPages, page, limit, tier, refresh: fetchLeaderboard };
 }

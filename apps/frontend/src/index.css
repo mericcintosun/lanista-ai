@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    --primary-glow: color-mix(in srgb, #ff2d2d 40%, transparent);
-    --surface-glass: rgba(10, 10, 10, 0.7);
+    --primary-glow: color-mix(in srgb, #df7f3e 40%, transparent);
+    --surface-glass: rgba(20, 20, 20, 0.7);
   }
 
   body {
@@ -34,15 +34,12 @@
 
   .mesh-gradient {
     background-image: 
-      radial-gradient(at 0% 0%, rgba(255, 45, 45, 0.05) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(255, 45, 45, 0.03) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, rgba(255, 45, 45, 0.05) 0px, transparent 50%);
+      radial-gradient(at 0% 0%, rgba(223, 127, 62, 0.08) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(12, 165, 90, 0.05) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(225, 169, 93, 0.06) 0px, transparent 50%),
+      radial-gradient(at 80% 80%, rgba(180, 214, 111, 0.04) 0px, transparent 50%);
   }
 
-  .noise {
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-    opacity: 0.03;
-  }
 }
 
 .glitch-effect {
@@ -59,9 +56,23 @@
   height: 100%;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  background: #0d0d0d;
+  color: #e5e5e5;
+  font-family: 'Inter', sans-serif;
+}
+
 .glitch-effect::before {
   left: 2px;
-  text-shadow: -1px 0 red;
+  text-shadow: -1px 0 #df7f3e;
   clip: rect(24px, 550px, 90px, 0);
   animation: glitch-anim-2 3s infinite linear alternate-reverse;
 }
@@ -90,3 +101,6 @@
   80% { clip: rect(83px, 9999px, 66px, 0); }
   100% { clip: rect(78px, 9999px, 2px, 0); }
 }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

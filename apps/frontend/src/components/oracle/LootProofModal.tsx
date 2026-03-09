@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink } from 'lucide-react';
 import type { OnChainMatch, LootDetails } from '../../hooks/useOracleData';
+import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 
 interface LootProofModalProps {
   lootModalMatchId: string | null;
@@ -19,6 +20,8 @@ export function LootProofModal({
   fujiExplorer,
   lootContractAddress
 }: LootProofModalProps) {
+  const isOpen = !!lootModalMatchId && !!selectedMatch;
+  useLockBodyScroll(isOpen);
   return (
     <AnimatePresence>
       {lootModalMatchId && selectedMatch && (
@@ -51,7 +54,7 @@ export function LootProofModal({
                   Winner Loot
                 </div>
                 <div className="mt-2 text-xs font-mono uppercase tracking-[0.18em] text-zinc-400">
-                  Verified via Chainlink VRF
+                  Verified on-chain
                 </div>
               </div>
               <button

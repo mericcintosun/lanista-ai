@@ -4,8 +4,12 @@ import * as dotenv from "dotenv";
 dotenv.config({ path: ".env" });
 
 async function main() {
-  const contractAddress =
-    process.env.LOOT_CHEST_CONTRACT_ADDRESS || "0x2E078795472996d6FB090A630Dc63f09e3Bda0d1";
+  const rankUpAddress = process.env.RANK_UP_LOOT_NFT_ADDRESS;
+  const lootChestAddress = process.env.LOOT_CHEST_CONTRACT_ADDRESS;
+
+  const contractAddress = rankUpAddress || lootChestAddress;
+  const contractName = rankUpAddress ? "RankUpLootNFT" : "LootChest";
+
   const subId = process.env.VRF_SUBSCRIPTION_ID;
   const keyHash = process.env.VRF_KEY_HASH;
 
@@ -14,25 +18,27 @@ async function main() {
   const numWords = Number(process.env.VRF_NUM_WORDS || "1");
 
   if (!contractAddress) {
-    throw new Error("LOOT_CHEST_CONTRACT_ADDRESS missing in .env");
+    throw new Error(
+      "Set RANK_UP_LOOT_NFT_ADDRESS or LOOT_CHEST_CONTRACT_ADDRESS in .env"
+    );
   }
   if (!subId || !keyHash) {
     throw new Error("VRF_SUBSCRIPTION_ID or VRF_KEY_HASH missing in .env");
   }
 
-  console.log("🛠️ Updating LootChest VRF config");
+  console.log(`🛠️ Updating ${contractName} VRF config`);
   console.log("📍 Contract:", contractAddress);
   console.log("🔗 Sub ID:", subId);
   console.log("🔑 Key hash:", keyHash);
 
-  const lootChest = await ethers.getContractAt("LootChest", contractAddress);
+  const contract = await ethers.getContractAt(contractName, contractAddress);
 
-  const tx = await lootChest.setVrfConfig(
+  const tx = await contract.setVrfConfig(
     BigInt(subId),
     keyHash,
-    1000000, // Güvende olmak için 1 Milyon (1.000.000) yapalım
-    3,
-    1
+    callbackGasLimit,
+    requestConfirmations,
+    numWords
   );
 
   console.log("⏳ TX sent:", tx.hash);

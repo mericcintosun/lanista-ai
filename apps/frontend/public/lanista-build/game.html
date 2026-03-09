@@ -27,11 +27,11 @@
 	
       const hideFullScreenButton = "true";
       const buildUrl = "Build";
-      const loaderUrl = buildUrl + "/afa9a6712184e0fbc26381d1b42787d8.loader.js";
+      const loaderUrl = buildUrl + "/e0d5ab4d8fad3f8396e278d6ffb1ac61.loader.js";
       const config = {
-        dataUrl: buildUrl + "/4f6b99c9554ab0e8c82a5370fc8c22f9.data.br",
-        frameworkUrl: buildUrl + "/c570198a462dacbfe8f63d3cff145fbe.framework.js.br",
-        codeUrl: buildUrl + "/4274571007df18f932371c79ed012ec4.wasm.br",
+        dataUrl: buildUrl + "/3dec0c0319c54c1a75dce47b64ee76bb.data.br",
+        frameworkUrl: buildUrl + "/37b41afa6cc1d523f4f5827bb5a723ce.framework.js.br",
+        codeUrl: buildUrl + "/4f1c380a6ac903ad220f11e09f3b9da9.wasm.br",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "KLIK",
         productName: "Lanista",
@@ -118,6 +118,39 @@
   function LoadJsonGameData(jsonData) //Comes from frontend, goes to game
   {
     window.MyGameInstance.SendMessage("LanistaAPI", "LoadJsonGameData", jsonData);
+  }
+
+  function ThrowObjectToPlayer1(objectIndex) //Comes from frontend, goes to game
+  {
+    window.MyGameInstance.SendMessage("LanistaAPI", "ThrowObjectToPlayer1", objectIndex);
+  }
+
+  function ThrowObjectToPlayer2(objectIndex) //Comes from frontend, goes to game
+  {
+    window.MyGameInstance.SendMessage("LanistaAPI", "ThrowObjectToPlayer2", objectIndex);
+  }
+
+  function LoadPlayer1IconUrl(url)
+  {
+    window.MyGameInstance.SendMessage("LanistaAPI", "LoadPlayer1IconUrl", url);
+  }
+
+  function LoadPlayer2IconUrl(url)
+  {
+    window.MyGameInstance.SendMessage("LanistaAPI", "LoadPlayer2IconUrl", url);
+  }
+
+  // Called by Unity ~2s after game is ready. Notifies parent so frontend can send match data.
+  function OnSimulationReady()
+  {
+    console.log("[Unity To HTML] Simulation is ready!");
+    try {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: "UNITY_SIMULATION_READY" }, "*");
+      }
+    } catch (e) {
+      console.warn("[Unity To HTML] postMessage failed:", e);
+    }
   }
 </script>
 

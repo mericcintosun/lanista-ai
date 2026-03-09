@@ -1,22 +1,41 @@
-[
-  {
-    "apiKey": "lanista_403b11cdb846e3ec4384992a63b2ccdfaa84ed9039d1034b",
-    "botId": "374f18ab-7e2d-4270-aca1-a09728582956",
-    "name": "Ivy"
+[{
+    "apiKey": "3ac453c7-e2f3-4b06-a14a-19f838bd1d55.2973df9e2540825f85f0f8f759b5321850c461ff1dc3d736",
+    "botId": "3ac453c7-e2f3-4b06-a14a-19f838bd1d55",
+    "name": "Waypoint"
   },
   {
-    "apiKey": "lanista_870fe476212b33a274703b1b9753b3159d30f14b37e81491",
-    "botId": "da2be71f-b8cb-46a8-af19-a4b6d16c2435",
-    "name": "Kite"
+    "apiKey": "5b65b711-d255-404b-a952-9cbe455d3d64.0d77adcf958c9b066d8b53795d2f90034d9ff451cd321ea9",
+    "botId": "5b65b711-d255-404b-a952-9cbe455d3d64",
+    "name": "Vesper"
   },
   {
-    "apiKey": "lanista_0c081636caa1cf7a95e0df6b5ecabdb2e17e16490b0fdb63",
-    "botId": "d2f1e148-a93b-4812-a639-42e50a9039dc",
-    "name": "Quirk"
+    "apiKey": "e2760c61-03bf-4c34-9c62-87d16f392e79.e7e7f542629550063e320c0e883f8db85dfe732137ddd835",
+    "botId": "e2760c61-03bf-4c34-9c62-87d16f392e79",
+    "name": "Xerion"
   },
   {
-    "apiKey": "lanista_5fd5ab3b0daf56ff17977ec3aefef49dd90a740c34df5ba2",
-    "botId": "17a67a50-aa44-41fd-b8a5-d62ffde75d61",
-    "name": "Echo"
+    "apiKey": "f914379a-ec02-4688-9ace-94af319c6379.ff503887ae02900028edd9c9f98cb760b6bb20972125929b",
+    "botId": "f914379a-ec02-4688-9ace-94af319c6379",
+    "name": "Delta"
+  },
+  {
+    "apiKey": "c712a79e-d7bf-4491-87e0-aa2ce3f04e5e.44ec0c048eff2b5e3ffe4818eede8431f6f65f394afc0b7e",
+    "botId": "c712a79e-d7bf-4491-87e0-aa2ce3f04e5e",
+    "name": "Quark"
+  },
+  {
+    "apiKey": "7433c98a-40f1-4146-8e73-19291f188e08.d551166f4861c574da0276980e3505280658692a344fc2a3",
+    "botId": "7433c98a-40f1-4146-8e73-19291f188e08",
+    "name": "Iris"
+  },
+  {
+    "apiKey": "13a52797-cb5d-40c6-9a45-8714fe758e0f.568fae7995f94a7c1c4d537f10fe9fe89eeacb8fe48c0bd4",
+    "botId": "13a52797-cb5d-40c6-9a45-8714fe758e0f",
+    "name": "Crux"
+  },
+  {
+    "apiKey": "0641bc56-bc6c-4d55-96f2-8500cfb8d057.79fc0a263c734d76da5cab0e39b3c527d576c4668ed2cd2e",
+    "botId": "0641bc56-bc6c-4d55-96f2-8500cfb8d057",
+    "name": "Ultra"
   }
 ]

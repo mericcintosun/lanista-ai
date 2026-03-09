@@ -1,20 +1,20 @@
 # Lanista AI — Deployment & Architecture Notes
 
-## Özet (İlk Bakışta Ne Var?)
+## Summary (What's There at a Glance?)
 
-- ✅ **Backend Railway'e deploy edildi** — Redis, Supabase, env vars ayarlandı
-- ✅ **Frontend Railway'e deploy edildi** — ayrı servis olarak
-- ✅ **CORS hatası çözüldü** — `credentials: true` + wildcard origin uyumsuzluğu
-- ✅ **API URL'leri dinamik yapıldı** — frontend'de `VITE_API_URL`, script'lerde `API_BASE`
-- ✅ **API dokümantasyonu oluşturuldu** — 17 endpoint + WebSocket + Supabase Realtime
-- ✅ **Unity entegrasyon rehberi yazıldı** — postMessage + polling mimarisi
-- ✅ **Worker concurrency limiti** — `MATCH_WORKER_CONCURRENCY` env ile ayarlanabilir (varsayılan: 5)
-- ✅ **Blockchain queue eklendi** — on-chain işlemler ayrı BullMQ queue'da concurrency=1 ile sıralı çalışıyor (nonce çakışması yok)
-- 📋 **Ölçeklendirme planı** — horizontal scaling, auto-scaling
+- ✅ **Backend deployed to Railway** — Redis, Supabase, env vars configured
+- ✅ **Frontend deployed to Railway** — as separate service
+- ✅ **CORS error resolved** — `credentials: true` + wildcard origin incompatibility
+- ✅ **API URLs made dynamic** — `VITE_API_URL` in frontend, `API_BASE` in scripts
+- ✅ **API documentation created** — 17 endpoints + WebSocket + Supabase Realtime
+- ✅ **Unity integration guide written** — postMessage + polling architecture
+- ✅ **Worker concurrency limit** — configurable via `MATCH_WORKER_CONCURRENCY` env (default: 5)
+- ✅ **Blockchain queue added** — on-chain operations run sequentially in separate BullMQ queue with concurrency=1 (no nonce collision)
+- 📋 **Scaling plan** — horizontal scaling, auto-scaling
 
 ---
 
-## 1. Deployment Mimarisi
+## 1. Deployment Architecture
 
 ```
 ┌─────────────────────────────────┐
@@ -28,7 +28,7 @@
 │                                 │
 │  ┌──────────────────┐           │
 │  │ Frontend (Vite)  │           │
-│  │ serve ile static │           │
+│  │ static with serve│           │
 │  └──────────────────┘           │
 └─────────────────────────────────┘
          │
@@ -47,17 +47,17 @@
 └─────────────────────────────────┘
 ```
 
-### Backend Servisi (Railway)
-- **Root Directory**: `/` (monorepo — `@lanista/types` workspace dependency'si için)
+### Backend Service (Railway)
+- **Root Directory**: `/` (monorepo — for `@lanista/types` workspace dependency)
 - **Build Command**: `npm install`
 - **Start Command**: `cd apps/backend && npx tsx index.ts`
 - **Watch Paths**: `/apps/backend/**`
 
-### Frontend Servisi (Railway)
+### Frontend Service (Railway)
 - **Root Directory**: `apps/frontend`
 - **Build Command**: `npm run build`
 - **Start Command**: `npm run start` (→ `npx serve dist -s -l $PORT`)
-- **Not**: `VITE_` değişkenleri build-time'da bake edilir, runtime'da değil
+- **Note**: `VITE_` variables are baked at build-time, not runtime
 
 ---
 
@@ -65,163 +65,166 @@
 
 ### Backend (Railway Variables)
 
-| Değişken | Açıklama |
+| Variable | Description |
 |---|---|
-| `SUPABASE_URL` | Supabase proje URL'i |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (yazma izni) |
-| `REDIS_URL` | Railway Redis servisi referansı |
-| `JWT_SECRET` | JWT imzalama anahtarı |
-| `ENCRYPTION_KEY` | API key şifreleme |
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (write access) |
+| `REDIS_URL` | Railway Redis service reference |
+| `JWT_SECRET` | JWT signing key |
+| `ENCRYPTION_KEY` | API key encryption |
 | `ARENA_PRIVATE_KEY` | Arena contract private key |
-| `ORACLE_CONTRACT_ADDRESS` | Oracle contract adresi |
+| `ORACLE_CONTRACT_ADDRESS` | Oracle contract address |
 | `DEPLOYER_PRIVATE_KEY` | Deployer wallet private key |
 | `AVALANCHE_RPC_URL` | Avalanche Fuji RPC endpoint |
-| `LOOT_CHEST_CONTRACT_ADDRESS` | Loot chest contract |
-| `CORS_ORIGIN` | İzin verilen origin'ler (varsayılan: `*`) |
-| `MATCH_WORKER_CONCURRENCY` | Aynı anda işlenecek max maç sayısı (varsayılan: 5) |
-| `PORT` | Railway otomatik atar — elle ayarlama |
+| `LOOT_CHEST_CONTRACT_ADDRESS` | Loot chest contract (legacy per-match) |
+| `RANK_UP_LOOT_NFT_ADDRESS` | Rank-up ERC-1155 NFT contract (Chainlink VRF, mint on rank-up) |
+| `CORS_ORIGIN` | Allowed origins (default: `*`) |
+| `MATCH_WORKER_CONCURRENCY` | Max concurrent matches to process (default: 5) |
+| `PORT` | Set by Railway — do not set manually |
 
 ### Frontend (Railway Variables)
 
-| Değişken | Açıklama |
+| Variable | Description |
 |---|---|
-| `VITE_API_URL` | Backend Railway URL'i |
-| `VITE_SUPABASE_URL` | Supabase proje URL'i |
+| `VITE_API_URL` | Backend Railway URL |
+| `VITE_SUPABASE_URL` | Supabase project URL |
 | `VITE_SUPABASE_ANON_KEY` | Supabase anon/public key |
+| `VITE_RANK_UP_LOOT_NFT_ADDRESS` | Rank-up NFT contract address (Inventory + Snowtrace link) |
 
 ### Local Scripts (root `.env`)
 
-| Değişken | Açıklama |
+| Variable | Description |
 |---|---|
-| `API_BASE` | `http://localhost:3001` (local) veya Railway URL (live test) |
+| `API_BASE` | `http://localhost:3001` (local) or Railway URL (live test) |
 
 ---
 
-## 3. Yapılan Kod Değişiklikleri
+## 3. Code Changes Made
 
-### Frontend: API URL Merkezi Konfigürasyon
-- **Yeni dosya**: `apps/frontend/src/lib/api.ts` — `VITE_API_URL` env var'ından okur, yoksa `localhost:3001`'e fallback
-- **6 dosya güncellendi**: Hardcoded `localhost:3001` → `API_URL` import
+### Frontend: Central API URL Configuration
+- **New file**: `apps/frontend/src/lib/api.ts` — reads from `VITE_API_URL` env var, fallback to `localhost:3001`
+- **6 files updated**: Hardcoded `localhost:3001` → `API_URL` import
   - `useCombatRealtime.ts`, `Hub.tsx`, `Landing.tsx`, `Oracle.tsx`, `HallOfFame.tsx`, `Layout.tsx`
 
-### Backend: Production Hazırlık
-- **`package.json`**: `"start": "npx tsx index.ts"` eklendi
-- **`index.ts`**: Server `0.0.0.0`'a bind edildi (container'lar için zorunlu)
-- **`index.ts`**: CORS `CORS_ORIGIN` env var'ından okunuyor
+### Backend: Production Readiness
+- **`package.json`**: `"start": "npx tsx index.ts"` added
+- **`index.ts`**: Server bound to `0.0.0.0` (required for containers)
+- **`index.ts`**: CORS read from `CORS_ORIGIN` env var
 - **`nixpacks.toml`**: Railway build config (Node 20)
-- **`.dockerignore`**: node_modules/.env hariç tutma
+- **`.dockerignore`**: Exclude node_modules/.env
 
-### Script'ler: Dinamik API URL
-- `spawn-dummy.ts`, `spawn-dummy-requeue.ts`, `test-endpoints.ts`: `API_BASE` artık `.env`'den okunuyor
-- `dotenv/config` import eklendi
+### Scripts: Dynamic API URL
+- `spawn-dummy.ts`, `spawn-dummy-requeue.ts`, `test-endpoints.ts`: `API_BASE` now read from `.env`
+- `dotenv/config` import added
 
 ---
 
-## 4. CORS Sorunu ve Çözümü
+## 4. CORS Issue and Solution
 
 ### Problem
-Frontend (Railway domain A) → Backend (Railway domain B) istekleri browser tarafından bloklanıyordu:
+Frontend (Railway domain A) → Backend (Railway domain B) requests were blocked by browser:
 ```
 Cross-Origin Request Blocked: CORS header 'Access-Control-Allow-Origin' missing
 ```
 
-### Sebep
+### Cause
 ```typescript
-// YANLIŞ — credentials: true ile origin: '*' birlikte ÇALIŞMAZ
+// WRONG — credentials: true with origin: '*' does NOT work
 app.use(cors({
   origin: '*',
-  credentials: true  // ← Browser bunu wildcard ile reddeder
+  credentials: true  // ← Browser rejects this with wildcard
 }));
 ```
 
-### Çözüm
+### Solution
 ```typescript
-// DOĞRU — credentials gerekmediği için kaldırıldı
+// CORRECT — credentials removed as not needed
 app.use(cors({
   origin: process.env.CORS_ORIGIN || '*'
 }));
 ```
 
-### Neden credentials gerekmiyor?
-Lanista API'si Bearer token auth kullanıyor (`Authorization: Bearer <key>`), cookie kullanmıyor. Bearer token'lar `credentials: true` olmadan da çalışır.
+### Why credentials not needed?
+Lanista API uses Bearer token auth (`Authorization: Bearer <key>`), not cookies. Bearer tokens work without `credentials: true`.
 
 ---
 
-## 5. Worker Concurrency & Blockchain Queue (ÇÖZÜLDÜ ✅)
+## 5. Worker Concurrency & Blockchain Queue (RESOLVED ✅)
 
 ### Problem
-- Maçlar eşleşiyor ama "Neural uplink synchronizing..." mesajında bekliyor
-- Aynı anda max 5 maç (varsayılan) → `MATCH_WORKER_CONCURRENCY=20` ile artırıldı
-- Concurrency artınca blockchain tx'leri aynı deployer wallet'tan eş zamanlı gönderiliyordu → **nonce çakışması**
+- Matches pair but wait on "Neural uplink synchronizing..." message
+- Max 5 matches at once (default) → increased to `MATCH_WORKER_CONCURRENCY=20`
+- Higher concurrency caused blockchain tx's from same deployer wallet to be sent concurrently → **nonce collision**
 
-### Çözüm: Ayrı Blockchain Queue
-`blockchain-worker.ts` oluşturuldu — concurrency=1 ile tüm on-chain işlemler sıralı çalışıyor:
+### Solution: Separate Blockchain Queue
+`blockchain-worker.ts` created — all on-chain operations run sequentially with concurrency=1:
 
 ```
-Maç biter → match-worker serbest kalır (hemen yeni maça geçer)
-          → blockchain-queue'ya job eklenir
-          → blockchain-worker sırayla işler (Oracle + Loot)
-          → tx_hash Supabase'e yazılır → frontend güncellenir
+Match ends → match-worker freed (immediately moves to new match)
+          → job added to blockchain-queue
+          → blockchain-worker processes in order (Oracle + Loot)
+          → tx_hash written to Supabase → frontend updates
 ```
 
-**Yapılandırma:**
-- `blockchain-worker.ts`: concurrency=1, lockDuration=120s, 3 retry (exponential backoff)
-- `match-worker.ts`: `blockchainQueue.add()` ile job ekler, await etmez
-- `index.ts`: blockchain worker import'u eklendi
+**Configuration:**
+- `blockchain-worker.ts`: concurrency=1, lockDuration=120s, 3 retries (exponential backoff)
+- `match-worker.ts`: adds job via `blockchainQueue.add()`, does not await
+- `index.ts`: blockchain worker import added
 
-**Sonuç:**
-- ✅ Nonce çakışması tamamen çözüldü
-- ✅ Match worker hemen serbest kalıyor → yeni maçlar anında başlıyor
-- ✅ BullMQ retry mekanizması ile blockchain hataları otomatik tekrarlanıyor
-- ✅ Frontend verify durumu arka planda güncelleniyor (Supabase Realtime)
+**Result:**
+- ✅ Nonce collision fully resolved
+- ✅ Match worker freed immediately → new matches start right away
+- ✅ BullMQ retry handles blockchain errors automatically
+- ✅ Frontend verify status updates in background (Supabase Realtime)
 
 ---
 
-## 6. Unity WebGL Entegrasyonu
+## 6. Unity WebGL Integration
 
-### Mimari
+### Architecture
 React (`/arena/:matchId`) → iframe (Unity WebGL) → Backend API
 
-### Veri Akışı
-1. React, `postMessage` ile Unity'ye `matchId` + `apiUrl` gönderir
-2. Unity `GET /api/combat/status?matchId=<ID>` endpoint'ini her 1-2 saniyede çeker
-3. Her yeni combat log için `action_type`'a göre 3D animasyon oynatır
-4. `match.status === "finished"` olunca zafer ekranı gösterir
+### Data Flow
+1. React sends `matchId` + `apiUrl` to Unity via `postMessage`
+2. Unity polls `GET /api/combat/status?matchId=<ID>` every 1-2 seconds
+3. For each new combat log, plays 3D animation based on `action_type`
+4. When `match.status === "finished"` shows victory screen
 
-### Action Tipleri → Animasyonlar
-| action_type | Efekt | Animasyon |
+### Action Types → Animations
+| action_type | Effect | Animation |
 |---|---|---|
-| `ATTACK` | Normal hasar | Kılıç/yumruk |
-| `HEAVY_ATTACK` | 1.5x hasar, sonraki tur savunmasız | Güçlü atak |
-| `DEFEND` | Blok + hafif counter | Kalkan |
-| `HEAL` | Max HP'nin %10'u | İyileşme efekti |
-| `CRITICAL` | Son vuruş | Ölüm animasyonu |
+| `ATTACK` | Normal damage | Sword/punch |
+| `HEAVY_ATTACK` | 1.5x damage, next turn vulnerable | Heavy attack |
+| `DEFEND` | Block + light counter | Shield |
+| `HEAL` | 10% of max HP | Heal effect |
+| `CRITICAL` | Final blow | Death animation |
 
-### Detaylı rehber: `docs/GAME_DEVELOPER_INTEGRATION.md`
+### Detailed guide: `docs/GAME_DEVELOPER_INTEGRATION.md`
 
 ---
 
-## 7. Ölçeklendirme Yol Haritası
+## 7. Scaling Roadmap
 
-| Aşama | Ne Zaman | Ne Yapılacak |
+| Phase | When | What to do |
 |---|---|---|
-| ~~**Şimdi**~~ | ✅ Tamamlandı | `MATCH_WORKER_CONCURRENCY=20` + blockchain queue |
-| **Orta vade** | 100+ eş zamanlı maç | Worker'ı API'den ayır (ayrı servis) |
-| **Uzun vade** | 500+ eş zamanlı maç | Horizontal scaling (birden fazla worker replica) |
-| **Ölçek** | 1000+ | Auto-scaling + monitoring dashboard |
+| ~~**Now**~~ | ✅ Done | `MATCH_WORKER_CONCURRENCY=20` + blockchain queue |
+| **Medium term** | 100+ concurrent matches | Separate worker from API (dedicated service) |
+| **Long term** | 500+ concurrent matches | Horizontal scaling (multiple worker replicas) |
+| **Scale** | 1000+ | Auto-scaling + monitoring dashboard |
 
 ---
 
-## 8. Dosya Referansları
+## 8. File References
 
-| Dosya | Açıklama |
+| File | Description |
 |---|---|
-| `docs/API.md` | Tüm 17 endpoint'in dokümantasyonu |
-| `docs/GAME_DEVELOPER_INTEGRATION.md` | Unity entegrasyon rehberi (İngilizce) |
-| `apps/frontend/src/lib/api.ts` | Frontend API URL merkezi config |
+| `docs/API.md` | Documentation for all 17 endpoints |
+| `docs/GAME_DEVELOPER_INTEGRATION.md` | Unity integration guide (English) |
+| `apps/frontend/src/lib/api.ts` | Frontend API URL central config |
 | `apps/backend/nixpacks.toml` | Railway build config |
-| `apps/backend/index.ts` | CORS, 0.0.0.0 binding, tüm endpoint'ler |
-| `apps/backend/src/engine/match-worker.ts` | Maç işleme, concurrency, blockchain queue'ya job ekleme |
-| `apps/backend/src/engine/blockchain-worker.ts` | On-chain işlemler (Oracle + Loot), concurrency=1 |
+| `apps/backend/index.ts` | CORS, 0.0.0.0 binding, all endpoints |
+| `apps/backend/src/engine/match-worker.ts` | Match processing, concurrency, job addition to blockchain queue |
+| `apps/backend/src/engine/blockchain-worker.ts` | On-chain operations (Oracle + rank-up loot NFT), concurrency=1 |
+| `docs/supabase_rank_up_loot_requests.sql` | Table to run in Supabase: rank_up_loot_requests |
 | `apps/backend/src/engine/matchmaker.ts` | Redis Lua atomic matchmaking |
-| `.env` | Root env — `API_BASE` script'ler için |
+| `.env` | Root env — `API_BASE` for scripts |

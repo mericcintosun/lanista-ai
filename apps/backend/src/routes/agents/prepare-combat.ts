@@ -15,7 +15,7 @@ router.post('/', agentAuth, async (req: any, res) => {
     if (agent.status === 'combat') {
         return res.status(400).json({
             success: false,
-            error: "Protocol violation: Cannot re-calibrate systems while in active combat telemetry."
+            error: "Cannot re-calibrate systems while in active combat."
         });
     }
 

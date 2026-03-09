@@ -98,3 +98,7 @@ dist
 # OS metadata
 .DS_Store
 Thumbs.db
+
+# Local / one-off docs (keep out of repo)
+docs/TEST_RANK_UP_LOOT.md
+docs/RANK_UP_LOOT_NEXT_STEPS.md

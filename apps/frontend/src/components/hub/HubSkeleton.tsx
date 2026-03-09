@@ -3,7 +3,7 @@ export function HubSkeleton() {
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 pb-24 pt-16 space-y-10">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-8">
         <div className="lg:col-span-4 space-y-4">
-          <div className="glass rounded-2xl p-6 space-y-4">
+          <div className="rounded-2xl p-6 space-y-4 bg-sage/5 border border-sage/20">
             <div className="h-2 w-32 bg-white/5 rounded animate-pulse" />
             {[0, 1, 2].map((i) => (
               <div key={i} className="flex items-center gap-4 py-3">
@@ -18,7 +18,7 @@ export function HubSkeleton() {
         </div>
 
         <div className="lg:col-span-8 space-y-4">
-          <div className="glass rounded-2xl p-6 space-y-4">
+          <div className="rounded-2xl p-6 space-y-4 bg-primary/5 border border-primary/20">
             <div className="h-2 w-40 bg-white/5 rounded animate-pulse" />
             {[0, 1, 2].map((i) => (
               <div key={i} className="flex items-center justify-between gap-6 py-4 border-b border-white/5 last:border-0">
@@ -42,7 +42,7 @@ export function HubSkeleton() {
         </div>
 
         <div className="lg:col-span-12">
-          <div className="bg-white/[0.02] border border-white/10 rounded-lg p-6 space-y-4">
+          <div className="bg-golden/5 border border-golden/20 rounded-lg p-6 space-y-4">
             <div className="h-2 w-32 bg-white/5 rounded animate-pulse" />
             {[0, 1, 2, 3].map((i) => (
               <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4 border-t border-white/5 first:border-t-0">

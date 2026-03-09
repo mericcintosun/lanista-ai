@@ -325,7 +325,7 @@ async function main() {
     const name = nextBotName();
     console.log(`\n--- Spawning Bot ${i + 1} of ${TOTAL} :: ${name} ---`);
     await spawnDummy(name);
-    // İsteğe bağlı, logların daha rahat okunması için kısa bir bekleme
+    // Optional short delay for easier log reading
     await new Promise((r) => setTimeout(r, 300));
   }
 

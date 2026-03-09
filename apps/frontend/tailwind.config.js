@@ -6,16 +6,27 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#030303',
+        background: '#0d0d0d',
         surface: {
-          DEFAULT: '#0a0a0a',
-          hover: '#121212',
-          lighter: '#1a1a1a',
+          DEFAULT: '#141414',
+          hover: '#1a1a1a',
+          lighter: '#222222',
         },
         primary: {
-          DEFAULT: '#ff2d2d',
-          hover: '#e62626',
-          glow: 'rgba(255, 45, 45, 0.4)',
+          DEFAULT: '#df7f3e',
+          hover: '#c96c32',
+          glow: 'rgba(223, 127, 62, 0.4)',
+        },
+        secondary: {
+          DEFAULT: '#0ca55a',
+          hover: '#0a9d50',
+        },
+        sage: '#b4d66f',
+        warm: '#d5c4b2',
+        golden: '#e1a95d',
+        arena: {
+          blue: '#3b82f6',
+          green: '#0ca55a',
         },
         accent: {
           DEFAULT: '#ffffff',
@@ -25,6 +36,7 @@ export default {
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'grid-pattern': "url(\"data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h40v40H0V0zm1 1h38v38H1V1z' fill='%23ffffff' fill-opacity='0.02' fill-rule='evenodd'/%3E%3C/svg%3E\")",
+        'grid-pattern-subtle': 'linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.06) 1px, transparent 1px)',
       }
     },
   },
