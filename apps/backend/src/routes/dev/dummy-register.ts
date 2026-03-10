@@ -133,6 +133,24 @@ router.post('/', async (req, res) => {
         }
         console.log(`[Dummy Register] Created ${name} (${botId}) HP=${finalStats.hp} ATK=${finalStats.attack} DEF=${finalStats.defense}`);
 
+        // Queue passport mint if contract is configured
+        if (process.env.AGENT_PASSPORT_CONTRACT_ADDRESS) {
+          try {
+            const { blockchainQueue } = await import('../../engine/blockchain-worker.js');
+            const baseUrl = (process.env.API_PUBLIC_URL || process.env.FRONTEND_URL || '').replace(/\/$/, '');
+            const metadataURI = baseUrl
+              ? `${baseUrl}/api/nft/passport-metadata/by-wallet/${encodeURIComponent(walletAddress)}`
+              : '';
+            await blockchainQueue.add('mint-passport', {
+              botWallet: walletAddress,
+              ownerWallet: null,
+              metadataURI,
+            }, { attempts: 3, backoff: { type: 'exponential', delay: 2000 } });
+          } catch (e) {
+            console.warn(`[Dummy Register] Passport mint queue error for ${name}:`, (e as Error)?.message);
+          }
+        }
+
         // Store strategy in Redis (1 hour TTL)
         await redis.set(`strategy:${botId}`, JSON.stringify(strategy), 'EX', 3600);
 
