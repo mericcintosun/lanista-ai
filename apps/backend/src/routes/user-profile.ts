@@ -232,7 +232,10 @@ router.post('/auto-setup', async (req, res) => {
         }
 
         const callsign = generateCallsign(user.id);
-        const publicUsername = callsign.toLowerCase();
+        const baseUsername = callsign.toLowerCase();
+        // Make public username globally unique by including a stable suffix from user id
+        const idSuffix = user.id.replace(/-/g, '').slice(0, 6).toLowerCase();
+        const publicUsername = `${baseUsername}_${idSuffix}`;
         const avatarSeed = user.id.replace(/-/g, '').slice(-12);
         const defaultAvatarUrl =
             existing?.avatar_url ||
@@ -255,7 +258,11 @@ router.post('/auto-setup', async (req, res) => {
         return res.json({ success: true, callsign });
     } catch (error: any) {
         console.error("Auto-setup error:", error);
-        res.status(500).json({ error: error.message || "Internal server error" });
+        // Surface common constraint error a bit more clearly for debugging
+        if (error?.code === '23505' && typeof error?.message === 'string') {
+            return res.status(500).json({ error: 'Profile auto-setup failed due to a unique constraint (likely public_username collision).' });
+        }
+        res.status(500).json({ error: error?.message || "Internal server error" });
     }
 });
 

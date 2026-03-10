@@ -121,9 +121,7 @@ export default function HallOfFame() {
           </Reveal>
         )}
 
-        <Reveal delay={0.5}>
-          <LanyTable agents={leaderboard} />
-        </Reveal>
+        <LanyTable agents={leaderboard} />
 
         {totalPages > 1 && (
           <div className="flex flex-wrap items-center justify-center gap-2 pt-6">
