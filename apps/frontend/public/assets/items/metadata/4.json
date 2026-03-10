@@ -1,5 +1,5 @@
 {
   "name": "Rusty Goblet",
   "description": "The goblet raised in honor of the first victory. Rusty iron holds the wine. Verified by Chainlink VRF.",
-  "image": "/assets/items/iron-item4.png"
+  "image": "https://lanista-ai-production.up.railway.app/assets/items/iron-item4.png"
 }
