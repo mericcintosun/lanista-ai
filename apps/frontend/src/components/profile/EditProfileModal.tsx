@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Shield, Eye, Loader2, CheckCircle2, AlertCircle, ImagePlus, Link2 } from 'lucide-react';
+import { X, Loader2, CheckCircle2, AlertCircle, ImagePlus, Link2 } from 'lucide-react';
 import { API_URL } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
@@ -233,35 +233,6 @@ export function EditProfileModal({
                     setFormData({ ...formData, callsign: e.target.value.toUpperCase() })
                   }
                 />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">
-                  Role
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { id: 'commander', name: 'Player', icon: Shield, info: 'Manages Lany teams' },
-                    { id: 'observer', name: 'Spectator', icon: Eye, info: 'Follows matches & stats' },
-                  ].map((r) => (
-                    <button
-                      key={r.id}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, role: r.id })}
-                      className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 text-center ${
-                        formData.role === r.id
-                          ? 'border-primary bg-primary/5 text-white'
-                          : 'border-white/5 bg-zinc-900/30 text-zinc-500 hover:border-white/10'
-                      }`}
-                    >
-                      <r.icon className="w-6 h-6" />
-                      <div>
-                        <div className="font-bold uppercase text-xs tracking-widest">{r.name}</div>
-                        <div className="text-[10px] opacity-60 mt-0.5">{r.info}</div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
               </div>
 
               <div className="space-y-1.5">

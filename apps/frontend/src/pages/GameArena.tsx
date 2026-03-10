@@ -128,12 +128,15 @@ export default function GameArena() {
 
   const isLobby = match?.status === 'pending';
   const [supportExpanded, setSupportExpanded] = useState(true);
+  const wasLobbyRef = useRef(isLobby);
 
-  // Auto-collapse SupportPanel when match goes active
+  // Auto-collapse SupportPanel only when transitioning from lobby → active (once per match phase)
   useEffect(() => {
-    if (match && !isLobby) {
+    if (match && wasLobbyRef.current && !isLobby) {
+      wasLobbyRef.current = false;
       setSupportExpanded(false);
     }
+    if (isLobby) wasLobbyRef.current = true;
   }, [isLobby, match]);
 
   const onThrowable = useCallback(
@@ -233,13 +236,13 @@ export default function GameArena() {
   }
 
   return (
-    <div className="max-w-[1600px] mx-auto py-4 sm:py-6 px-3 sm:px-4 space-y-4 sm:space-y-5">
+    <div className="w-full max-w-[1600px] mx-auto py-4 sm:py-6 px-3 sm:px-4 space-y-4 sm:space-y-5 overflow-x-hidden min-w-0">
       {/* Watch reward — fixed bottom-left, only during active match */}
       <WatchRewardBadge matchStatus={match.status} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 lg:items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 lg:items-stretch min-w-0">
         {/* ── Left column: iframe → match info → chat (mobile) → combat stats ── */}
-        <div className="lg:col-span-8 flex flex-col gap-3 sm:gap-4 order-1 self-stretch">
+        <div className="lg:col-span-8 flex flex-col gap-3 sm:gap-4 order-1 self-stretch min-w-0 overflow-hidden">
           {/* Unity iframe */}
           <div className="relative group">
             <div className="absolute -inset-[1px] bg-gradient-to-r from-blue-500/20 via-transparent to-secondary/20 rounded-2xl blur-sm opacity-50 pointer-events-none" />
@@ -269,7 +272,7 @@ export default function GameArena() {
           </div>
 
           {/* Match info — id, status, p1 vs p2 */}
-          <MatchInfoBanner match={match} matchId={matchId} />
+          {match && matchId && <MatchInfoBanner match={match} matchId={matchId} />}
 
           {/* Lobby countdown timer — mobile */}
           <div className="lg:hidden">
@@ -277,16 +280,34 @@ export default function GameArena() {
           </div>
 
           {/* Prediction Panel for Mobile — collapsible */}
-          <div className="lg:hidden">
+          <div className="lg:hidden min-w-0 overflow-hidden">
             <button
               type="button"
-              onClick={() => setSupportExpanded(prev => !prev)}
-              className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-[#0B0F19] border border-white/10 text-white/60 font-mono text-xs uppercase tracking-widest hover:border-white/20 transition-colors"
+              id="arena-predictions-toggle-mobile"
+              aria-expanded={supportExpanded}
+              aria-controls="arena-predictions-panel-mobile"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setSupportExpanded((prev) => !prev);
+              }}
+              className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-zinc-900/80 border border-zinc-700/80 text-zinc-300 font-mono text-xs uppercase tracking-widest hover:border-amber-500/30 hover:text-zinc-100 transition-colors"
             >
               <span>Arena Predictions</span>
-              {supportExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              {supportExpanded ? <ChevronUp className="w-4 h-4 shrink-0" /> : <ChevronDown className="w-4 h-4 shrink-0" />}
             </button>
-            {supportExpanded && <SupportPanel match={match} disabled={!isLobby} />}
+            <div
+              id="arena-predictions-panel-mobile"
+              role="region"
+              aria-labelledby="arena-predictions-toggle-mobile"
+              className={`overflow-hidden transition-[max-height] duration-300 ease-out ${supportExpanded ? 'max-h-[2000px]' : 'max-h-0'}`}
+            >
+              <div
+                className={`transition-all duration-200 ease-out ${supportExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}
+              >
+                <SupportPanel match={match} disabled={!isLobby} />
+              </div>
+            </div>
           </div>
 
           {/* Chat + combat logs — always visible on mobile */}
@@ -301,31 +322,49 @@ export default function GameArena() {
                 chatState={chatState}
               />
             </div>
-            <div className="min-h-[150px] max-h-[25vh]">
+            {/* <div className="min-h-[150px] max-h-[25vh]">
               <CombatLogs logs={logs} match={match} />
-            </div>
+            </div> */}
           </div>
 
           {/* Robot HP & stats */}
-          <CombatStats match={match} />
+          {/* <CombatStats match={match} /> */}
         </div>
 
         {/* ── Right column: Timer + Prediction Panel + chat + combat logs, desktop only ── */}
-        <div className="hidden lg:flex lg:flex-col lg:col-span-4 order-2 gap-3 sm:gap-4 self-stretch min-h-0 overflow-hidden">
+        <div className="hidden lg:flex lg:flex-col lg:col-span-4 order-2 gap-3 sm:gap-4 self-stretch min-h-0 min-w-0 overflow-hidden">
           {/* Lobby countdown timer */}
           <LobbyCountdown match={match} logsCount={logs.length} />
 
           {/* Desktop Prediction Panel — collapsible */}
-          <div>
+          <div className="min-w-0 flex flex-col overflow-hidden shrink-0">
             <button
               type="button"
-              onClick={() => setSupportExpanded(prev => !prev)}
-              className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-[#0B0F19] border border-white/10 text-white/60 font-mono text-xs uppercase tracking-widest hover:border-white/20 transition-colors mb-1"
+              id="arena-predictions-toggle-desktop"
+              aria-expanded={supportExpanded}
+              aria-controls="arena-predictions-panel-desktop"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setSupportExpanded((prev) => !prev);
+              }}
+              className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-zinc-900/80 border border-zinc-700/80 text-zinc-300 font-mono text-xs uppercase tracking-widest hover:border-amber-500/30 hover:text-zinc-100 transition-colors mb-1"
             >
               <span>Arena Predictions</span>
-              {supportExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              {supportExpanded ? <ChevronUp className="w-4 h-4 shrink-0" /> : <ChevronDown className="w-4 h-4 shrink-0" />}
             </button>
-            {supportExpanded && <SupportPanel match={match} disabled={match.status === 'finished' || match.status === 'aborted'} />}
+            <div
+              id="arena-predictions-panel-desktop"
+              role="region"
+              aria-labelledby="arena-predictions-toggle-desktop"
+              className={`overflow-hidden transition-[max-height] duration-300 ease-out ${supportExpanded ? 'max-h-[2000px]' : 'max-h-0'}`}
+            >
+              <div
+                className={`transition-all duration-200 ease-out ${supportExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}
+              >
+                <SupportPanel match={match} disabled={match.status === 'finished' || match.status === 'aborted'} />
+              </div>
+            </div>
           </div>
 
           <div className="flex-1 min-h-0 flex flex-col gap-3 sm:gap-4">
@@ -339,9 +378,9 @@ export default function GameArena() {
                 chatState={chatState}
               />
             </div>
-            <div className="h-[250px] shrink-0 overflow-hidden">
+            {/* <div className="h-[250px] shrink-0 overflow-hidden">
               <CombatLogs logs={logs} match={match} />
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

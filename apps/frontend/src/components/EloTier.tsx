@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { RankIcon } from './RankIcon';
 import { getEloTier, getTierProgress } from '../lib/elo';
 
 const TIER_GLOW_STYLES: Record<string, string> = {
@@ -31,8 +32,8 @@ export function TierBadge({ elo, hasPlayed, prominent = false }: { elo: number; 
             Rank
           </div>
           <div className="relative z-10 flex flex-col items-center gap-1 mt-2">
-            <span className={`text-4xl sm:text-5xl font-black drop-shadow-lg ${tier.color}`} style={{ textShadow: `0 0 24px currentColor` }}>
-              {tier.icon}
+            <span className={`flex items-center justify-center drop-shadow-lg ${tier.color}`} style={{ textShadow: `0 0 24px currentColor` }}>
+              <RankIcon rank={tier.name} size={48} strokeWidth={2.5} />
             </span>
             <span className={`font-mono text-sm sm:text-base font-black uppercase tracking-[0.35em] ${tier.color}`}>
               {tier.name}
@@ -47,17 +48,17 @@ export function TierBadge({ elo, hasPlayed, prominent = false }: { elo: number; 
   }
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-mono font-black uppercase tracking-widest border ${tier.color} ${tier.border} ${tier.bg} ${tier.glow}`}>
-      <span>{tier.icon}</span> {tier.name}
+      <RankIcon rank={tier.name} size={14} strokeWidth={2.5} className="shrink-0" />
+      {tier.name}
     </span>
   );
 }
 
-/** Tier progress bar — Valorant-style */
-export function TierProgressBar({ elo, hasPlayed, compact = false }: { elo: number; hasPlayed: boolean; compact?: boolean }) {
+/** Tier progress bar — Valorant-style. hideEloLabel: show only "X TO NEXT". size: "large" for bigger label text. labelRightOfBar: same row as bar, "X TO NEXT" on right. labelBelowBar: "X TO NEXT" on row below bar. */
+export function TierProgressBar({ elo, hasPlayed, compact = false, hideEloLabel = false, size = 'default', labelRightOfBar = false, labelBelowBar = false }: { elo: number; hasPlayed: boolean; compact?: boolean; hideEloLabel?: boolean; size?: 'default' | 'large'; labelRightOfBar?: boolean; labelBelowBar?: boolean }) {
   const tier  = getEloTier(elo, hasPlayed);
   const prog  = getTierProgress(elo, hasPlayed);
 
-  // bar color based on tier
   const barColor = {
     MASTER:   'bg-fuchsia-400',
     DIAMOND:  'bg-cyan-300',
@@ -68,24 +69,80 @@ export function TierProgressBar({ elo, hasPlayed, compact = false }: { elo: numb
     IRON:     'bg-zinc-600',
   }[tier.name] ?? 'bg-zinc-600';
 
+  const labelClass = size === 'large' ? 'font-mono text-xs sm:text-sm font-bold uppercase tracking-widest' : 'font-mono text-[10px] sm:text-xs font-bold uppercase tracking-widest';
+  const compactLabelClass = 'font-mono text-[9px] font-bold uppercase tracking-wider';
+  const iconSize = labelRightOfBar || labelBelowBar ? 12 : 14;
+
+  const toNextNode = prog.nextName ? (
+    <span className={`${labelRightOfBar || labelBelowBar ? compactLabelClass : labelClass} ${hideEloLabel ? 'text-white' : 'text-zinc-500'} inline-flex items-center gap-2 min-w-0 max-w-full overflow-hidden`}>
+      <span className="shrink-0">{prog.toNext} TO</span>
+      <RankIcon rank={prog.nextName} size={iconSize} strokeWidth={2.5} className="shrink-0 flex-shrink-0" />
+      <span className="truncate min-w-0">{prog.nextName}</span>
+    </span>
+  ) : (
+    <span className={`${labelRightOfBar || labelBelowBar ? compactLabelClass : labelClass} text-fuchsia-400 shrink-0`}>MAX RANK</span>
+  );
+
   if (!hasPlayed) return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 h-1 bg-white/5 rounded-full" />
-      <span className="font-mono text-[10px] sm:text-xs text-zinc-600 uppercase tracking-widest">UNRANKED</span>
+      <div className="flex-1 h-1.5 bg-white/5 rounded-full" />
+      <span className={`${labelClass} text-zinc-600`}>UNRANKED</span>
     </div>
   );
 
+  if (labelBelowBar) {
+    return (
+      <div className="flex flex-col gap-3 w-full min-w-0">
+        <div className="relative h-3 w-full min-w-0 rounded-full overflow-hidden bg-white/10">
+          <motion.div
+            className={`absolute inset-y-0 left-0 rounded-full ${barColor}`}
+            initial={{ width: 0 }}
+            animate={{ width: `${prog.pct}%` }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+          />
+          <motion.div
+            className={`absolute inset-y-0 left-0 rounded-full ${barColor} blur-sm opacity-50`}
+            initial={{ width: 0 }}
+            animate={{ width: `${prog.pct}%` }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+          />
+        </div>
+        <div className="flex justify-end items-center gap-2 min-h-[20px]">{toNextNode}</div>
+      </div>
+    );
+  }
+
+  if (labelRightOfBar) {
+    return (
+      <div className="flex items-center gap-3 w-full min-w-0">
+        <div className="relative h-2 flex-1 min-w-0 rounded-full overflow-hidden bg-white/10">
+          <motion.div
+            className={`absolute inset-y-0 left-0 rounded-full ${barColor}`}
+            initial={{ width: 0 }}
+            animate={{ width: `${prog.pct}%` }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+          />
+          <motion.div
+            className={`absolute inset-y-0 left-0 rounded-full ${barColor} blur-sm opacity-50`}
+            initial={{ width: 0 }}
+            animate={{ width: `${prog.pct}%` }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+          />
+        </div>
+        {toNextNode}
+      </div>
+    );
+  }
+
   return (
     <div className={`w-full ${compact ? '' : 'space-y-1'}`}>
-      {/* Bar */}
-      <div className="relative h-1.5 bg-white/10 rounded-full overflow-hidden">
+      <div className="relative h-2 bg-white/10 rounded-full overflow-hidden">
         <motion.div
           className={`absolute inset-y-0 left-0 rounded-full ${barColor}`}
           initial={{ width: 0 }}
           animate={{ width: `${prog.pct}%` }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
         />
-        {/* Glow effect */}
         <motion.div
           className={`absolute inset-y-0 left-0 rounded-full ${barColor} blur-sm opacity-50`}
           initial={{ width: 0 }}
@@ -93,19 +150,14 @@ export function TierProgressBar({ elo, hasPlayed, compact = false }: { elo: numb
           transition={{ duration: 0.8, ease: 'easeOut' }}
         />
       </div>
-      {/* Label */}
       {!compact && (
-        <div className="flex justify-between items-center mt-1.5">
-          <span className={`font-mono text-[10px] sm:text-xs font-bold uppercase tracking-widest ${tier.color}`}>
-            {elo} ELO
-          </span>
-          {prog.nextName ? (
-            <span className="font-mono text-[10px] sm:text-xs text-zinc-500 uppercase tracking-widest">
-              {prog.toNext} TO {prog.nextName}
+        <div className="flex justify-between items-center mt-2">
+          {!hideEloLabel && (
+            <span className={`${labelClass} ${tier.color}`}>
+              {elo} ELO
             </span>
-          ) : (
-            <span className="font-mono text-[10px] sm:text-xs text-fuchsia-400 uppercase tracking-widest">MAX RANK</span>
           )}
+          {toNextNode}
         </div>
       )}
     </div>
