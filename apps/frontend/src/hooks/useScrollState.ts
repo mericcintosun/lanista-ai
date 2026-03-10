@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { getLenis } from '../lib/lenis-instance';
 
 const SCROLL_THRESHOLD_ENTER = 36;

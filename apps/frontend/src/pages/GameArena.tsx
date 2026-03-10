@@ -16,7 +16,7 @@ import { WatchRewardBadge } from '../components/arena/WatchRewardBadge';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 // Game Components
-import { UnityFrame, CombatStats, CombatLogs, MatchInfoBanner, LobbyCountdown, FullscreenHUD } from '../components/game';
+import { UnityFrame, MatchInfoBanner, LobbyCountdown, FullscreenHUD } from '../components/game';
 import { SupportPanel } from '../components/arena/SupportPanel';
 
 /** Compute each player's HP at the baseline moment (before live logs Unity will replay).

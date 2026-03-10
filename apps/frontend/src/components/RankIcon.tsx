@@ -2,7 +2,6 @@ import {
   Anvil,
   Shield,
   Medal,
-  BadgeCheck,
   Diamond,
   Crown,
   type LucideIcon,
@@ -32,6 +31,8 @@ export interface RankIconProps {
   strokeWidth?: number;
   /** Optional className for the wrapper (e.g. shrink-0). */
   className?: string;
+  /** Optional inline style (e.g. for accent color override). */
+  style?: React.CSSProperties;
 }
 
 export function RankIcon({
@@ -39,6 +40,7 @@ export function RankIcon({
   size = 20,
   strokeWidth = 2.5,
   className = '',
+  style,
 }: RankIconProps) {
   const key = (rank || '').toLowerCase();
   const { icon: Icon, color } = RANK_CONFIG[key] ?? DEFAULT_CONFIG;
@@ -47,7 +49,7 @@ export function RankIcon({
       className={className}
       size={size}
       strokeWidth={strokeWidth}
-      style={{ color }}
+      style={{ color, ...style }}
       aria-hidden
     />
   );

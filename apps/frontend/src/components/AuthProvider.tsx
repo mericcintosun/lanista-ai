@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { API_URL } from '../lib/api';
 import { useAuthStore } from '../lib/auth-store';
@@ -36,7 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    const handleSession = (session: { access_token: string } | null) => {
+    const handleSession = (session: Session | null) => {
       setSession(session);
       if (session?.access_token) {
         syncProfile(session.access_token);
