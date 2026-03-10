@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { supabase } from '../../lib/supabase.js';
 import { calculateFinalStats } from '../../engine/referee.js';
 import { validateStrategy } from '../../engine/strategy.js';
-import { redis } from '../shared.js';
+import { redis, startMatch } from '../shared.js';
 import { findMatch } from '../../engine/matchmaker.js';
 
 const router = Router();
@@ -88,8 +88,11 @@ router.post('/', async (req, res) => {
         // Store strategy in Redis (1 hour TTL)
         await redis.set(`strategy:${bot.id}`, JSON.stringify(strategy), 'EX', 3600);
 
-        // Add to matchmaking queue
-        await findMatch(bot.id, bot.elo || 0, bot.name);
+        // Add to matchmaking queue — if matched, start the match
+        const opponentId = await findMatch(bot.id, bot.elo || 0, bot.name);
+        if (opponentId) {
+          await startMatch(opponentId, bot.id);
+        }
 
         requeued++;
       } catch (e) {

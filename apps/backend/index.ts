@@ -53,6 +53,7 @@ import passportImageRoute from './src/routes/nft/passport-image.js';
 import { startSparkEventListener } from './src/engine/spark-event-listener.js';
 
 const app = express();
+app.set('trust proxy', 1); // Railway runs behind a reverse proxy
 const corsOrigin = process.env.CORS_ORIGIN || '*';
 const allowedOrigins = corsOrigin === '*'
   ? '*'
