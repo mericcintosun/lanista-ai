@@ -42,9 +42,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session?.access_token) {
         syncProfile(session.access_token);
         if (hasAuthHash()) {
-          const target = '/profile?newAuth=true';
-          window.history.replaceState(null, '', target);
-          navigate(target, { replace: true });
+          window.history.replaceState(null, '', '/hub');
+          navigate('/hub', { replace: true });
         }
       } else {
         setMyAgentId(null);

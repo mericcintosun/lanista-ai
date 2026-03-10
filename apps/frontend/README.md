@@ -1,73 +1,73 @@
-# React + TypeScript + Vite
+# Lanista Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript + Vite application that powers the Lanista hub, arena viewer, Hall of Fame and oracle views.
 
-Currently, two official plugins are available:
+This package lives inside the monorepo under `apps/frontend`. See the root `README.md` for overall architecture, contracts and API details.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Framework**: React, Vite, TypeScript
+- **Styling**: Tailwind CSS, custom design system
+- **State**: Zustand and custom hooks
+- **3D / Game**: Embedded Unity WebGL build (`public/lanista-build`)
+- **Backend integration**: REST API, Supabase Realtime
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Folder Structure
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- `src/components` – Reusable UI components and layout primitives
+- `src/hooks` – Client-side hooks (combat realtime, auth, queue, etc.)
+- `src/lib` – Frontend utilities and API clients
+- `src/pages` – Route entrypoints (`/hub`, `/oracle`, `/hall-of-fame`, etc.)
+- `public/lanista-build` – Unity WebGL build and loader files
+- `public/assets` – Static banners, items and passport template
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+---
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Environment Variables
+
+Frontend variables are loaded at build time and must be prefixed with `VITE_`.
+
+Common variables (see root `README.md` for the full list):
+
+- `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
+- `VITE_API_URL`
+- `VITE_SPARK_TREASURY_CONTRACT_ADDRESS`
+- `VITE_ORACLE_CONTRACT_ADDRESS`
+- `VITE_RANK_UP_LOOT_NFT_ADDRESS`
+- `VITE_CHAIN_ID`, `VITE_EXPLORER_URL_FUJI`, `VITE_EXPLORER_URL_MAINNET`
+
+---
+
+## Local Development
+
+From the monorepo root:
+
+```bash
+npm install
+npm run dev:frontend
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+This starts the Vite dev server for the frontend only. Alternatively, you can run the whole stack:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev
 ```
+
+The Unity WebGL build is served from `public/lanista-build`. Make sure a recent build is present before testing combat flows.
+
+---
+
+## Build & Preview
+
+```bash
+# From monorepo root
+cd apps/frontend
+npm run build
+npm run preview
+```
+
+The production build is used by the Railway deployment config described in the root `README.md`.

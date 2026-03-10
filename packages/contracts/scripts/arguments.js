@@ -1,9 +1,29 @@
+/**
+ * RankUpLootNFT constructor arguments.
+ * Loads from env: VRF_COORDINATOR_ADDRESS, VRF_SUBSCRIPTION_ID, VRF_KEY_HASH,
+ * VRF_CALLBACK_GAS_LIMIT, VRF_REQUEST_CONFIRMATIONS, VRF_NUM_WORDS.
+ * Set in packages/contracts/.env (see .env.example)
+ */
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
+require('dotenv').config({ path: path.resolve(__dirname, '../../../.env') });
+
+const coordinator = process.env.VRF_COORDINATOR_ADDRESS;
+const subscriptionId = process.env.VRF_SUBSCRIPTION_ID;
+const keyHash = process.env.VRF_KEY_HASH;
+
+if (!coordinator || !subscriptionId || !keyHash) {
+  throw new Error(
+    'VRF env required. Set in .env: VRF_COORDINATOR_ADDRESS, VRF_SUBSCRIPTION_ID, VRF_KEY_HASH'
+  );
+}
+
 module.exports = [
-  "0x5C210eF41CD1a72de73bF76eC39637bB0d3d7BEE", // coordinatorAddress
-  "21598168196920553558148664578015566321841392228107135145955950423307242910180", // subscriptionId
-  "0xc799bd1e3bd4d1a41cd4968997a4e03dfd2a3c7c04b695881138580163f42887", // keyHash
-  250000, // callbackGasLimit (value at deploy time)
-  3, // requestConfirmations
-  1 // numWords
+  coordinator,
+  subscriptionId,
+  keyHash,
+  Number(process.env.VRF_CALLBACK_GAS_LIMIT || '250000'),
+  Number(process.env.VRF_REQUEST_CONFIRMATIONS || '3'),
+  Number(process.env.VRF_NUM_WORDS || '1'),
 ];
 

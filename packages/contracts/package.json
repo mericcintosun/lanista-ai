@@ -13,7 +13,9 @@
     "deploy:rank-up": "npx tsx scripts/deploy-rank-up-only.ts",
     "deploy:spark-treasury": "npx tsx scripts/deploy-spark-treasury.ts",
     "deploy:oracle": "npx tsx scripts/deploy-oracle-only.ts",
-    "deploy:passport": "npx tsx scripts/deploy-passport-only.ts"
+    "deploy:passport": "npx tsx scripts/deploy-passport-only.ts",
+    "set:rank-up-base-uri": "npx tsx scripts/set-rank-up-base-uri.ts",
+    "normalize:item-metadata-images": "npx tsx ../../scripts/normalize-item-metadata-images.ts"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.1.0",
