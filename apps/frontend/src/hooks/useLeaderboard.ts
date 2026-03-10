@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { API_URL } from '../lib/api';
 import type { EloTierName } from '../lib/elo';
 
@@ -42,8 +42,8 @@ export function useLeaderboard(options: UseLeaderboardOptions | boolean = true) 
     }
   });
 
-  const fetchLeaderboard = useCallback(async () => {
-    setLoading(true);
+  const fetchLeaderboard = useCallback(async (isRefetch: boolean = false) => {
+    if (!isRefetch) setLoading(true);
     try {
       const params = new URLSearchParams();
       params.set('page', String(page));
@@ -87,13 +87,16 @@ export function useLeaderboard(options: UseLeaderboardOptions | boolean = true) 
     }
   }, [page, limit, tier, previousRanks]);
 
+  const isInitialMount = useRef(true);
   useEffect(() => {
-    fetchLeaderboard();
+    const isRefetch = !isInitialMount.current;
+    if (isInitialMount.current) isInitialMount.current = false;
+    fetchLeaderboard(isRefetch);
   }, [fetchLeaderboard]);
 
   useEffect(() => {
     if (!liveUpdates) return;
-    const intervalId = setInterval(fetchLeaderboard, 3000);
+    const intervalId = setInterval(() => fetchLeaderboard(true), 3000);
     return () => clearInterval(intervalId);
   }, [liveUpdates, fetchLeaderboard]);
 

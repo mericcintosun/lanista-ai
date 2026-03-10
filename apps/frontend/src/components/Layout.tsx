@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ParticleBackground from './ParticleBackground';
 import { getLenis } from '../lib/lenis-instance';
 import { useUIStore } from '../lib/ui-store';
+import { useScrollState, NAV_ANIM_DURATION } from '../hooks/useScrollState';
 
 // Sub-components
 import { Navbar } from './layout/Navbar';
@@ -25,7 +26,7 @@ export function Layout() {
 
   useLootDropNotifications();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const scrolled = useScrollState();
   const location = useLocation();
   const [prevPathname, setPrevPathname] = useState(location.pathname);
 
@@ -36,16 +37,6 @@ export function Layout() {
       setIsMobileMenuOpen(false);
     }
   }
-
-  // Dynamic navbar height on scroll
-  useEffect(() => {
-    const onScroll = () => {
-      const isScrolled = window.scrollY > 20;
-      setScrolled(isScrolled);
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
 
   // Prevent background scroll when mobile menu is open
   useEffect(() => {
@@ -118,7 +109,7 @@ export function Layout() {
       {/* ── MAIN CONTENT ── */}
       <motion.main
         animate={{ paddingTop: navH }}
-        transition={{ duration: 0.25, ease: 'easeInOut' }}
+        transition={{ duration: NAV_ANIM_DURATION, ease: [0.25, 0.46, 0.45, 0.94] }}
         className="relative z-20 flex flex-col items-center w-full min-h-screen"
       >
         <div className={`w-full ${location.pathname === '/' ? 'max-w-none px-0' : 'max-w-[1400px] px-4 sm:px-6 md:px-10'}`}>

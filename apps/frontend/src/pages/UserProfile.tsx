@@ -309,14 +309,15 @@ export default function UserProfile() {
                 style={{ background: accent, opacity: 0.15, filter: 'blur(10px)' }}
               />
             )}
-            <img
-              src={profileData?.avatarUrl || user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`}
-              alt="Avatar"
-              className="w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-xl object-cover relative group-hover:brightness-110 transition-all"
-              style={{ border: userRole === 'commander' ? `2px solid ${accent}40` : '2px solid #2a2a2e' }}
-            />
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl relative flex items-center justify-center pointer-events-none" style={{ marginTop: '-100%' }}>
-              <Settings className="w-5 h-5 text-white" />
+            <div className="relative w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-xl overflow-hidden flex items-center justify-center bg-zinc-900/50" style={{ border: userRole === 'commander' ? `2px solid ${accent}40` : '2px solid #2a2a2e' }}>
+              <img
+                src={profileData?.avatarUrl || user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`}
+                alt="Avatar"
+                className="w-full h-full object-contain group-hover:brightness-110 transition-all"
+              />
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                <Settings className="w-5 h-5 text-white" />
+              </div>
             </div>
           </div>
 

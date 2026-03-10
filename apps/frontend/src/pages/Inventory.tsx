@@ -16,6 +16,10 @@ const FUJI_EXPLORER = 'https://testnet.snowtrace.io';
 const RANK_UP_LOOT_NFT_ADDRESS =
   import.meta.env.VITE_RANK_UP_LOOT_NFT_ADDRESS || '0xaE1Aa40228A5eeD0e0D0218f6402C4911b97efd8';
 
+function nftTokenUrl(tokenId: number): string {
+  return `${FUJI_EXPLORER}/nft/${RANK_UP_LOOT_NFT_ADDRESS}/${tokenId}`;
+}
+
 export default function Inventory() {
   const [searchParams] = useSearchParams();
   const walletFromUrl = searchParams.get('wallet') ?? '';
@@ -110,10 +114,20 @@ export default function Inventory() {
             return (
               <div
                 key={tokenId}
-                className="rounded-2xl border border-white/10 bg-black/30 overflow-hidden cursor-pointer group hover:border-primary/30 transition-all duration-300"
+                className="rounded-2xl border border-white/10 bg-black/30 overflow-hidden cursor-pointer group hover:border-primary/30 transition-all duration-300 relative"
                 onClick={() => setSelectedItem({ tokenId, balance })}
                 title={description}
               >
+                <a
+                  href={nftTokenUrl(tokenId)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute top-2 left-2 z-10 p-1.5 rounded-lg bg-black/60 hover:bg-primary/30 border border-white/10 text-zinc-400 hover:text-primary transition-colors"
+                  title="View on Snowtrace"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
                 <div className="aspect-square bg-white/5 relative overflow-hidden">
                   <img
                     src={tokenIdToImagePath(tokenId)}
@@ -210,6 +224,14 @@ export default function Inventory() {
                   Balance: × {selectedItem.balance}
                 </div>
               )}
+              <a
+                href={nftTokenUrl(selectedItem.tokenId)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-zinc-400 hover:bg-primary/20 hover:border-primary/30 hover:text-primary font-mono text-xs uppercase tracking-widest transition-colors"
+              >
+                View on Snowtrace <ExternalLink className="w-3.5 h-3.5" />
+              </a>
             </motion.div>
           </motion.div>
         )}

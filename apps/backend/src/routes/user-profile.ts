@@ -223,7 +223,7 @@ router.post('/auto-setup', async (req, res) => {
 
         const { data: existing } = await supabase
             .from('profiles')
-            .select('onboarding_completed, callsign')
+            .select('onboarding_completed, callsign, avatar_url')
             .eq('id', user.id)
             .single();
 
@@ -233,6 +233,10 @@ router.post('/auto-setup', async (req, res) => {
 
         const callsign = generateCallsign(user.id);
         const publicUsername = callsign.toLowerCase();
+        const avatarSeed = user.id.replace(/-/g, '').slice(-12);
+        const defaultAvatarUrl =
+            existing?.avatar_url ||
+            `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(avatarSeed)}`;
 
         const { error } = await supabase
             .from('profiles')
@@ -241,6 +245,7 @@ router.post('/auto-setup', async (req, res) => {
                 callsign,
                 public_username: publicUsername,
                 role: 'viewer',
+                avatar_url: defaultAvatarUrl,
                 onboarding_completed: true,
                 updated_at: new Date().toISOString(),
             });

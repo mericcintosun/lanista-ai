@@ -6,6 +6,7 @@ import { Menu, X, UserCircle, LogOut, Bot } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import gsap from 'gsap';
 import { supabase } from '../../lib/supabase';
+import { NAV_ANIM_DURATION } from '../../hooks/useScrollState';
 import { SparkBalance } from '../spark/SparkBalance';
 import { BuySparkDrawer } from '../spark/BuySparkDrawer';
 import { useAuthStore } from '../../lib/auth-store';
@@ -37,12 +38,14 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
   const underlineRef = useRef<HTMLDivElement>(null);
   const linksRef = useRef<(HTMLAnchorElement | null)[]>([]);
 
-  // GSAP: Smooth Navbar Height
+  // GSAP: Smooth Navbar Height (synced with Layout padding)
   useEffect(() => {
+    if (!navRef.current) return;
     gsap.to(navRef.current, {
       height: navH,
-      duration: 0.4,
-      ease: 'power3.out'
+      duration: NAV_ANIM_DURATION,
+      ease: 'power3.out',
+      overwrite: true,
     });
   }, [navH]);
 
@@ -89,7 +92,7 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
   return (
     <nav
       ref={navRef}
-      className={`fixed top-0 left-0 right-0 z-50 flex items-center transition-colors duration-500 ${scrolled ? 'bg-background/80 border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)]' : 'bg-transparent border-b border-transparent'} backdrop-blur-xl overflow-visible`}
+      className={`fixed top-0 left-0 right-0 z-50 flex items-center transition-[background-color,border-color,box-shadow] duration-300 ease-out ${scrolled ? 'bg-background/80 border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)]' : 'bg-transparent border-b border-transparent shadow-none'} backdrop-blur-xl overflow-visible`}
     >
       <div className="max-w-[1440px] w-full mx-auto px-6 sm:px-10 flex items-center justify-between h-full">
         {/* Logo */}
@@ -101,9 +104,9 @@ export function Navbar({ navH, scrolled, isMobileMenuOpen, setIsMobileMenuOpen, 
           <img
             src="/logo-remove-bg.png"
             alt="Lanista"
-            className={`rounded-full border border-white/10 ${scrolled ? 'h-8 w-8' : 'h-10 w-10'}`}
+            className={`rounded-full border border-white/10 transition-[width,height] duration-300 ease-out ${scrolled ? 'h-8 w-8' : 'h-10 w-10'}`}
           />
-          <span className={`font-mono font-black text-white italic tracking-tighter ${scrolled ? 'text-lg' : 'text-xl'}`}>
+          <span className={`font-mono font-black text-white italic tracking-tighter transition-[font-size] duration-300 ease-out ${scrolled ? 'text-lg' : 'text-xl'}`}>
             Lanista
           </span>
         </Link>

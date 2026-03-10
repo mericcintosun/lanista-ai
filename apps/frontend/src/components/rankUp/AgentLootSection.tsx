@@ -21,6 +21,10 @@ interface AgentLootSectionProps {
   initialInventory?: { tokenId: number; balance: number }[];
 }
 
+function nftTokenUrl(tokenId: number): string {
+  return `${FUJI_EXPLORER}/nft/${RANK_UP_LOOT_NFT_ADDRESS}/${tokenId}`;
+}
+
 function LootCard({
   tokenId,
   balance,
@@ -36,46 +40,62 @@ function LootCard({
   const { rankName } = tokenIdToRankAndSlot(tokenId);
   const name = tokenIdToName(tokenId);
   const src = tokenIdToImagePath(tokenId);
+  const tokenUrl = nftTokenUrl(tokenId);
 
   return (
-    <motion.button
+    <motion.div
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.2 }}
       whileHover={{ scale: 1.02, y: -2 }}
       whileTap={{ scale: 0.98 }}
-      onClick={onSelect}
       className="group relative rounded-xl border border-red-900/30 bg-transparent overflow-hidden text-left transition-all hover:border-red-700/50 hover:shadow-[0_0_30px_rgba(127,29,29,0.15)]"
     >
-      <div className="aspect-square bg-gradient-to-b from-white/5 to-transparent relative flex items-center justify-center p-4">
-        {!imgLoaded && (
-          <div className="absolute inset-0">
-            <Skeleton className="w-full h-full rounded-lg" />
+      <a
+        href={tokenUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="absolute top-2 left-2 z-10 p-1.5 rounded-lg bg-black/60 hover:bg-red-900/60 border border-red-900/30 text-red-400 hover:text-red-300 transition-colors"
+        title="View on Snowtrace"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <ExternalLink className="w-3.5 h-3.5" />
+      </a>
+      <button
+        type="button"
+        onClick={onSelect}
+        className="w-full text-left"
+      >
+        <div className="aspect-square bg-gradient-to-b from-white/5 to-transparent relative flex items-center justify-center p-4">
+          {!imgLoaded && (
+            <div className="absolute inset-0">
+              <Skeleton className="w-full h-full rounded-lg" />
+            </div>
+          )}
+          <img
+            src={src}
+            alt={name}
+            loading="eager"
+            fetchPriority={idx < 4 ? 'high' : undefined}
+            className={`w-full h-full object-contain transition-opacity duration-200 group-hover:scale-105 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+            onLoad={() => setImgLoaded(true)}
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+              setImgLoaded(true);
+            }}
+          />
+          <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-red-900/40 border border-red-900/30 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-300">
+            {rankName}
           </div>
-        )}
-        <img
-          src={src}
-          alt={name}
-          loading="eager"
-          fetchPriority={idx < 4 ? 'high' : undefined}
-          className={`w-full h-full object-contain transition-opacity duration-200 group-hover:scale-105 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
-          onLoad={() => setImgLoaded(true)}
-          onError={(e) => {
-            (e.target as HTMLImageElement).style.display = 'none';
-            setImgLoaded(true);
-          }}
-        />
-        <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-red-900/40 border border-red-900/30 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-300">
-          {rankName}
         </div>
-      </div>
-      <div className="p-3 border-t border-red-900/30">
-        <p className="font-black text-white text-sm italic uppercase tracking-tight truncate">{name}</p>
-        {balance > 1 && (
-          <p className="text-xs text-zinc-500 font-mono mt-0.5">× {balance}</p>
-        )}
-      </div>
-    </motion.button>
+        <div className="p-3 border-t border-red-900/30">
+          <p className="font-black text-white text-sm italic uppercase tracking-tight truncate">{name}</p>
+          {balance > 1 && (
+            <p className="text-xs text-zinc-500 font-mono mt-0.5">× {balance}</p>
+          )}
+        </div>
+      </button>
+    </motion.div>
   );
 }
 
@@ -277,6 +297,14 @@ export function AgentLootSection({ walletAddress, agentName, initialInventory }:
                     Balance: × {selectedItem.balance}
                   </div>
                 )}
+                <a
+                  href={nftTokenUrl(selectedItem.tokenId)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-red-900/30 border border-red-900/50 text-red-400 hover:bg-red-900/50 hover:border-red-700/50 hover:text-red-300 font-mono text-xs uppercase tracking-widest transition-colors"
+                >
+                  View on Snowtrace <ExternalLink className="w-3.5 h-3.5" />
+                </a>
               </div>
             </motion.div>
           </motion.div>

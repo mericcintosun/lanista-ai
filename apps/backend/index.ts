@@ -242,7 +242,39 @@ setInterval(async () => {
   }
 }, PASSPORT_SYNC_INTERVAL_MS);
 
-// --- STALE MATCH SWEEPER ---
+// --- STALE PENDING MATCH SWEEPER ---
+// Aborts matches stuck in "pending" (lobby ended but worker never ran). Frees bots from combat.
+const PENDING_STALE_MINUTES = 5;
+async function sweepStalePendingMatches() {
+  if (!process.env.SUPABASE_URL) return;
+
+  try {
+    const lobbyEndedThreshold = new Date(Date.now() - PENDING_STALE_MINUTES * 60 * 1000).toISOString();
+
+    const { data: stalePending, error: fetchErr } = await supabase
+      .from('matches')
+      .select('id, player_1_id, player_2_id')
+      .eq('status', 'pending')
+      .lt('lobby_ends_at', lobbyEndedThreshold);
+
+    if (fetchErr) throw fetchErr;
+
+    if (stalePending && stalePending.length > 0) {
+      const matchIds = stalePending.map(m => m.id);
+      const botIds = [...new Set(stalePending.flatMap(m => [m.player_1_id, m.player_2_id]))];
+      console.log(`🧹 [Sweeper] Found ${matchIds.length} stale pending matches. Aborting and freeing ${botIds.length} bots...`);
+
+      await supabase.from('matches').update({ status: 'aborted' }).in('id', matchIds);
+      await supabase.from('bots').update({ status: 'active' }).in('id', botIds);
+    }
+  } catch (err: any) {
+    console.error("🧹 [Sweeper] Error cleaning stale pending matches:", err.message);
+  }
+}
+sweepStalePendingMatches();
+setInterval(sweepStalePendingMatches, 60 * 1000);
+
+// --- STALE ACTIVE MATCH SWEEPER ---
 // Aborts matches older than 3 minutes that are still active, resets bot statuses
 setInterval(async () => {
   if (!process.env.SUPABASE_URL) return;
@@ -260,7 +292,7 @@ setInterval(async () => {
 
     if (staleMatches && staleMatches.length > 0) {
       const matchIds = staleMatches.map(m => m.id);
-      console.log(`🧹 [Sweeper] Found ${matchIds.length} stale matches. Aborting...`);
+      console.log(`🧹 [Sweeper] Found ${matchIds.length} stale active matches. Aborting...`);
 
       const { error: updateErr } = await supabase
         .from('matches')
@@ -277,7 +309,7 @@ setInterval(async () => {
       }
     }
   } catch (err: any) {
-    console.error("🧹 [Sweeper] Error cleaning stale matches:", err.message);
+    console.error("🧹 [Sweeper] Error cleaning stale active matches:", err.message);
   }
 }, 60 * 1000);
 

@@ -1,10 +1,18 @@
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { API_URL } from '../lib/api';
 import { useAuthStore } from '../lib/auth-store';
 import { useUserStore, type UserRole } from '../lib/user-store';
 
+function hasAuthHash(): boolean {
+  if (typeof window === 'undefined') return false;
+  const hash = window.location.hash;
+  return hash.includes('access_token=') || hash.includes('refresh_token=');
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const navigate = useNavigate();
   const setSession = useAuthStore((s) => s.setSession);
   const setReady = useAuthStore((s) => s.setReady);
   const setMyAgentId = useUserStore((s) => s.setMyAgentId);
@@ -28,31 +36,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const handleSession = (session: { access_token: string } | null) => {
       setSession(session);
-      setReady();
       if (session?.access_token) {
         syncProfile(session.access_token);
+        if (hasAuthHash()) {
+          const target = '/profile?newAuth=true';
+          window.history.replaceState(null, '', target);
+          navigate(target, { replace: true });
+        }
       } else {
         setMyAgentId(null);
         setRole('viewer');
       }
+    };
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      handleSession(session);
+      setReady();
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_e, session) => {
-      setSession(session);
-      if (session?.access_token) {
-        syncProfile(session.access_token);
-      } else {
-        setMyAgentId(null);
-        setRole('viewer');
-      }
+      handleSession(session);
     });
 
     return () => subscription.unsubscribe();
-  }, [setSession, setReady, setMyAgentId, setRole]);
+  }, [setSession, setReady, setMyAgentId, setRole, navigate]);
 
   return <>{children}</>;
 }
