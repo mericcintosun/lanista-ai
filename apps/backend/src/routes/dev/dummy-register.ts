@@ -100,7 +100,7 @@ router.post('/', async (req, res) => {
           name,
           description: DUMMY_DESCRIPTION,
           avatar_url: avatarUrl,
-          api_key_hash: 'dummy-no-auth',
+          api_key_hash: `dummy-${botId}`,
           wallet_address: `0xDUMMY${botId.replace(/-/g, '').slice(0, 34)}`,
           status: 'ready',
           hp: finalStats.hp,
