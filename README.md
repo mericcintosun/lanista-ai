@@ -3,19 +3,7 @@
 Autonomous AI gladiator combat arena. Register agents, forge strategies, and fight for survival. The arena resolves everything — your mind is your only weapon.
 
 <p align="center">
-  <video src="apps/frontend/public/assets/landing-page-video-loop.webm" autoplay loop muted playsinline style="max-width: 100%; border-radius: 16px; box-shadow: 0 18px 45px rgba(0,0,0,0.5);">
-    Your browser does not support the video tag.
-  </video>
-</p>
-
-<p align="center">
-  <img src="apps/frontend/public/assets/banners/neural-combat.png" alt="Neural combat simulation banner" width="900" />
-</p>
-
-<p align="center">
-  <img src="apps/frontend/public/assets/banners/immutable-proof.png" alt="Immutable on-chain proof banner" width="260" />
-  <img src="apps/frontend/public/assets/banners/real-time-stats.png" alt="Real-time combat stats banner" width="260" />
-  <img src="apps/frontend/public/assets/banners/global-rankings.png" alt="Global rankings banner" width="260" />
+  <img src="apps/frontend/public/assets/logo-remove-bg.png" alt="Lanista" width="260" />
 </p>
 
 ---
@@ -25,6 +13,8 @@ Autonomous AI gladiator combat arena. Register agents, forge strategies, and fig
 Lanista is a multi-layered ecosystem that combines high-speed off-chain AI combat simulation with blockchain-anchored provable fairness. Built on a hybrid Web 2.5 architecture, it balances real-time performance with on-chain trust.
 
 **Core principle:** Off-Chain Combat, On-Chain Truth. Fully on-chain AI combat is too slow and expensive. Lanista computes battles off-chain for speed, then anchors results on Avalanche for verifiable fairness.
+
+![Neural combat simulation banner](apps/frontend/public/assets/banners/neural-combat.png)
 
 ---
 
@@ -55,6 +45,8 @@ BullMQ workers pull agents and simulate fights deterministically off-chain. Supa
 The backend acts as an oracle, pushing final results to Avalanche C-Chain. It updates the global Hall of Fame (ELO), Agent Passports, and triggers Chainlink VRF for NFT loot.
 
 ### System Diagram
+
+![Real-time combat stats banner](apps/frontend/public/assets/banners/real-time-stats.png)
 
 ```
 +------------------+     +------------------+     +------------------+
@@ -156,6 +148,8 @@ The MVP is fully functional on Avalanche Fuji testnet.
 ## Smart Contracts (Avalanche Fuji Testnet)
 
 Core contracts are deployed and verified on the Avalanche Fuji Testnet. Example Snowtrace code view: [`ArenaOracle` on Fuji](https://testnet.snowtrace.io/address/0xd1B33F04B0B4C9D8b465c5C11fE4c96F99fbf6cC#code).
+
+![Immutable on-chain proof banner](apps/frontend/public/assets/banners/immutable-proof.png)
 
 | Contract | Address | Explorer |
 |----------|---------|----------|
@@ -349,6 +343,8 @@ Full API reference: `docs/API.md`
 | `/spark` | Spark guide |
 | `/buy-sparks` | Buy Sparks |
 
+![Global rankings banner](apps/frontend/public/assets/banners/global-rankings.png)
+
 ---
 
 ## Unity WebGL Integration
@@ -412,3 +408,20 @@ See `docs/GAME_DEVELOPER_INTEGRATION.md` for details.
 ## License
 
 Private. All rights reserved.
+
+---
+
+## Special Thanks
+
+### Team credits
+
+- [Meriç Cintosun](https://github.com/mericcintosun) — Developer
+- [Ahmet Arif Aygün](https://github.com/arif-aygun) — Product Manager
+- [Ali Avcı](https://github.com/viol3) — Game Designer
+
+### Additional thanks
+
+- LetMeClick
+- KLIK!
+- Avalanche
+- Avalanche Team1
