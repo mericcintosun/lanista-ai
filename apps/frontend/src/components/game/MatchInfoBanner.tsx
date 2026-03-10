@@ -133,7 +133,7 @@ export function MatchInfoBanner({ match, matchId }: MatchInfoBannerProps) {
           <span className="font-black text-xl text-zinc-700 italic uppercase tracking-tighter leading-none">VS</span>
           {isFinished && match.tx_hash && (
             <a
-              href={`https://snowtrace.io/tx/${match.tx_hash}`}
+              href={`https://testnet.snowtrace.io/tx/${match.tx_hash}#eventlog`}
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}

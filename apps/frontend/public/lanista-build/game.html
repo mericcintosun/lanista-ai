@@ -27,11 +27,11 @@
 	
       const hideFullScreenButton = "true";
       const buildUrl = "Build";
-      const loaderUrl = buildUrl + "/e0d5ab4d8fad3f8396e278d6ffb1ac61.loader.js";
+      const loaderUrl = buildUrl + "/879795e1d74802c389cae62fd90e6de3.loader.js";
       const config = {
-        dataUrl: buildUrl + "/3dec0c0319c54c1a75dce47b64ee76bb.data.br",
+        dataUrl: buildUrl + "/632cd6afc32f1b9a0e929f5723d89b72.data.br",
         frameworkUrl: buildUrl + "/37b41afa6cc1d523f4f5827bb5a723ce.framework.js.br",
-        codeUrl: buildUrl + "/4f1c380a6ac903ad220f11e09f3b9da9.wasm.br",
+        codeUrl: buildUrl + "/05bcfdcc464a19657e455a9acc100977.wasm.br",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "KLIK",
         productName: "Lanista",
@@ -104,40 +104,39 @@
 
 <script>
 
-  
   function SetMode(mode) //Comes from frontend, goes to game
   {
-	  window.MyGameInstance.SendMessage("LanistaAPI", "SetMode", mode);
+    if (window.MyGameInstance) window.MyGameInstance.SendMessage("LanistaAPI", "SetMode", mode);
   }
 
   function SetMatchId(matchId) //Comes from frontend, goes to game
   {
-	  window.MyGameInstance.SendMessage("LanistaAPI", "SetMatchId", matchId);
+    if (window.MyGameInstance) window.MyGameInstance.SendMessage("LanistaAPI", "SetMatchId", matchId);
   }
 
   function LoadJsonGameData(jsonData) //Comes from frontend, goes to game
   {
-    window.MyGameInstance.SendMessage("LanistaAPI", "LoadJsonGameData", jsonData);
+    if (window.MyGameInstance) window.MyGameInstance.SendMessage("LanistaAPI", "LoadJsonGameData", jsonData);
   }
 
   function ThrowObjectToPlayer1(objectIndex) //Comes from frontend, goes to game
   {
-    window.MyGameInstance.SendMessage("LanistaAPI", "ThrowObjectToPlayer1", objectIndex);
+    if (window.MyGameInstance) window.MyGameInstance.SendMessage("LanistaAPI", "ThrowObjectToPlayer1", objectIndex);
   }
 
   function ThrowObjectToPlayer2(objectIndex) //Comes from frontend, goes to game
   {
-    window.MyGameInstance.SendMessage("LanistaAPI", "ThrowObjectToPlayer2", objectIndex);
+    if (window.MyGameInstance) window.MyGameInstance.SendMessage("LanistaAPI", "ThrowObjectToPlayer2", objectIndex);
   }
 
   function LoadPlayer1IconUrl(url)
   {
-    window.MyGameInstance.SendMessage("LanistaAPI", "LoadPlayer1IconUrl", url);
+    if (window.MyGameInstance) window.MyGameInstance.SendMessage("LanistaAPI", "LoadPlayer1IconUrl", url);
   }
 
   function LoadPlayer2IconUrl(url)
   {
-    window.MyGameInstance.SendMessage("LanistaAPI", "LoadPlayer2IconUrl", url);
+    if (window.MyGameInstance) window.MyGameInstance.SendMessage("LanistaAPI", "LoadPlayer2IconUrl", url);
   }
 
   // Called by Unity ~2s after game is ready. Notifies parent so frontend can send match data.

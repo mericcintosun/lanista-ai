@@ -1,5 +1,5 @@
 import { useEffect, lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate, useSearchParams, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { AuthProvider } from './components/AuthProvider';
 import { useAuthStore } from './lib/auth-store';
@@ -46,8 +46,16 @@ function GlobalMatchDirector() {
 }
 
 function LandingOrRedirect() {
-  const session = useAuthStore((s) => s.session);
-  if (session) return <Navigate to="/hub" replace />;
+  const isReady = useAuthStore((s) => s.isReady);
+
+  if (!isReady) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return <Landing />;
 }
 
