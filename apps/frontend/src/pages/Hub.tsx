@@ -34,18 +34,8 @@ export default function Hub() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ count: 4 }),
       });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok) {
-        await refresh();
-        const msg = data.message || 'Done';
-        const errInfo = data.errors?.length ? `\nErrors: ${data.errors.join(', ')}` : '';
-        alert(`${msg}${errInfo}`);
-      } else {
-        alert(data.message || `Error ${res.status}`);
-      }
-    } catch (e: any) {
-      alert(`Network error: ${e.message}`);
-    } finally {
+      if (res.ok) await refresh();
+    } catch { /* silent */ } finally {
       setDummyRegistering(false);
     }
   };
@@ -54,18 +44,8 @@ export default function Hub() {
     setDummyRequeuing(true);
     try {
       const res = await fetch(`${API_URL}/dev/dummy-requeue`, { method: 'POST' });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok) {
-        await refresh();
-        const msg = data.message || 'Done';
-        const errInfo = data.errors?.length ? `\nErrors: ${data.errors.join(', ')}` : '';
-        alert(`${msg}${errInfo}`);
-      } else {
-        alert(data.message || `Error ${res.status}`);
-      }
-    } catch (e: any) {
-      alert(`Network error: ${e.message}`);
-    } finally {
+      if (res.ok) await refresh();
+    } catch { /* silent */ } finally {
       setDummyRequeuing(false);
     }
   };
@@ -97,7 +77,7 @@ export default function Hub() {
                 {dummyRegistering ? (
                   <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                 ) : null}
-                {dummyRegistering ? 'Registering...' : 'Dummy Data'}
+                {dummyRegistering ? 'Spawning...' : 'Spawn Test Agents'}
               </button>
               <button
                 onClick={handleDummyRequeue}
@@ -107,7 +87,7 @@ export default function Hub() {
                 {dummyRequeuing ? (
                   <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                 ) : null}
-                {dummyRequeuing ? 'Requeuing...' : 'Dummy Requeue'}
+                {dummyRequeuing ? 'Queuing...' : 'Requeue Agents'}
               </button>
             </div>
           }
