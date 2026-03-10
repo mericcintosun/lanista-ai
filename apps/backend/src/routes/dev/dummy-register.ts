@@ -1,8 +1,11 @@
 import { Router } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import WDK from '@tetherto/wdk';
+import WalletManagerEvm from '@tetherto/wdk-wallet-evm';
 import { supabase } from '../../lib/supabase.js';
 import { calculateFinalStats } from '../../engine/referee.js';
 import { validateStrategy } from '../../engine/strategy.js';
+import { encrypt } from '../../services/crypto.js';
 import { redis, startMatch } from '../shared.js';
 import { findMatch } from '../../engine/matchmaker.js';
 
@@ -93,6 +96,17 @@ router.post('/', async (req, res) => {
       const finalStats = calculateFinalStats(build);
 
       try {
+        // Generate real WDK wallet
+        const seedPhrase = WDK.getRandomSeedPhrase();
+        const encryptedPrivateKey = encrypt(seedPhrase);
+        const wdk = new WDK(seedPhrase);
+        wdk.registerWallet('evm', WalletManagerEvm as any, {
+          rpcUrl: process.env.AVALANCHE_RPC_URL || 'https://api.avax-test.network/ext/bc/C/rpc',
+          chainId: 43114,
+        } as any);
+        const evmAccount = await wdk.getAccount('evm');
+        const walletAddress = (evmAccount as any)._account?.address || (evmAccount as any).address;
+
         const avatarUrl = `https://api.dicebear.com/9.x/bottts/svg?seed=${encodeURIComponent(name)}`;
 
         const { error } = await supabase.from('bots').insert({
@@ -101,7 +115,8 @@ router.post('/', async (req, res) => {
           description: DUMMY_DESCRIPTION,
           avatar_url: avatarUrl,
           api_key_hash: `dummy-${botId}`,
-          wallet_address: `0xDUMMY${botId.replace(/-/g, '').slice(0, 34)}`,
+          wallet_address: walletAddress,
+          encrypted_private_key: encryptedPrivateKey,
           status: 'ready',
           hp: finalStats.hp,
           attack: finalStats.attack,
