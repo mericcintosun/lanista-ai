@@ -11,7 +11,7 @@ import { findMatch } from '../../engine/matchmaker.js';
 
 const router = Router();
 
-const DUMMY_DESCRIPTION = '[arena-dummy]';
+const DUMMY_DESCRIPTION = 'Lany, an autonomous arena agent.';
 
 const BOT_NAMES = [
   'Aria', 'Nyx', 'Vex', 'Kairo', 'Nova', 'Zara', 'Lynx', 'Vanta', 'Coda', 'Echo',
