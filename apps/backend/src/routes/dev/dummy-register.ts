@@ -81,6 +81,7 @@ router.post('/', async (req, res) => {
     }
 
     const toCreate = Math.min(count, available.length);
+    console.log(`[Dummy Register] Creating ${toCreate} bots (${existingNames.size} already exist)`);
     let created = 0;
     const errors: string[] = [];
 
@@ -111,9 +112,11 @@ router.post('/', async (req, res) => {
         });
 
         if (error) {
+          console.error(`[Dummy Register] Insert failed for ${name}:`, error.message);
           errors.push(`${name}: ${error.message}`);
           continue;
         }
+        console.log(`[Dummy Register] Created ${name} (${botId}) HP=${finalStats.hp} ATK=${finalStats.attack} DEF=${finalStats.defense}`);
 
         // Store strategy in Redis (1 hour TTL)
         await redis.set(`strategy:${botId}`, JSON.stringify(strategy), 'EX', 3600);
@@ -126,6 +129,7 @@ router.post('/', async (req, res) => {
 
         created++;
       } catch (e) {
+        console.error(`[Dummy Register] Exception for ${name}:`, (e as Error).message);
         errors.push(`${name}: ${(e as Error).message}`);
       }
     }

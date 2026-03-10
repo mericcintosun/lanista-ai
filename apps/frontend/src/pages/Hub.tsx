@@ -29,10 +29,22 @@ export default function Hub() {
   const handleDummyRegister = async () => {
     setDummyRegistering(true);
     try {
-      const res = await fetch(`${API_URL}/dev/dummy-register`, { method: 'POST' });
+      const res = await fetch(`${API_URL}/dev/dummy-register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ count: 4 }),
+      });
       const data = await res.json().catch(() => ({}));
-      if (res.ok) await refresh();
-      if (!res.ok && data.message) alert(data.message);
+      if (res.ok) {
+        await refresh();
+        const msg = data.message || 'Done';
+        const errInfo = data.errors?.length ? `\nErrors: ${data.errors.join(', ')}` : '';
+        alert(`${msg}${errInfo}`);
+      } else {
+        alert(data.message || `Error ${res.status}`);
+      }
+    } catch (e: any) {
+      alert(`Network error: ${e.message}`);
     } finally {
       setDummyRegistering(false);
     }
@@ -43,8 +55,16 @@ export default function Hub() {
     try {
       const res = await fetch(`${API_URL}/dev/dummy-requeue`, { method: 'POST' });
       const data = await res.json().catch(() => ({}));
-      if (res.ok) await refresh();
-      if (!res.ok && data.message) alert(data.message);
+      if (res.ok) {
+        await refresh();
+        const msg = data.message || 'Done';
+        const errInfo = data.errors?.length ? `\nErrors: ${data.errors.join(', ')}` : '';
+        alert(`${msg}${errInfo}`);
+      } else {
+        alert(data.message || `Error ${res.status}`);
+      }
+    } catch (e: any) {
+      alert(`Network error: ${e.message}`);
     } finally {
       setDummyRequeuing(false);
     }
