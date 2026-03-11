@@ -1,5 +1,6 @@
 import express from 'express';
 import { supabase } from '../lib/supabase.js';
+import { creditWelcomeBonus } from '../services/spark.js';
 
 const router = express.Router();
 
@@ -254,6 +255,11 @@ router.post('/auto-setup', async (req, res) => {
             });
 
         if (error) throw error;
+
+        // Grant welcome spark bonus to new users
+        await creditWelcomeBonus(user.id).catch(e =>
+            console.warn('[Auto-setup] Welcome bonus failed:', e?.message)
+        );
 
         return res.json({ success: true, callsign });
     } catch (error: any) {
