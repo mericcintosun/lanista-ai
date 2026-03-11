@@ -36,6 +36,20 @@ export function useSparkBalance() {
 
   useEffect(() => {
     fetchBalance();
+
+    // Refresh when tab becomes visible again
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') fetchBalance();
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    // Poll every 30s as fallback in case Realtime misses an event
+    const interval = setInterval(fetchBalance, 30_000);
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      clearInterval(interval);
+    };
   }, [fetchBalance]);
 
   useEffect(() => {
