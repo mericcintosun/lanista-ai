@@ -12,7 +12,7 @@ import { useHubData } from '../hooks/useHubData';
 import { API_URL } from '../lib/api';
 
 const btnBase =
-  'px-5 py-2 bg-warm/10 border border-warm/20 rounded-full font-mono text-xs uppercase tracking-widest text-warm hover:text-white hover:border-golden/30 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed';
+  'px-4 py-1.5 bg-warm/10 border border-warm/20 rounded-full font-mono text-[10px] sm:text-xs uppercase tracking-widest text-warm hover:text-white hover:border-golden/30 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap';
 
 export default function Hub() {
   const { queue, lobbyMatches, liveMatches, recentMatches, loading, refresh } = useHubData();
@@ -55,38 +55,22 @@ export default function Hub() {
   }
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto space-y-24 pb-32">
+    <div className="w-full max-w-screen-2xl mx-auto space-y-8 sm:space-y-10 lg:space-y-14 pb-20 sm:pb-28">
       <Reveal>
-        <PageHeader 
-          title="THE HUB" 
+        <PageHeader
+          title="THE HUB"
           actions={
-            <div className="flex flex-wrap items-center justify-center gap-3">
-              <button
-                onClick={handleRefresh}
-                disabled={refreshing}
-                className={btnBase}
-              >
-                <div className={`w-1.5 h-1.5 rounded-full ${refreshing ? 'bg-primary animate-pulse' : 'bg-green-500'}`} />
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+              <button onClick={handleRefresh} disabled={refreshing} className={btnBase}>
+                <div className={`w-1.5 h-1.5 rounded-full ${refreshing ? 'bg-primary animate-pulse' : 'bg-secondary'}`} />
                 {refreshing ? 'Updating...' : 'Up to date'}
               </button>
-              <button
-                onClick={handleDummyRegister}
-                disabled={dummyRegistering}
-                className={btnBase}
-              >
-                {dummyRegistering ? (
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                ) : null}
+              <button onClick={handleDummyRegister} disabled={dummyRegistering} className={btnBase}>
+                {dummyRegistering ? <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" /> : null}
                 {dummyRegistering ? 'Spawning...' : 'Spawn Test Agents'}
               </button>
-              <button
-                onClick={handleDummyRequeue}
-                disabled={dummyRequeuing}
-                className={btnBase}
-              >
-                {dummyRequeuing ? (
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                ) : null}
+              <button onClick={handleDummyRequeue} disabled={dummyRequeuing} className={btnBase}>
+                {dummyRequeuing ? <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" /> : null}
                 {dummyRequeuing ? 'Queuing...' : 'Requeue Agents'}
               </button>
             </div>
@@ -94,18 +78,24 @@ export default function Hub() {
         />
       </Reveal>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 px-4 md:px-0">
-        <div className="lg:col-span-4 h-full">
+      {/* ── Main grid ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 lg:gap-6 px-2 sm:px-4 md:px-0">
+        {/* LEFT — Queue */}
+        <div className="lg:col-span-4">
           <Reveal direction="left" delay={0.2} className="h-full">
             <ActiveQueue queue={queue} />
           </Reveal>
         </div>
-        <div className="lg:col-span-8 h-full">
-          <Reveal direction="right" delay={0.3} className="h-full flex flex-col gap-8">
+
+        {/* RIGHT — Lobby + Live stacked */}
+        <div className="lg:col-span-8">
+          <Reveal direction="right" delay={0.3} className="h-full flex flex-col gap-4 sm:gap-5 lg:gap-6">
             <LobbyEngagements matches={lobbyMatches || []} />
             <LiveEngagements liveMatches={liveMatches} />
           </Reveal>
         </div>
+
+        {/* BOTTOM — Recent History full width */}
         <div className="lg:col-span-12">
           <Reveal direction="up" delay={0.4}>
             <RecentHistory recentMatches={recentMatches} />

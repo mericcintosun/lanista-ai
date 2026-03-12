@@ -13,17 +13,12 @@ function Countdown({ endsAt }: { endsAt?: Date | string }) {
 
   useEffect(() => {
     if (!endsAt) return;
-    
     const updateCountdown = () => {
       const ms = new Date(endsAt).getTime() - Date.now();
-      if (ms <= 0) {
-        setTimeLeft('Deploying...');
-        return;
-      }
+      if (ms <= 0) { setTimeLeft('Deploying...'); return; }
       const s = Math.ceil(ms / 1000);
       setTimeLeft(`T-${s}s`);
     };
-
     updateCountdown();
     const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
@@ -36,18 +31,26 @@ export function LobbyEngagements({ matches }: LobbyEngagementsProps) {
   const navigate = useNavigate();
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex flex-col">
       <motion.div
         initial={{ opacity: 0, y: 0 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl p-8 relative overflow-hidden group flex-1 flex flex-col backdrop-blur-3xl bg-blue-500/5 border border-blue-500/20"
+        className="rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 relative overflow-hidden group flex flex-col backdrop-blur-3xl bg-[#0a1628]/60 border border-[#1e3a5f]/50"
       >
-        <h3 className="text-xs font-mono uppercase text-blue-400 tracking-[0.3em] mb-10 flex items-center gap-3 relative z-10">
-          <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.8)] animate-pulse" />
+        {/* Ambient glow */}
+        <div className="absolute top-0 right-0 w-48 h-24 bg-blue-500/[0.04] rounded-full blur-3xl pointer-events-none" />
+
+        <h3 className="text-[10px] sm:text-xs font-mono uppercase text-blue-400/70 tracking-[0.25em] mb-4 sm:mb-5 flex items-center gap-2 sm:gap-3 relative z-10">
+          <div className="w-1.5 h-1.5 rounded-full bg-blue-500/80 shadow-[0_0_8px_rgba(59,130,246,0.6)] animate-pulse" />
           Lobby Phase
+          {matches.length > 0 && (
+            <span className="ml-auto font-mono text-[10px] text-blue-400/40 tabular-nums">
+              {matches.length} pending
+            </span>
+          )}
         </h3>
 
-        <div className="space-y-4 flex-1 overflow-y-auto scrollbar-hide pr-2">
+        <div className="space-y-2 sm:space-y-3 relative z-10">
           {matches.length > 0 ? (
             matches.map((match) => (
               <div
@@ -57,60 +60,65 @@ export function LobbyEngagements({ matches }: LobbyEngagementsProps) {
                 onClick={() => navigate(`/game-arena/${match.id}`)}
                 className="block group/item cursor-pointer"
               >
-                <div className="flex items-center justify-between p-8 bg-blue-500/5 border border-blue-500/15 group-hover/item:border-blue-500/40 transition-all relative overflow-hidden rounded-2xl">
-                  <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity" />
-                  
-                  <div className="flex items-center gap-8 w-full justify-between relative z-10">
-                    <div className="flex items-center gap-6 text-right flex-1 justify-end min-w-0">
-                      <div className="min-w-0">
-                        <Link to={`/agent/${match.player_1_id}`} onClick={(e) => e.stopPropagation()} className="font-black text-white text-base md:text-xl tracking-tighter italic uppercase hover:text-blue-400 transition-colors block truncate">{match.player_1?.name}</Link>
-                        <p className="text-xs font-mono text-blue-400/80 uppercase tracking-[0.2em] truncate mt-1 animate-pulse">
-                          Predictions Open
-                        </p>
-                      </div>
-                      <img
-                        src={match.player_1?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${match.player_1?.name || 'p1'}`}
-                        alt=""
-                        className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-zinc-900 border-2 border-blue-500/30 p-0.5 shadow-[0_0_20px_rgba(59,130,246,0.15)] content-cover"
-                      />
-                    </div>
+                <div className="flex items-center p-3 sm:p-4 bg-[#0d1f3c]/50 border border-[#1e3a5f]/40 group-hover/item:border-blue-500/30 group-hover/item:bg-[#0d1f3c]/70 transition-all duration-200 relative overflow-hidden rounded-lg sm:rounded-xl">
+                  <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-blue-500/30 to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity" />
 
-                    <div className="flex flex-col items-center justify-center min-w-[80px] shrink-0 gap-2">
-                      <span className="font-mono text-[10px] text-white/40 tracking-widest uppercase">
-                        {match.lobby_ends_at ? <Countdown endsAt={match.lobby_ends_at} /> : 'Arming'}
-                      </span>
-                      <div className="text-blue-500 font-black italic text-2xl opacity-40 tracking-[0.2em]">VS</div>
-                      <span className="font-mono text-[10px] text-blue-400/60 uppercase tracking-widest mt-1 group-hover/item:text-blue-400 transition-colors">
-                        Join Lobby
-                      </span>
+                  {/* P1 */}
+                  <div className="flex items-center gap-2 sm:gap-3 flex-1 justify-end text-right min-w-0">
+                    <div className="min-w-0">
+                      <Link to={`/agent/${match.player_1_id}`} onClick={(e) => e.stopPropagation()} className="font-bold text-white text-xs sm:text-sm tracking-tight italic uppercase hover:text-blue-300 transition-colors block truncate">
+                        {match.player_1?.name}
+                      </Link>
+                      <p className="text-[10px] font-mono text-blue-400/60 uppercase tracking-[0.15em] truncate mt-0.5 animate-pulse">
+                        Predictions Open
+                      </p>
                     </div>
+                    <img
+                      src={match.player_1?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${match.player_1?.name || 'p1'}`}
+                      alt=""
+                      className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-zinc-900 border border-blue-500/20 p-0.5 shadow-[0_0_12px_rgba(59,130,246,0.1)] shrink-0"
+                    />
+                  </div>
 
-                    <div className="flex items-center gap-6 flex-1 text-left min-w-0">
-                      <img
-                        src={match.player_2?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${match.player_2?.name || 'p2'}`}
-                        alt=""
-                        className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-zinc-900 border-2 border-blue-500/30 p-0.5 shadow-[0_0_20px_rgba(59,130,246,0.15)] content-cover"
-                      />
-                      <div className="min-w-0">
-                        <Link to={`/agent/${match.player_2_id}`} onClick={(e) => e.stopPropagation()} className="font-black text-white text-base md:text-xl tracking-tighter italic uppercase hover:text-blue-400 transition-colors block truncate">{match.player_2?.name}</Link>
-                         <p className="text-xs font-mono text-blue-400/80 uppercase tracking-[0.2em] truncate mt-1 animate-pulse">
-                          Predictions Open
-                        </p>
-                      </div>
+                  {/* VS */}
+                  <div className="flex flex-col items-center justify-center mx-3 sm:mx-4 shrink-0 gap-1">
+                    <span className="font-mono text-[9px] text-white/30 tracking-widest uppercase">
+                      {match.lobby_ends_at ? <Countdown endsAt={match.lobby_ends_at} /> : 'Arming'}
+                    </span>
+                    <span className="text-blue-500/50 font-black italic text-sm sm:text-base tracking-[0.15em]">VS</span>
+                    <span className="font-mono text-[9px] text-blue-400/40 uppercase tracking-widest group-hover/item:text-blue-400/70 transition-colors">
+                      Join
+                    </span>
+                  </div>
+
+                  {/* P2 */}
+                  <div className="flex items-center gap-2 sm:gap-3 flex-1 text-left min-w-0">
+                    <img
+                      src={match.player_2?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${match.player_2?.name || 'p2'}`}
+                      alt=""
+                      className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-zinc-900 border border-blue-500/20 p-0.5 shadow-[0_0_12px_rgba(59,130,246,0.1)] shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <Link to={`/agent/${match.player_2_id}`} onClick={(e) => e.stopPropagation()} className="font-bold text-white text-xs sm:text-sm tracking-tight italic uppercase hover:text-blue-300 transition-colors block truncate">
+                        {match.player_2?.name}
+                      </Link>
+                      <p className="text-[10px] font-mono text-blue-400/60 uppercase tracking-[0.15em] truncate mt-0.5 animate-pulse">
+                        Predictions Open
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
             ))
           ) : (
-            <div className="flex flex-col items-center justify-center h-full min-h-[200px] border border-dashed border-blue-500/20 rounded-xl bg-blue-500/5">
-              <div className="relative mb-4">
-                <div className="absolute inset-0 bg-blue-500/10 blur-xl rounded-full" />
-                <Clock className="w-8 h-8 text-blue-400/70 relative opacity-80" />
+            <div className="flex flex-col items-center justify-center min-h-[140px] sm:min-h-[160px] border border-dashed border-blue-500/15 rounded-lg sm:rounded-xl bg-blue-500/[0.02]">
+              <div className="relative mb-3">
+                <div className="absolute inset-0 bg-blue-500/8 blur-xl rounded-full" />
+                <Clock className="w-6 h-6 sm:w-7 sm:h-7 text-blue-400/40 relative" />
               </div>
-              <div className="font-mono text-xs text-warm/70 uppercase tracking-[0.2em] text-center">
-                <span className="block font-black text-blue-400/80">Lobby Empty</span>
-                <span className="block text-warm/50 mt-1 italic text-xs sm:text-sm">Waiting for match initialization...</span>
+              <div className="font-mono text-[10px] sm:text-xs text-warm/50 uppercase tracking-[0.2em] text-center">
+                <span className="block font-black text-blue-400/50">Lobby Empty</span>
+                <span className="block text-warm/30 mt-1 italic text-[10px] sm:text-xs">Waiting for match initialization...</span>
               </div>
             </div>
           )}

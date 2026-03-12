@@ -1,7 +1,7 @@
 export function HubSkeleton() {
   return (
-    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 pb-24 pt-16 space-y-10">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-8">
+    <div className="w-full max-w-screen-2xl mx-auto px-2 sm:px-4 md:px-0 pb-20 pt-8 space-y-8 sm:space-y-10">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 lg:gap-6 mt-8">
         <div className="lg:col-span-4 space-y-4">
           <div className="rounded-2xl p-6 space-y-4 bg-sage/5 border border-sage/20">
             <div className="h-2 w-32 bg-white/5 rounded animate-pulse" />

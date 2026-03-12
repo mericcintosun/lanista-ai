@@ -19,8 +19,8 @@ const steps = [
 
 export function HowItWorks() {
   return (
-    <div className="w-full flex flex-col items-center px-4 sm:px-6 md:px-12 py-16 md:py-24 bg-transparent">
-      <div className="max-w-[1200px] w-full mx-auto flex flex-col justify-center">
+    <div className="w-full flex flex-col items-center px-4 sm:px-6 lg:px-10 xl:px-14 py-16 md:py-24 bg-transparent">
+      <div className="max-w-screen-2xl 3xl:max-w-[min(2400px,90vw)] w-full mx-auto flex flex-col justify-center">
         <div className="mb-10 md:mb-14 text-center flex flex-col items-center">
           <h2 className="text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter leading-none mb-3">How the Arena Works</h2>
           <div className="h-0.5 w-24 bg-gradient-to-r from-primary via-golden to-sage shadow-[0_0_20px_rgba(223,127,62,0.4)]" />
