@@ -159,12 +159,13 @@ export default function GameArena() {
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'UNITY_SIMULATION_READY') {
+        if (isUnityReadyRef.current) return; // Guard against duplicate UNITY_SIMULATION_READY events
         console.log('[Arena] Unity signaled readiness. Setting mode 1 and syncing in 5000ms...');
+        isUnityReadyRef.current = true; // Set immediately to prevent race with duplicate events
         setUnityMode(iframeRef.current, 1);
         setTimeout(() => {
           // Capture current log count as baseline — skip past logs for mid-match joins
           baselineLogCountRef.current = logsRef.current.length;
-          isUnityReadyRef.current = true;
           signalReady?.();
           scheduleSendToUnity();
         }, 5000);
