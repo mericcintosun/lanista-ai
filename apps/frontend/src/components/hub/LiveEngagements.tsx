@@ -1,123 +1,111 @@
-import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { prefetchGameHtml } from '../../lib/prefetchGame';
-import { Swords } from 'lucide-react';
+import { Radio, Swords } from 'lucide-react';
 import type { Match } from '@lanista/types';
+import { EmptyBox } from './ActiveQueue';
+import { C } from '../../pages/Hub';
 
-interface LiveEngagementsProps {
-  liveMatches: Match[];
-}
+interface LiveEngagementsProps { liveMatches: Match[] }
 
 export function LiveEngagements({ liveMatches }: LiveEngagementsProps) {
   const navigate = useNavigate();
+  const c = C.fire;
 
   return (
-    <div className="flex flex-col">
-      <motion.div
-        initial={{ opacity: 0, y: 0 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 relative overflow-hidden group flex flex-col backdrop-blur-3xl bg-primary/[0.04] border border-primary/15"
-      >
-        {/* Ambient glow */}
-        <div className="absolute bottom-0 right-0 w-40 h-40 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-
-        <h3 className="text-[10px] sm:text-xs font-mono uppercase text-primary/80 tracking-[0.25em] mb-4 sm:mb-5 flex items-center gap-2 sm:gap-3 relative z-10">
-          <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(223,127,62,0.7)] animate-pulse" />
-          Live Engagements
-          {liveMatches.length > 0 && (
-            <span className="ml-auto font-mono text-[10px] text-primary/40 tabular-nums">
+    <div
+      className="rounded-2xl overflow-hidden"
+      style={{ background: 'rgba(18,12,8,0.85)', border: `1px solid ${c.border}` }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.05]">
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <div className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: c.base, boxShadow: `0 0 10px ${c.base}` }} />
+            <div className="absolute inset-0 rounded-full animate-ping opacity-35" style={{ background: c.base }} />
+          </div>
+          <span className="font-mono text-sm font-bold uppercase tracking-[0.2em]" style={{ color: c.base }}>
+            Live Engagements
+          </span>
+        </div>
+        {liveMatches.length > 0 && (
+          <div className="flex items-center gap-2">
+            <Radio className="w-3.5 h-3.5 animate-pulse" style={{ color: c.base }} />
+            <span className="font-mono text-xs font-black" style={{ color: c.base, opacity: 0.5 }}>
               {liveMatches.length} live
             </span>
-          )}
-        </h3>
+          </div>
+        )}
+      </div>
 
-        <div className="space-y-2 sm:space-y-3 relative z-10">
-          {liveMatches.length > 0 ? (
-            liveMatches.map((match) => (
-              <div
-                key={match.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => navigate(`/game-arena/${match.id}`)}
-                onMouseEnter={prefetchGameHtml}
-                onTouchStart={prefetchGameHtml}
-                className="block group/item cursor-pointer"
-              >
-                <div className="flex items-center p-3 sm:p-4 bg-primary/[0.04] border border-primary/10 group-hover/item:border-primary/30 group-hover/item:bg-primary/[0.07] transition-all duration-200 relative overflow-hidden rounded-lg sm:rounded-xl">
-                  {/* Top shine on hover */}
-                  <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity" />
-
-                  {/* P1 */}
-                  <div className="flex items-center gap-2 sm:gap-3 flex-1 justify-end text-right min-w-0">
-                    <div className="min-w-0">
-                      <Link
-                        to={`/agent/${match.player_1_id}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="font-bold text-white text-xs sm:text-sm tracking-tight italic uppercase hover:text-primary transition-colors block truncate"
-                      >
-                        {match.player_1?.name}
-                      </Link>
-                      <p className="text-[10px] font-mono text-warm/40 uppercase tracking-[0.12em] truncate mt-0.5">
-                        Active
-                      </p>
-                    </div>
-                    <img
-                      src={match.player_1?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${match.player_1?.name || 'p1'}`}
-                      alt=""
-                      className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-zinc-900 border border-primary/20 p-0.5 shadow-[0_0_12px_rgba(223,127,62,0.08)] shrink-0"
-                    />
-                  </div>
-
-                  {/* VS divider */}
-                  <div className="flex flex-col items-center mx-3 sm:mx-4 shrink-0 gap-1">
-                    <span className="text-primary/50 font-black italic text-sm sm:text-base tracking-[0.15em]">VS</span>
-                    <div className="w-px h-4 bg-gradient-to-b from-transparent via-primary/25 to-transparent" />
-                  </div>
-
-                  {/* P2 */}
-                  <div className="flex items-center gap-2 sm:gap-3 flex-1 text-left min-w-0">
-                    <img
-                      src={match.player_2?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${match.player_2?.name || 'p2'}`}
-                      alt=""
-                      className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-zinc-900 border border-primary/20 p-0.5 shadow-[0_0_12px_rgba(223,127,62,0.08)] shrink-0"
-                    />
-                    <div className="min-w-0">
-                      <Link
-                        to={`/agent/${match.player_2_id}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="font-bold text-white text-xs sm:text-sm tracking-tight italic uppercase hover:text-primary transition-colors block truncate"
-                      >
-                        {match.player_2?.name}
-                      </Link>
-                      <p className="text-[10px] font-mono text-warm/40 uppercase tracking-[0.12em] truncate mt-0.5">
-                        Active
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Watch CTA */}
-                  <div className="ml-2 sm:ml-3 shrink-0">
-                    <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-primary/40 group-hover/item:text-primary/70 transition-colors block text-right">
-                      Watch →
-                    </span>
-                  </div>
+      {/* Cards */}
+      <div className="p-3 space-y-2">
+        {liveMatches.length > 0 ? liveMatches.map(match => (
+          <button key={match.id} onClick={() => navigate(`/game-arena/${match.id}`)}
+            onMouseEnter={prefetchGameHtml} onTouchStart={prefetchGameHtml}
+            className="w-full text-left"
+          >
+            <div
+              className="relative flex items-center px-4 py-4 rounded-xl transition-all duration-150"
+              style={{ background: 'rgba(232,129,60,0.05)', border: `1px solid ${c.border.replace('0.2)', '0.1)')}` }}
+              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = 'rgba(232,129,60,0.1)'; (e.currentTarget as HTMLDivElement).style.borderColor = c.border; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'rgba(232,129,60,0.05)'; (e.currentTarget as HTMLDivElement).style.borderColor = c.border.replace('0.2)', '0.1)'); }}
+            >
+              {/* P1 */}
+              <div className="flex items-center gap-3 flex-1 justify-end min-w-0">
+                <div className="text-right min-w-0">
+                  <Link to={`/agent/${match.player_1_id}`} onClick={e => e.stopPropagation()}
+                    className="block text-sm font-black uppercase italic text-white tracking-tight truncate hover:underline">
+                    {match.player_1?.name}
+                  </Link>
+                  <p className="text-xs font-mono uppercase tracking-widest mt-0.5" style={{ color: c.base, opacity: 0.45 }}>
+                    Active
+                  </p>
+                </div>
+                <div className="relative shrink-0">
+                  <img src={match.player_1?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${match.player_1?.name || 'p1'}`}
+                    alt="" className="w-11 h-11 rounded-xl object-cover border border-white/10" />
+                  {/* live dot badge */}
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#120c08]"
+                    style={{ background: c.base, boxShadow: `0 0 6px ${c.base}` }} />
                 </div>
               </div>
-            ))
-          ) : (
-            <div className="flex flex-col items-center justify-center min-h-[140px] sm:min-h-[160px] border border-dashed border-primary/15 rounded-lg sm:rounded-xl bg-primary/[0.02]">
-              <div className="relative mb-3">
-                <div className="absolute inset-0 bg-primary/8 blur-xl rounded-full" />
-                <Swords className="w-6 h-6 sm:w-7 sm:h-7 text-zinc-700 relative" />
+
+              {/* VS */}
+              <div className="flex flex-col items-center mx-5 shrink-0">
+                <div className="w-px h-5 bg-gradient-to-b from-transparent to-current opacity-20" style={{ color: c.base }} />
+                <span className="font-black italic text-base py-0.5" style={{ color: c.base, opacity: 0.55 }}>VS</span>
+                <div className="w-px h-5 bg-gradient-to-t from-transparent to-current opacity-20" style={{ color: c.base }} />
               </div>
-              <div className="font-mono text-[10px] sm:text-xs text-warm/50 uppercase tracking-[0.2em] text-center">
-                <span className="block font-black text-warm/40">Offline</span>
-                <span className="block text-warm/30 mt-1 italic text-[10px] sm:text-xs">Waiting for broadcast...</span>
+
+              {/* P2 */}
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="relative shrink-0">
+                  <img src={match.player_2?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${match.player_2?.name || 'p2'}`}
+                    alt="" className="w-11 h-11 rounded-xl object-cover border border-white/10" />
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#120c08]"
+                    style={{ background: c.base, boxShadow: `0 0 6px ${c.base}` }} />
+                </div>
+                <div className="min-w-0">
+                  <Link to={`/agent/${match.player_2_id}`} onClick={e => e.stopPropagation()}
+                    className="block text-sm font-black uppercase italic text-white tracking-tight truncate hover:underline">
+                    {match.player_2?.name}
+                  </Link>
+                  <p className="text-xs font-mono uppercase tracking-widest mt-0.5" style={{ color: c.base, opacity: 0.45 }}>
+                    Active
+                  </p>
+                </div>
               </div>
+
+              {/* Watch CTA */}
+              <span className="ml-4 shrink-0 font-mono text-xs font-bold uppercase tracking-widest opacity-30 hover:opacity-70 transition-opacity" style={{ color: c.base }}>
+                Watch →
+              </span>
             </div>
-          )}
-        </div>
-      </motion.div>
+          </button>
+        )) : (
+          <EmptyBox color={c} label="Offline" sub="Waiting for broadcast…" />
+        )}
+      </div>
     </div>
   );
 }

@@ -15,8 +15,8 @@ export function Reveal({
   children, 
   direction = 'up', 
   delay = 0, 
-  duration = 1.2, 
-  distance = 50,
+  duration = 0.5,
+  distance = 24,
   className = '',
   stagger = 0
 }: RevealProps) {

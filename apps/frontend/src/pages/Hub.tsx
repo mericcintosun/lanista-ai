@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { PageHeader } from '../components/common/PageHeader';
 import {
   ActiveQueue,
   LiveEngagements,
@@ -7,101 +6,142 @@ import {
   RecentHistory,
   HubSkeleton
 } from '../components/hub';
-import { Reveal } from '../components/common/Reveal';
 import { useHubData } from '../hooks/useHubData';
 import { API_URL } from '../lib/api';
+import { RefreshCw, Users, Swords, Clock, History } from 'lucide-react';
 
-const btnBase =
-  'px-4 py-1.5 bg-warm/10 border border-warm/20 rounded-full font-mono text-[10px] sm:text-xs uppercase tracking-widest text-warm hover:text-white hover:border-golden/30 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap';
+/* ─── Colour tokens (not Tailwind-dependent) ────────────────────────────── */
+export const C = {
+  sage:    { base: '#7ecb5a', dim: 'rgba(126,203,90,0.12)',  border: 'rgba(126,203,90,0.2)'  },
+  sky:     { base: '#4fa3e3', dim: 'rgba(79,163,227,0.12)', border: 'rgba(79,163,227,0.2)'  },
+  fire:    { base: '#e8813c', dim: 'rgba(232,129,60,0.12)', border: 'rgba(232,129,60,0.2)'  },
+  gold:    { base: '#d4a94a', dim: 'rgba(212,169,74,0.12)', border: 'rgba(212,169,74,0.2)'  },
+} as const;
 
 export default function Hub() {
   const { queue, lobbyMatches, liveMatches, recentMatches, loading, refresh } = useHubData();
   const [refreshing, setRefreshing] = useState(false);
-  const [dummyRegistering, setDummyRegistering] = useState(false);
-  const [dummyRequeuing, setDummyRequeuing] = useState(false);
+  const [spawning, setSpawning]     = useState(false);
+  const [requeuing, setRequeuing]   = useState(false);
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await refresh();
-    setRefreshing(false);
-  };
-
-  const handleDummyRegister = async () => {
-    setDummyRegistering(true);
+  const handleRefresh = async () => { setRefreshing(true); await refresh(); setRefreshing(false); };
+  const handleSpawn   = async () => {
+    setSpawning(true);
     try {
-      const res = await fetch(`${API_URL}/dev/dummy-register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ count: 4 }),
-      });
-      if (res.ok) await refresh();
-    } catch { /* silent */ } finally {
-      setDummyRegistering(false);
-    }
+      const r = await fetch(`${API_URL}/dev/dummy-register`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({count:4}) });
+      if (r.ok) await refresh();
+    } catch { /* noop */ } finally { setSpawning(false); }
+  };
+  const handleRequeue = async () => {
+    setRequeuing(true);
+    try { const r = await fetch(`${API_URL}/dev/dummy-requeue`, {method:'POST'}); if (r.ok) await refresh(); }
+    catch { /* noop */ } finally { setRequeuing(false); }
   };
 
-  const handleDummyRequeue = async () => {
-    setDummyRequeuing(true);
-    try {
-      const res = await fetch(`${API_URL}/dev/dummy-requeue`, { method: 'POST' });
-      if (res.ok) await refresh();
-    } catch { /* silent */ } finally {
-      setDummyRequeuing(false);
-    }
-  };
-
-  if (loading) {
-    return <HubSkeleton />;
-  }
+  if (loading) return <HubSkeleton />;
 
   return (
-    <div className="w-full max-w-screen-2xl mx-auto space-y-8 sm:space-y-10 lg:space-y-14 pb-20 sm:pb-28">
-      <Reveal>
-        <PageHeader
-          title="THE HUB"
-          actions={
-            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-              <button onClick={handleRefresh} disabled={refreshing} className={btnBase}>
-                <div className={`w-1.5 h-1.5 rounded-full ${refreshing ? 'bg-primary animate-pulse' : 'bg-secondary'}`} />
-                {refreshing ? 'Updating...' : 'Up to date'}
-              </button>
-              <button onClick={handleDummyRegister} disabled={dummyRegistering} className={btnBase}>
-                {dummyRegistering ? <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" /> : null}
-                {dummyRegistering ? 'Spawning...' : 'Spawn Test Agents'}
-              </button>
-              <button onClick={handleDummyRequeue} disabled={dummyRequeuing} className={btnBase}>
-                {dummyRequeuing ? <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" /> : null}
-                {dummyRequeuing ? 'Queuing...' : 'Requeue Agents'}
-              </button>
-            </div>
-          }
-        />
-      </Reveal>
+    <div className="w-full max-w-[1480px] mx-auto px-3 sm:px-5 lg:px-6 pb-24">
 
-      {/* ── Main grid ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 lg:gap-6 px-2 sm:px-4 md:px-0">
-        {/* LEFT — Queue */}
-        <div className="lg:col-span-4">
-          <Reveal direction="left" delay={0.2} className="h-full">
-            <ActiveQueue queue={queue} />
-          </Reveal>
+      {/* ═══ HEADER ═══════════════════════════════════════════════════════════ */}
+      <div className="pt-4 pb-8 sm:pb-10">
+        {/* title row */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 sm:mb-8">
+          <div>
+            <p className="font-mono text-xs text-[#e8813c] uppercase tracking-[0.35em] mb-2 opacity-80">
+              // Arena Command Center
+            </p>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black italic tracking-tighter text-white uppercase leading-[0.88]">
+              The Hub
+            </h1>
+          </div>
+
+          {/* Dev controls */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {[
+              { label: refreshing ? 'Syncing…' : 'Sync', icon: <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />, fn: handleRefresh, busy: refreshing },
+              { label: spawning  ? 'Spawning…' : 'Spawn Agents',  icon: null, fn: handleSpawn,   busy: spawning  },
+              { label: requeuing ? 'Queuing…'  : 'Requeue',       icon: null, fn: handleRequeue, busy: requeuing },
+            ].map(btn => (
+              <button key={btn.label} onClick={btn.fn} disabled={btn.busy}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white/40 hover:text-white/70 border border-white/8 hover:border-white/18 transition-all font-mono text-[11px] uppercase tracking-wider disabled:opacity-30 bg-white/[0.02]">
+                {btn.icon ?? (btn.busy ? <span className="w-2 h-2 rounded-full bg-[#e8813c] animate-pulse" /> : null)}
+                {btn.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* RIGHT — Lobby + Live stacked */}
-        <div className="lg:col-span-8">
-          <Reveal direction="right" delay={0.3} className="h-full flex flex-col gap-4 sm:gap-5 lg:gap-6">
-            <LobbyEngagements matches={lobbyMatches || []} />
-            <LiveEngagements liveMatches={liveMatches} />
-          </Reveal>
-        </div>
-
-        {/* BOTTOM — Recent History full width */}
-        <div className="lg:col-span-12">
-          <Reveal direction="up" delay={0.4}>
-            <RecentHistory recentMatches={recentMatches} />
-          </Reveal>
+        {/* ── Stat strip ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <Stat icon={<Users  className="w-4 h-4"/>} label="In Queue" value={queue.length}          c={C.sage} />
+          <Stat icon={<Clock  className="w-4 h-4"/>} label="In Lobby" value={lobbyMatches.length}   c={C.sky}  />
+          <Stat icon={<Swords className="w-4 h-4"/>} label="Live Now" value={liveMatches.length}    c={C.fire} pulse />
+          <Stat icon={<History className="w-4 h-4"/>} label="Recent"  value={recentMatches.length}  c={C.gold} />
         </div>
       </div>
+
+      {/* ═══ MAIN GRID ════════════════════════════════════════════════════════ */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5">
+
+        {/* Queue — 4 cols */}
+        <div className="lg:col-span-4">
+          <ActiveQueue queue={queue} />
+        </div>
+
+        {/* Lobby + Live — 8 cols stacked */}
+        <div className="lg:col-span-8 flex flex-col gap-4 lg:gap-5">
+          <LobbyEngagements matches={lobbyMatches || []} />
+          <LiveEngagements  liveMatches={liveMatches} />
+        </div>
+
+        {/* History — full width */}
+        <div className="lg:col-span-12">
+          <RecentHistory recentMatches={recentMatches} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Stat card ─────────────────────────────────────────────────────────── */
+function Stat({
+  icon, label, value, c, pulse = false
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  c: typeof C.sage;
+  pulse?: boolean;
+}) {
+  const on = value > 0;
+  return (
+    <div
+      className="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-colors"
+      style={{ background: on ? c.dim : 'rgba(255,255,255,0.02)', border: `1px solid ${on ? c.border : 'rgba(255,255,255,0.06)'}` }}
+    >
+      {/* live dot */}
+      <div className="relative shrink-0">
+        <div
+          className={`w-2 h-2 rounded-full ${pulse && on ? 'animate-pulse' : ''}`}
+          style={{ background: on ? c.base : 'rgba(255,255,255,0.15)' }}
+        />
+        {pulse && on && (
+          <div className="absolute inset-0 rounded-full animate-ping opacity-40" style={{ background: c.base }} />
+        )}
+      </div>
+
+      {/* label */}
+      <span className="font-mono text-xs uppercase tracking-widest flex-1 truncate"
+        style={{ color: on ? c.base : 'rgba(255,255,255,0.25)' }}>
+        {label}
+      </span>
+
+      {/* value */}
+      <span className="font-black text-xl tabular-nums leading-none"
+        style={{ color: on ? c.base : 'rgba(255,255,255,0.18)' }}>
+        {value}
+      </span>
     </div>
   );
 }
