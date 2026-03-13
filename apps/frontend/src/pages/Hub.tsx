@@ -111,7 +111,7 @@ function Stat({
   icon: React.ReactNode;
   label: string;
   value: number;
-  c: typeof C.sage;
+  c: { base: string, dim: string, border: string };
   pulse?: boolean;
 }) {
   const on = value > 0;
@@ -132,10 +132,12 @@ function Stat({
       </div>
 
       {/* label */}
-      <span className="font-mono text-xs uppercase tracking-widest flex-1 truncate"
-        style={{ color: on ? c.base : 'rgba(255,255,255,0.25)' }}>
-        {label}
-      </span>
+      <div className="flex items-center gap-2 flex-1 min-w-0" style={{ color: on ? c.base : 'rgba(255,255,255,0.25)' }}>
+        <span className="shrink-0 opacity-70">{icon}</span>
+        <span className="font-mono text-xs uppercase tracking-widest truncate">
+          {label}
+        </span>
+      </div>
 
       {/* value */}
       <span className="font-black text-xl tabular-nums leading-none"

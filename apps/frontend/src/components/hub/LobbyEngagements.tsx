@@ -1,5 +1,4 @@
 import { useNavigate, Link } from 'react-router-dom';
-import { Clock } from 'lucide-react';
 import type { Match } from '@lanista/types';
 import { useEffect, useState } from 'react';
 import { EmptyBox } from './ActiveQueue';

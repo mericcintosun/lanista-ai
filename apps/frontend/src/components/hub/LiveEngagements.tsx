@@ -1,6 +1,6 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { prefetchGameHtml } from '../../lib/prefetchGame';
-import { Radio, Swords } from 'lucide-react';
+import { Radio } from 'lucide-react';
 import type { Match } from '@lanista/types';
 import { EmptyBox } from './ActiveQueue';
 import { C } from '../../pages/Hub';

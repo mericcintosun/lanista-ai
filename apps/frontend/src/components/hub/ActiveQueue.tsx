@@ -73,7 +73,7 @@ export function ActiveQueue({ queue }: ActiveQueueProps) {
 }
 
 /* ── Shared empty state ─────────────────────────────────────────────────── */
-export function EmptyBox({ color, label, sub }: { color: typeof C.sage; label: string; sub: string }) {
+export function EmptyBox({ color, label, sub }: { color: { base: string, dim: string, border: string }; label: string; sub: string }) {
   return (
     <div className="flex flex-col items-center justify-center h-full min-h-[180px] rounded-xl gap-2"
       style={{ border: `1px dashed ${color.border}`, background: color.dim }}>
