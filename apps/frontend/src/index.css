@@ -183,6 +183,11 @@ body {
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+@media (min-width: 1024px) {
+  .no-scrollbar-desktop::-webkit-scrollbar { display: none; }
+  .no-scrollbar-desktop { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
 /* Hero side panels — on desktop they fill the height of the CSS grid row (= video height) */
 .hero-side-panel {
   display: flex;

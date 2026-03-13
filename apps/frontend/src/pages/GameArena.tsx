@@ -8,10 +8,10 @@ import type { Match, CombatLog } from '@lanista/types';
 import { useHubData } from '../hooks/useHubData';
 import { useArenaChat } from '../hooks/useArenaChat';
 import { useSparkBalance } from '../hooks/useSparkBalance';
-import { PageHeader } from '../components/common/PageHeader';
+
 import { LiveMatchList } from '../components/battle-arena/LiveMatchList';
 import { ArenaChat } from '../components/ArenaChat';
-import { Reveal } from '../components/common/Reveal';
+
 import { WatchRewardBadge } from '../components/arena/WatchRewardBadge';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
@@ -208,29 +208,27 @@ export default function GameArena() {
   // 4. List View if no matchId
   if (!matchId) {
     return (
-      <div className="py-8 space-y-8">
-        <Reveal>
-          <div>
-            <PageHeader title="ARENA" subtitle="// ACTIVE ENGAGEMENTS" />
-            <div className="h-px w-24 mx-auto mt-4 bg-gradient-to-r from-blue-500 via-secondary to-transparent" />
-          </div>
-        </Reveal>
-        <div className="max-w-6xl mx-auto w-full px-4">
-          <Reveal delay={0.2} direction="up">
-            <LiveMatchList matches={liveMatches} />
-          </Reveal>
+      <div className="w-full max-w-[1480px] mx-auto px-3 sm:px-5 lg:px-6 pb-24 pt-4 space-y-8">
+        <div>
+          <p className="font-mono text-xs uppercase tracking-[0.35em] mb-2" style={{ color: '#e8813c', opacity: 0.7 }}>
+            // Active Engagements
+          </p>
+          <h1 className="text-4xl sm:text-5xl font-black italic tracking-tighter text-white uppercase leading-[0.88]">
+            The Arena
+          </h1>
         </div>
+        <LiveMatchList matches={liveMatches} />
       </div>
     );
   }
 
   if (!match) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
-        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin shadow-[0_0_30px_rgba(59,130,246,0.3)]" />
-        <div className="font-mono text-xs text-zinc-500 uppercase tracking-[0.3em] animate-pulse text-center">
-          Loading match...<br/>
-          <span className="text-[10px] opacity-50">Connecting to arena</span>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-5">
+        <div className="w-14 h-14 rounded-2xl border-2 animate-spin" style={{ borderColor: 'rgba(232,129,60,0.3)', borderTopColor: '#e8813c' }} />
+        <div className="font-mono text-xs text-white/30 uppercase tracking-[0.3em] animate-pulse text-center">
+          Loading match…<br />
+          <span className="opacity-50 text-[10px]">Connecting to arena</span>
         </div>
       </div>
     );
@@ -292,7 +290,8 @@ export default function GameArena() {
                 e.stopPropagation();
                 setSupportExpanded((prev) => !prev);
               }}
-              className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-zinc-900/80 border border-zinc-700/80 text-zinc-300 font-mono text-xs uppercase tracking-widest hover:border-amber-500/30 hover:text-zinc-100 transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3 rounded-xl font-mono text-xs font-bold uppercase tracking-widest transition-all"
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }}
             >
               <span>Arena Predictions</span>
               {supportExpanded ? <ChevronUp className="w-4 h-4 shrink-0" /> : <ChevronDown className="w-4 h-4 shrink-0" />}
@@ -337,37 +336,7 @@ export default function GameArena() {
           {/* Lobby countdown timer */}
           <LobbyCountdown match={match} logsCount={logs.length} />
 
-          {/* Desktop Prediction Panel — collapsible */}
-          <div className="min-w-0 flex flex-col overflow-hidden shrink-0">
-            <button
-              type="button"
-              id="arena-predictions-toggle-desktop"
-              aria-expanded={supportExpanded}
-              aria-controls="arena-predictions-panel-desktop"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setSupportExpanded((prev) => !prev);
-              }}
-              className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-zinc-900/80 border border-zinc-700/80 text-zinc-300 font-mono text-xs uppercase tracking-widest hover:border-amber-500/30 hover:text-zinc-100 transition-colors mb-1"
-            >
-              <span>Arena Predictions</span>
-              {supportExpanded ? <ChevronUp className="w-4 h-4 shrink-0" /> : <ChevronDown className="w-4 h-4 shrink-0" />}
-            </button>
-            <div
-              id="arena-predictions-panel-desktop"
-              role="region"
-              aria-labelledby="arena-predictions-toggle-desktop"
-              className={`overflow-hidden transition-[max-height] duration-300 ease-out ${supportExpanded ? 'max-h-[2000px]' : 'max-h-0'}`}
-            >
-              <div
-                className={`transition-all duration-200 ease-out ${supportExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}
-              >
-                <SupportPanel match={match} disabled={match.status === 'finished' || match.status === 'aborted'} />
-              </div>
-            </div>
-          </div>
-
+          {/* Chat — Pushed to top and takes remaining space */}
           <div className="flex-1 min-h-0 flex flex-col gap-3 sm:gap-4">
             <div className="flex-1 min-h-[300px] overflow-hidden">
               <ArenaChat
@@ -379,9 +348,38 @@ export default function GameArena() {
                 chatState={chatState}
               />
             </div>
-            {/* <div className="h-[250px] shrink-0 overflow-hidden">
-              <CombatLogs logs={logs} match={match} />
-            </div> */}
+          </div>
+
+          {/* Desktop Prediction Panel — collapsible, pushed to bottom */}
+          <div className="min-w-0 flex flex-col overflow-hidden shrink-0 mt-auto">
+            <button
+              type="button"
+              id="arena-predictions-toggle-desktop"
+              aria-expanded={supportExpanded}
+              aria-controls="arena-predictions-panel-desktop"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setSupportExpanded((prev) => !prev);
+              }}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-xl font-mono text-xs font-bold uppercase tracking-widest transition-all mb-1 hover:bg-white/5"
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }}
+            >
+              <span>Arena Predictions</span>
+              {supportExpanded ? <ChevronUp className="w-4 h-4 shrink-0" /> : <ChevronDown className="w-4 h-4 shrink-0" />}
+            </button>
+            <div
+              id="arena-predictions-panel-desktop"
+              role="region"
+              aria-labelledby="arena-predictions-toggle-desktop"
+              className={`overflow-hidden transition-[max-height] duration-300 ease-out ${supportExpanded ? 'max-h-[2000px]' : 'max-h-0'}`}
+            >
+              <div
+                className={`transition-all duration-200 ease-out ${supportExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
+              >
+                <SupportPanel match={match} disabled={match.status === 'finished' || match.status === 'aborted'} />
+              </div>
+            </div>
           </div>
         </div>
       </div>
