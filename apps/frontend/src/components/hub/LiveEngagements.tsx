@@ -1,88 +1,111 @@
-import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { prefetchGameHtml } from '../../lib/prefetchGame';
-import { Swords } from 'lucide-react';
+import { Radio } from 'lucide-react';
 import type { Match } from '@lanista/types';
+import { EmptyBox } from './ActiveQueue';
+import { C } from '../../pages/Hub';
 
-interface LiveEngagementsProps {
-  liveMatches: Match[];
-}
+interface LiveEngagementsProps { liveMatches: Match[] }
 
 export function LiveEngagements({ liveMatches }: LiveEngagementsProps) {
   const navigate = useNavigate();
+  const c = C.fire;
 
   return (
-    <div className="h-full flex flex-col">
-      <motion.div
-        initial={{ opacity: 0, y: 0 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl p-8 relative overflow-hidden group flex-1 flex flex-col backdrop-blur-3xl bg-primary/5 border border-primary/20"
-      >
-        <h3 className="text-xs font-mono uppercase text-primary/90 tracking-[0.3em] mb-10 flex items-center gap-3 relative z-10">
-          <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_12px_rgba(223,127,62,0.8)] animate-pulse" />
-          Live Engagements
-        </h3>
+    <div
+      className="rounded-2xl overflow-hidden"
+      style={{ background: 'rgba(18,12,8,0.85)', border: `1px solid ${c.border}` }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.05]">
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <div className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: c.base, boxShadow: `0 0 10px ${c.base}` }} />
+            <div className="absolute inset-0 rounded-full animate-ping opacity-35" style={{ background: c.base }} />
+          </div>
+          <span className="font-mono text-sm font-bold uppercase tracking-[0.2em]" style={{ color: c.base }}>
+            Live Engagements
+          </span>
+        </div>
+        {liveMatches.length > 0 && (
+          <div className="flex items-center gap-2">
+            <Radio className="w-3.5 h-3.5 animate-pulse" style={{ color: c.base }} />
+            <span className="font-mono text-xs font-black" style={{ color: c.base, opacity: 0.5 }}>
+              {liveMatches.length} live
+            </span>
+          </div>
+        )}
+      </div>
 
-        <div className="space-y-4 flex-1 overflow-y-auto scrollbar-hide pr-2">
-          {liveMatches.length > 0 ? (
-            liveMatches.map((match) => (
-              <div
-                key={match.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => navigate(`/game-arena/${match.id}`)}
-                onMouseEnter={prefetchGameHtml}
-                onTouchStart={prefetchGameHtml}
-                className="block group/item cursor-pointer"
-              >
-                <div className="flex items-center justify-between p-8 bg-primary/5 border border-primary/15 group-hover/item:border-primary/40 transition-all relative overflow-hidden rounded-2xl">
-                  <div className="flex items-center gap-8 w-full justify-between items-center relative z-10">
-                    <div className="flex items-center gap-6 text-right flex-1 justify-end min-w-0">
-                      <div className="min-w-0">
-                        <Link to={`/agent/${match.player_1_id}`} onClick={(e) => e.stopPropagation()} className="font-black text-white text-base md:text-xl tracking-tighter italic uppercase hover:text-primary transition-colors block truncate">{match.player_1?.name}</Link>
-                        <p className="text-xs font-mono text-warm/70 uppercase tracking-[0.2em] truncate mt-1">Status: Active</p>
-                      </div>
-                      <img
-                        src={match.player_1?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${match.player_1?.name || 'p1'}`}
-                        alt=""
-                        className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-zinc-900 border-2 border-primary/20 p-0.5 shadow-[0_0_20px_rgba(223,127,62,0.1)]"
-                      />
-                    </div>
-
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="text-primary font-black italic text-2xl opacity-40 tracking-[0.2em]">VS</div>
-                      <div className="w-px h-8 bg-gradient-to-b from-transparent via-primary/30 to-transparent" />
-                    </div>
-
-                    <div className="flex items-center gap-6 flex-1 text-left min-w-0">
-                      <img
-                        src={match.player_2?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${match.player_2?.name || 'p2'}`}
-                        alt=""
-                        className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-zinc-900 border-2 border-primary/20 p-0.5 shadow-[0_0_20px_rgba(223,127,62,0.1)]"
-                      />
-                      <div className="min-w-0">
-                        <Link to={`/agent/${match.player_2_id}`} onClick={(e) => e.stopPropagation()} className="font-black text-white text-base md:text-xl tracking-tighter italic uppercase hover:text-primary transition-colors block truncate">{match.player_2?.name}</Link>
-                        <p className="text-xs font-mono text-warm/70 uppercase tracking-[0.2em] truncate mt-1">Status: Active</p>
-                      </div>
-                    </div>
-                  </div>
+      {/* Cards */}
+      <div className="p-3 space-y-2">
+        {liveMatches.length > 0 ? liveMatches.map(match => (
+          <button key={match.id} onClick={() => navigate(`/game-arena/${match.id}`)}
+            onMouseEnter={prefetchGameHtml} onTouchStart={prefetchGameHtml}
+            className="w-full text-left"
+          >
+            <div
+              className="relative flex items-center px-4 py-4 rounded-xl transition-all duration-150"
+              style={{ background: 'rgba(232,129,60,0.05)', border: `1px solid ${c.border.replace('0.2)', '0.1)')}` }}
+              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = 'rgba(232,129,60,0.1)'; (e.currentTarget as HTMLDivElement).style.borderColor = c.border; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'rgba(232,129,60,0.05)'; (e.currentTarget as HTMLDivElement).style.borderColor = c.border.replace('0.2)', '0.1)'); }}
+            >
+              {/* P1 */}
+              <div className="flex items-center gap-3 flex-1 justify-end min-w-0">
+                <div className="text-right min-w-0">
+                  <Link to={`/agent/${match.player_1_id}`} onClick={e => e.stopPropagation()}
+                    className="block text-sm font-black uppercase italic text-white tracking-tight truncate hover:underline">
+                    {match.player_1?.name}
+                  </Link>
+                  <p className="text-xs font-mono uppercase tracking-widest mt-0.5" style={{ color: c.base, opacity: 0.45 }}>
+                    Active
+                  </p>
+                </div>
+                <div className="relative shrink-0">
+                  <img src={match.player_1?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${match.player_1?.name || 'p1'}`}
+                    alt="" className="w-11 h-11 rounded-xl object-cover border border-white/10" />
+                  {/* live dot badge */}
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#120c08]"
+                    style={{ background: c.base, boxShadow: `0 0 6px ${c.base}` }} />
                 </div>
               </div>
-            ))
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full min-h-[200px] border border-dashed border-primary/20 rounded-xl bg-primary/5">
-              <div className="relative mb-4">
-                <div className="absolute inset-0 bg-primary/10 blur-xl rounded-full" />
-                <Swords className="w-8 h-8 text-zinc-800 relative" />
+
+              {/* VS */}
+              <div className="flex flex-col items-center mx-5 shrink-0">
+                <div className="w-px h-5 bg-gradient-to-b from-transparent to-current opacity-20" style={{ color: c.base }} />
+                <span className="font-black italic text-base py-0.5" style={{ color: c.base, opacity: 0.55 }}>VS</span>
+                <div className="w-px h-5 bg-gradient-to-t from-transparent to-current opacity-20" style={{ color: c.base }} />
               </div>
-              <div className="font-mono text-xs text-warm/70 uppercase tracking-[0.2em] text-center">
-                <span className="block font-black">Offline</span>
-                <span className="block text-warm/50 mt-1 italic text-xs sm:text-sm">Waiting for broadcast...</span>
+
+              {/* P2 */}
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="relative shrink-0">
+                  <img src={match.player_2?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${match.player_2?.name || 'p2'}`}
+                    alt="" className="w-11 h-11 rounded-xl object-cover border border-white/10" />
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#120c08]"
+                    style={{ background: c.base, boxShadow: `0 0 6px ${c.base}` }} />
+                </div>
+                <div className="min-w-0">
+                  <Link to={`/agent/${match.player_2_id}`} onClick={e => e.stopPropagation()}
+                    className="block text-sm font-black uppercase italic text-white tracking-tight truncate hover:underline">
+                    {match.player_2?.name}
+                  </Link>
+                  <p className="text-xs font-mono uppercase tracking-widest mt-0.5" style={{ color: c.base, opacity: 0.45 }}>
+                    Active
+                  </p>
+                </div>
               </div>
+
+              {/* Watch CTA */}
+              <span className="ml-4 shrink-0 font-mono text-xs font-bold uppercase tracking-widest opacity-30 hover:opacity-70 transition-opacity" style={{ color: c.base }}>
+                Watch →
+              </span>
             </div>
-          )}
-        </div>
-      </motion.div>
+          </button>
+        )) : (
+          <EmptyBox color={c} label="Offline" sub="Waiting for broadcast…" />
+        )}
+      </div>
     </div>
   );
 }

@@ -1,78 +1,72 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Match } from '@lanista/types';
-import { Clock } from 'lucide-react';
+import { Clock, Zap } from 'lucide-react';
 
-interface LobbyCountdownProps {
-  match: Match;
-  logsCount: number;
-}
+const SKY  = { b: '#5bb3f5', dim: 'rgba(91,179,245,0.18)',  ring: 'rgba(91,179,245,0.4)'  };
+const FIRE = { b: '#f0894e', dim: 'rgba(240,137,78,0.18)', ring: 'rgba(240,137,78,0.4)' };
 
-const LOBBY_DURATION_SECONDS = 45;
+const LOBBY_SECONDS = 45;
+
+interface LobbyCountdownProps { match: Match; logsCount: number }
 
 export function LobbyCountdown({ match, logsCount }: LobbyCountdownProps) {
   const [nowMs, setNowMs] = useState(() => Date.now());
-
   useEffect(() => {
-    const interval = setInterval(() => setNowMs(Date.now()), 1000);
-    return () => clearInterval(interval);
+    const id = setInterval(() => setNowMs(Date.now()), 1000);
+    return () => clearInterval(id);
   }, []);
 
-  const { remainingSeconds, isLobbyPhase } = useMemo(() => {
-    // Prefer authoritative lobby_ends_at to fix client-server clock skew drift
+  const { remaining, isLobby } = useMemo(() => {
     let endMs: number | null = null;
-    if (match.lobby_ends_at) {
-      endMs = new Date(match.lobby_ends_at).getTime();
-    } else if (match.created_at) {
-      endMs = new Date(match.created_at).getTime() + LOBBY_DURATION_SECONDS * 1000;
-    }
+    if (match.lobby_ends_at) endMs = new Date(match.lobby_ends_at).getTime();
+    else if (match.created_at) endMs = new Date(match.created_at).getTime() + LOBBY_SECONDS * 1000;
+    if (!endMs) return { remaining: 0, isLobby: false };
+    const r = Math.max(0, Math.floor((endMs - nowMs) / 1000));
+    const done = logsCount > 0 || match.status === 'active' || match.status === 'finished' || match.status === 'aborted';
+    return { remaining: r, isLobby: !done };
+  }, [match, logsCount, nowMs]);
 
-    if (!endMs) return { remainingSeconds: 0, isLobbyPhase: false };
+  if (!isLobby) return null;
 
-    const remaining = Math.max(0, Math.floor((endMs - nowMs) / 1000));
-    const isFinished = match.status === 'finished' || match.status === 'aborted';
-    const hasCombatStarted = logsCount > 0 || isFinished || match.status === 'active';
-
-    return {
-      remainingSeconds: remaining,
-      isLobbyPhase: !hasCombatStarted,
-    };
-  }, [match.lobby_ends_at, match.created_at, match.status, logsCount, nowMs]);
-
-  if (!isLobbyPhase) return null;
-
-  const total = remainingSeconds;
-  const minutes = Math.floor(total / 60);
-  const seconds = total % 60;
-  const formatted = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
-  const isStarting = total <= 0;
+  const mm = Math.floor(remaining / 60).toString().padStart(2, '0');
+  const ss = (remaining % 60).toString().padStart(2, '0');
+  const starting = remaining <= 0;
+  const c = starting ? FIRE : SKY;
 
   return (
-    <div className={`rounded-xl border px-4 py-3 sm:px-5 sm:py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-colors ${
-      isStarting ? 'border-amber-500/40 bg-amber-950/60 shadow-[0_0_25px_rgba(245,158,11,0.2)]' : 'border-blue-500/40 bg-blue-950/60 shadow-[0_0_25px_rgba(59,130,246,0.35)]'
-    }`}>
-      <div className="flex items-center gap-3">
-        <div className={`w-9 h-9 rounded-full flex items-center justify-center border ${
-          isStarting ? 'bg-amber-500/20 border-amber-400/40' : 'bg-blue-500/20 border-blue-400/40'
-        }`}>
-          <Clock className={`w-4 h-4 ${isStarting ? 'text-amber-200 animate-pulse' : 'text-blue-200'}`} />
-        </div>
-        <div className="space-y-0.5">
-          <p className={`font-mono text-[10px] uppercase tracking-[0.25em] ${isStarting ? 'text-amber-300/80' : 'text-blue-300/80'}`}>
-            {isStarting ? 'Arena Initialization' : 'Lobby Phase // Social Predictions'}
-          </p>
-          <p className={`text-sm sm:text-base ${isStarting ? 'text-amber-50' : 'text-blue-50'}`}>
-            {isStarting ? 'Predictions are locked. Waiting for combat link to establish...' : 'Combat is arming up. Pick your champion, drop hype, and get ready.'}
-          </p>
-        </div>
+    <div className="rounded-xl flex items-center gap-4 px-5 py-4 transition-all duration-500"
+      style={{ background: c.dim, border: `1px solid ${c.ring}` }}>
+
+      {/* Icon */}
+      <div className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+        style={{ background: 'rgba(0,0,0,0.25)', border: `1px solid ${c.ring}` }}>
+        {starting
+          ? <Zap className="w-5 h-5 animate-pulse" style={{ color: c.b }} />
+          : <Clock className="w-5 h-5" style={{ color: c.b }} />
+        }
       </div>
-      <div className="sm:text-right flex items-center sm:items-end gap-2 sm:flex-col">
-        <span className={`font-mono text-[10px] uppercase tracking-[0.25em] ${isStarting ? 'text-amber-400 animate-pulse font-bold' : 'text-blue-300/80'}`}>
-          {isStarting ? 'Initializing' : 'Starts In'}
-        </span>
-        <span className={`font-mono text-xl sm:text-2xl font-black tabular-nums ${isStarting ? 'text-amber-100 opacity-50' : 'text-blue-100'}`}>
-          {formatted}
-        </span>
+
+      {/* Text */}
+      <div className="flex-1 min-w-0">
+        <p className="font-mono text-xs font-black uppercase tracking-[0.2em] mb-0.5" style={{ color: c.b }}>
+          {starting ? '⚡ Initializing Arena' : '// Lobby Phase'}
+        </p>
+        <p className="text-sm text-white/55 leading-snug truncate">
+          {starting
+            ? 'Locking predictions — combat link establishing…'
+            : 'Place your Sparks on your champion before combat begins.'}
+        </p>
+      </div>
+
+      {/* Timer */}
+      <div className="shrink-0 text-right">
+        <p className="font-mono text-[10px] uppercase tracking-widest mb-0.5" style={{ color: c.b, opacity: 0.7 }}>
+          {starting ? 'Starting' : 'Starts in'}
+        </p>
+        <p className="font-mono text-3xl font-black tabular-nums leading-none"
+          style={{ color: c.b, opacity: starting ? 0.4 : 1 }}>
+          {mm}:{ss}
+        </p>
       </div>
     </div>
   );

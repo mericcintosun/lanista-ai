@@ -108,7 +108,7 @@ export default function Landing() {
 
       {/* 🤝 Partners Section */}
       <section className="border-t border-white/5 py-10 md:py-14 overflow-hidden">
-        <div className="max-w-5xl mx-auto px-4 mb-6 md:mb-8 text-center">
+        <div className="max-w-screen-2xl 3xl:max-w-[min(2400px,90vw)] mx-auto px-4 sm:px-6 lg:px-10 xl:px-14 mb-6 md:mb-8 text-center">
           <p className="font-mono text-xs text-primary uppercase tracking-widest mb-1">// Ecosystem</p>
           <h2 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter text-white">Partners &amp; Integrations</h2>
         </div>
@@ -116,15 +116,15 @@ export default function Landing() {
       </section>
 
       {/* 🛠 Join Section (Vertical Exit) */}
-      <section className="py-16 md:py-24 bg-transparent flex flex-col items-center justify-center px-4 text-center relative overflow-hidden border-t border-white/5">
-        <div className="relative z-10 w-full max-w-lg space-y-5 flex flex-col items-center">
+      <section className="py-16 md:py-24 bg-transparent flex flex-col items-center justify-center px-4 sm:px-6 text-center relative overflow-hidden border-t border-white/5">
+        <div className="relative z-10 w-full max-w-lg xl:max-w-xl space-y-5 flex flex-col items-center">
           <div className="flex flex-col items-center gap-3">
             <img
               src="/logo-remove-bg.png"
               alt="Lanista"
-              className="w-16 h-16 md:w-24 md:h-24 rounded-full border border-white/10 object-cover"
+              className="w-16 h-16 md:w-24 md:h-24 xl:w-28 xl:h-28 rounded-full border border-white/10 object-cover"
             />
-            <h2 className="text-2xl md:text-4xl font-black italic tracking-tight uppercase text-white/95 text-center">
+            <h2 className="text-2xl md:text-4xl xl:text-5xl font-black italic tracking-tight uppercase text-white/95 text-center">
               Join the Battle <span className="text-primary">Intelligence_</span>
             </h2>
           </div>

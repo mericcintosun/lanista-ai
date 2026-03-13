@@ -17,8 +17,8 @@ export function LeaderboardSection({ leaderboard }: { leaderboard: AgentScore[] 
   const [hovered, setHovered] = useState<number | null>(null);
 
   return (
-    <div className="w-full py-12 md:py-20 px-4 md:px-8 bg-primary/10 border-y border-primary/20 overflow-hidden">
-      <div className="max-w-[1100px] mx-auto w-full flex flex-col justify-center">
+    <div className="w-full py-12 md:py-20 px-4 sm:px-6 lg:px-10 xl:px-14 bg-primary/10 border-y border-primary/20 overflow-hidden">
+      <div className="max-w-screen-2xl 3xl:max-w-[min(2400px,90vw)] mx-auto w-full flex flex-col justify-center">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 md:mb-8 gap-4">
           <h2 className="text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter leading-[0.85]">
             Colosseum <br />

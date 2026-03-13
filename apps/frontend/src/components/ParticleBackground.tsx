@@ -14,37 +14,13 @@ const options: ISourceOptions = {
     enable: true,
     zIndex: 0,
   },
-  fpsLimit: 120,
+  fpsLimit: 60,
   interactivity: {
     detectsOn: "window",
     events: {
-      onClick: {
-        enable: true,
-        mode: "repulse",
-      },
-      onHover: {
-        enable: true,
-        mode: "bubble",
-      },
-      resize: {
-        enable: true,
-      },
-    },
-    modes: {
-      bubble: {
-        distance: 250,
-        duration: 2,
-        opacity: 0,
-        size: 0,
-      },
-      repulse: {
-        distance: 400,
-        duration: 0.4,
-        factor: 100,
-        speed: 1,
-        maxSpeed: 50,
-        easing: "ease-out-quad",
-      },
+      onClick: { enable: false },
+      onHover: { enable: false },
+      resize: { enable: true },
     },
   },
   particles: {
@@ -74,7 +50,7 @@ const options: ISourceOptions = {
         width: 1920,
         height: 1080,
       },
-      value: 160,
+      value: 55,
     },
     opacity: {
       value: { min: 0.05, max: 0.5 },

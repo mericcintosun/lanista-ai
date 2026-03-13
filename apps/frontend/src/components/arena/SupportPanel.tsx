@@ -1,398 +1,356 @@
 import { useMemo, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import type { Match } from '@lanista/types';
-import { Zap, Lock, AlertCircle, X, Info } from 'lucide-react';
+import { Zap, Lock, AlertCircle, X, TrendingUp, Shield, Trophy } from 'lucide-react';
 import { API_URL } from '../../lib/api';
 import { useAuthStore } from '../../lib/auth-store';
 import toast from 'react-hot-toast';
 import { useSupportPools } from '../../hooks/useSupportPools';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 
-interface SupportPanelProps {
-  match: Match;
-  disabled?: boolean;
-}
+/* ── Colour tokens ────────────────────────────────────────────────────────── */
+const FIRE = { b: '#f0894e', dim: 'rgba(240,137,78,0.18)', ring: 'rgba(240,137,78,0.45)' };
+const SKY  = { b: '#5bb3f5', dim: 'rgba(91,179,245,0.18)', ring: 'rgba(91,179,245,0.45)' };
+const SAGE = { b: '#8ed468', dim: 'rgba(142,212,104,0.15)', ring: 'rgba(142,212,104,0.35)' };
 
-// Spark bundles
-const SUPPORT_AMOUNTS = [100, 500, 1000, 5000];
+const AMOUNTS = [100, 500, 1_000, 5_000];
 
-function computeUnderdogMultipliers(p1Elo: number = 1200, p2Elo: number = 1200) {
-  const MAX_MULTIPLIER = 2.0;
+interface SupportPanelProps { match: Match; disabled?: boolean }
 
-  if (p1Elo === p2Elo) return { blue: 1.0, green: 1.0, blueIsUnder: false, greenIsUnder: false };
-
-  if (p1Elo < p2Elo) {
-    const diffTokens = Math.min((p2Elo - p1Elo) / 100, 1);
-    const m = 1.0 + diffTokens * (MAX_MULTIPLIER - 1.0);
-    return { blue: Number(m.toFixed(2)), green: 1.0, blueIsUnder: true, greenIsUnder: false };
-  } else {
-    const diffTokens = Math.min((p1Elo - p2Elo) / 100, 1);
-    const m = 1.0 + diffTokens * (MAX_MULTIPLIER - 1.0);
-    return { blue: 1.0, green: Number(m.toFixed(2)), blueIsUnder: false, greenIsUnder: true };
+function computeMultipliers(p1: number = 1200, p2: number = 1200) {
+  if (p1 === p2) return { p1: 1.0, p2: 1.0, p1Under: false, p2Under: false };
+  const MAX = 2.0;
+  if (p1 < p2) {
+    const m = 1 + Math.min((p2 - p1) / 100, 1) * (MAX - 1);
+    return { p1: +m.toFixed(2), p2: 1.0, p1Under: true, p2Under: false };
   }
+  const m = 1 + Math.min((p1 - p2) / 100, 1) * (MAX - 1);
+  return { p1: 1.0, p2: +m.toFixed(2), p1Under: false, p2Under: true };
 }
 
 export function SupportPanel({ match, disabled }: SupportPanelProps) {
-  const [selectedSide, setSelectedSide] = useState<'blue' | 'green' | null>(null);
-  const [amountInput, setAmountInput] = useState<string>('100');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showReputationFor, setShowReputationFor] = useState<'blue' | 'green' | null>(null);
-  
-  const { session } = useAuthStore();
+  const [side, setSide] = useState<'p1' | 'p2' | null>(null);
+  const [amount, setAmount] = useState('100');
+  const [submitting, setSubmitting] = useState(false);
+  const [modalFor, setModalFor] = useState<'p1' | 'p2' | null>(null);
 
+  const { session } = useAuthStore();
   const { bluePool, greenPool, setBluePool, setGreenPool } = useSupportPools(match.id);
 
-  const amounts = useMemo(() => {
-    const totalPool = bluePool + greenPool;
-    const bluePct = totalPool === 0 ? 50 : Math.round((bluePool / totalPool) * 100);
-    const greenPct = 100 - bluePct;
-    return { bluePct, greenPct, totalPool };
-  }, [bluePool, greenPool]);
+  const mults = useMemo(() => computeMultipliers(match.player_1?.elo, match.player_2?.elo), [match.player_1?.elo, match.player_2?.elo]);
+  const totalPool = bluePool + greenPool;
+  const p1Pct = totalPool === 0 ? 50 : Math.round((bluePool / totalPool) * 100);
+  const p2Pct = 100 - p1Pct;
 
-  const multipliers = useMemo(() => {
-    return computeUnderdogMultipliers(match.player_1?.elo, match.player_2?.elo);
-  }, [match.player_1?.elo, match.player_2?.elo]);
+  useLockBodyScroll(!!modalFor);
+  useEffect(() => {
+    if (!modalFor) return;
+    const fn = (e: KeyboardEvent) => { if (e.key === 'Escape') setModalFor(null); };
+    document.addEventListener('keydown', fn);
+    return () => document.removeEventListener('keydown', fn);
+  }, [modalFor]);
 
-  const handleSupport = async () => {
-    if (!session?.user?.id) {
-      toast.error('You must be logged in to support');
-      return;
-    }
-    if (!selectedSide) {
-      toast.error('Select a side first');
-      return;
-    }
+  const handleSubmit = async () => {
+    if (!session?.user?.id) { toast.error('Login required'); return; }
+    if (!side) { toast.error('Pick a fighter first'); return; }
+    const n = parseInt(amount);
+    if (isNaN(n) || n < 100) { toast.error('Minimum 100 Sparks'); return; }
+    if (match.status === 'finished' || match.status === 'aborted') { toast.error('Match is over'); return; }
 
-    const numAmount = parseInt(amountInput);
-    if (isNaN(numAmount) || numAmount < 100) {
-      toast.error('Minimum support amount is 100 Sparks');
-      return;
-    }
-
-    const isFinished = match.status === 'finished' || match.status === 'aborted';
-    if (isFinished) {
-      toast.error('Match is already finished');
-      return;
-    }
-
-    setIsSubmitting(true);
+    setSubmitting(true);
     try {
-      const type = selectedSide === 'blue' ? 'support_player_1' : 'support_player_2';
-      
+      const type = side === 'p1' ? 'support_player_1' : 'support_player_2';
       const res = await fetch(`${API_URL}/sparks/spend`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          amount: numAmount,
-          type,
-          reference_id: match.id
-        })
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ amount: n, type, reference_id: match.id }),
       });
-
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to submit support');
-
-      // Instead of an imaginary setSparkBalance on useAuthStore, just let the next polling/restart update it
-      toast.success(`Backing ${selectedSide === 'blue' ? match.player_1?.name : match.player_2?.name} with ${numAmount} Sparks!`);
-      
-      if (selectedSide === 'blue') setBluePool(p => p + numAmount);
-      else setGreenPool(p => p + numAmount);
-      
-      setAmountInput('100');
-    } catch (err: any) {
-      toast.error(err.message);
+      if (!res.ok) throw new Error(data.error || 'Failed');
+      toast.success(`Backing ${side === 'p1' ? match.player_1?.name : match.player_2?.name} with ${n} ⚡`);
+      if (side === 'p1') setBluePool(p => p + n);
+      else setGreenPool(p => p + n);
+      setAmount('100');
+    } catch (e: any) {
+      toast.error(e.message);
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
   };
 
-  const reputationBot = showReputationFor === 'blue' ? match.player_1 : match.player_2;
-
-  useLockBodyScroll(!!showReputationFor);
-
-  useEffect(() => {
-    if (!showReputationFor) return;
-    const onEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setShowReputationFor(null);
-    };
-    document.addEventListener('keydown', onEscape);
-    return () => document.removeEventListener('keydown', onEscape);
-  }, [showReputationFor]);
-
+  /* ── Pool voided ── */
   if (match.is_pool_voided) {
     return (
-      <div className="bg-zinc-900/60 rounded-xl border border-zinc-700/80 overflow-hidden relative p-8 text-center flex flex-col items-center justify-center gap-4">
-        <div className="absolute inset-0 bg-amber-500/5 pointer-events-none" />
-        <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 mb-2">
-          <AlertCircle className="w-6 h-6" />
+      <div className="rounded-2xl p-6 text-center flex flex-col items-center gap-4"
+        style={{ background: '#111116', border: `1px solid ${FIRE.ring}` }}>
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center"
+          style={{ background: FIRE.dim, border: `1px solid ${FIRE.ring}` }}>
+          <AlertCircle className="w-6 h-6" style={{ color: FIRE.b }} />
         </div>
-        <h3 className="font-bold text-lg text-white">Community Pool Voided</h3>
-        <p className="text-sm text-zinc-400 max-w-[280px] leading-relaxed">
-          Not enough competition was found for this match. All support has been <span className="text-amber-400 font-bold italic underline">refunded</span> to your balance.
-        </p>
-        <div className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest mt-2">
-          Status: Unmatched Pool // Proof recorded
+        <div>
+          <p className="font-black text-base text-white uppercase italic tracking-tight mb-1">Pool Voided</p>
+          <p className="text-sm text-white/50 leading-relaxed">
+            Match was unmatched — your Sparks were <span className="font-bold" style={{ color: FIRE.b }}>refunded</span>.
+          </p>
         </div>
       </div>
     );
   }
 
+  const modalBot = modalFor === 'p1' ? match.player_1 : match.player_2;
+  const modalPool = modalFor === 'p1' ? bluePool : greenPool;
+  const modalMult = modalFor === 'p1' ? mults.p1 : mults.p2;
+  const modalUnder = modalFor === 'p1' ? mults.p1Under : mults.p2Under;
+
   return (
-    <div className="bg-zinc-900/60 rounded-xl border border-zinc-700/80 overflow-hidden relative min-w-0 w-full">
-      <div className="absolute inset-x-0 top-0 h-0.5 bg-amber-500/40" />
+    <>
+      <div className="rounded-2xl overflow-hidden" style={{ background: '#111116', border: '1px solid rgba(255,255,255,0.1)' }}>
 
-      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 min-w-0 overflow-x-hidden">
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-mono text-sm tracking-[0.2em] text-zinc-500 uppercase">Arena Sentiment</h3>
-            <span className="font-mono text-xs text-zinc-500">{amounts.totalPool.toLocaleString()} Sparks backed</span>
-          </div>
+        {/* ── Top fire accent ── */}
+        <div className="h-[3px]" style={{ background: `linear-gradient(90deg, ${SKY.b}, ${FIRE.b})` }} />
 
-          <div className="h-2 rounded-full overflow-hidden flex bg-zinc-800/80 border border-zinc-700/80">
-            <div
-              className="bg-zinc-600 transition-all duration-500"
-              style={{ width: `${amounts.bluePct}%` }}
-            />
-            <div
-              className="bg-amber-500/70 transition-all duration-500"
-              style={{ width: `${amounts.greenPct}%` }}
-            />
-          </div>
-          <div className="flex justify-between mt-2 font-mono text-xs text-zinc-400">
-            <span>Corner 1 · {amounts.bluePct}%</span>
-            <span>Corner 2 · {amounts.greenPct}%</span>
-          </div>
-        </div>
+        <div className="p-4 sm:p-5 space-y-5">
 
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 relative group/cards min-w-0">
-          {/* Corner 1 (Blue / P1) */}
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={() => !disabled && setSelectedSide('blue')}
-            onKeyDown={(e) => {
-              if ((e.key === 'Enter' || e.key === ' ') && !disabled) {
-                e.preventDefault();
-                setSelectedSide('blue');
-              }
-            }}
-            className={`relative p-3 sm:p-4 rounded-xl border text-left transition-all duration-300 cursor-pointer ${
-              selectedSide === 'blue'
-                ? 'bg-amber-500/10 border-amber-500/60 shadow-[0_0_20px_rgba(245,158,11,0.12)]'
-                : 'bg-zinc-800/50 border-zinc-700/80 hover:border-zinc-600 hover:bg-zinc-800/70'
-            } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            {selectedSide === 'blue' && (
-              <div className="absolute -inset-px rounded-xl border border-amber-500/50 pointer-events-none" />
-            )}
-            <div className="text-xs sm:text-sm text-zinc-400 font-mono mb-1 uppercase tracking-wider flex items-center gap-2">
-              Corner 1
-            </div>
-            <div className="font-bold text-white mb-2 flex justify-between items-center pr-2">
-              <span className="truncate">{match.player_1?.name || 'Loading...'}</span>
-              <button
-                type="button"
-                className="w-6 h-6 rounded-full bg-zinc-700 flex items-center justify-center hover:bg-zinc-600 text-zinc-300 transition-colors z-10 shrink-0"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  setShowReputationFor('blue');
-                }}
-              >
-                <Info className="w-3.5 h-3.5" />
+          {/* ── Section label ── */}
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-xs font-bold uppercase tracking-[0.25em]" style={{ color: FIRE.b }}>
+              ⚔ Pick Your Fighter
+            </span>
+            {side && (
+              <button className="font-mono text-[10px] text-white/30 hover:text-white/60 transition-colors uppercase tracking-widest"
+                onClick={() => setSide(null)}>
+                Clear
               </button>
-            </div>
-            <div className="font-mono flex flex-col gap-1">
-              <div className="text-sm text-zinc-300">
-                {bluePool.toLocaleString()} Sparks
-              </div>
-              <div className={`text-xs ${multipliers.blueIsUnder ? 'text-amber-400' : 'text-zinc-500'}`}>
-                {multipliers.blueIsUnder ? `Multi-boost: ${multipliers.blue.toFixed(2)}x` : `Stable · 1.00x`}
-              </div>
-            </div>
-          </div>
-
-          {/* Corner 2 (Green / P2) */}
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={() => !disabled && setSelectedSide('green')}
-            onKeyDown={(e) => {
-              if ((e.key === 'Enter' || e.key === ' ') && !disabled) {
-                e.preventDefault();
-                setSelectedSide('green');
-              }
-            }}
-            className={`relative p-3 sm:p-4 rounded-xl border text-left transition-all duration-300 cursor-pointer ${
-              selectedSide === 'green'
-                ? 'bg-amber-500/10 border-amber-500/60 shadow-[0_0_20px_rgba(245,158,11,0.12)]'
-                : 'bg-zinc-800/50 border-zinc-700/80 hover:border-zinc-600 hover:bg-zinc-800/70'
-            } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            {selectedSide === 'green' && (
-              <div className="absolute -inset-px rounded-xl border border-amber-500/50 pointer-events-none" />
             )}
-            <div className="text-xs sm:text-sm text-zinc-400 font-mono mb-1 uppercase tracking-wider flex items-center justify-end gap-2">
-              Corner 2
+          </div>
+
+          {/* ── PLAYER PICKER — big cards ── */}
+          <div className="grid grid-cols-2 gap-3">
+            {([
+              { key: 'p1' as const, bot: match.player_1, pool: bluePool, pct: p1Pct, mult: mults.p1, under: mults.p1Under, c: SKY },
+              { key: 'p2' as const, bot: match.player_2, pool: greenPool, pct: p2Pct, mult: mults.p2, under: mults.p2Under, c: FIRE },
+            ]).map(({ key, bot, pool, pct, mult, under, c }) => {
+              const selected = side === key;
+              return (
+                <div
+                  key={key}
+                  role="button"
+                  tabIndex={disabled ? -1 : 0}
+                  onClick={() => !disabled && setSide(selected ? null : key)}
+                  onKeyDown={e => {
+                    if ((e.key === 'Enter' || e.key === ' ') && !disabled) {
+                      e.preventDefault();
+                      setSide(selected ? null : key);
+                    }
+                  }}
+                  className={`relative flex flex-col items-center gap-2.5 p-3 sm:p-4 rounded-2xl text-center transition-all duration-200 group w-full ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
+                  style={{
+                    background: selected ? c.dim : 'rgba(255,255,255,0.03)',
+                    border: `2px solid ${selected ? c.b : 'rgba(255,255,255,0.07)'}`,
+                    boxShadow: selected ? `0 0 20px ${c.ring}` : 'none',
+                  }}
+                >
+                  {/* Avatar */}
+                  <div className="relative">
+                    <img
+                      src={bot?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${bot?.name || key}`}
+                      alt={bot?.name || key}
+                      className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-cover"
+                      style={{ border: `2px solid ${selected ? c.b : 'rgba(255,255,255,0.1)'}` }}
+                    />
+                    {selected && (
+                      <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-black text-[10px] font-black"
+                        style={{ background: c.b }}>✓</div>
+                    )}
+                  </div>
+
+                  {/* Name */}
+                  <p className="font-black text-sm sm:text-base uppercase italic tracking-tight leading-tight text-white group-hover:scale-105 transition-transform w-full truncate px-4">
+                    {bot?.name || (key === 'p1' ? 'Fighter 1' : 'Fighter 2')}
+                  </p>
+
+                  {/* Pool + boost */}
+                  <div className="space-y-1 w-full shrink-0">
+                    <p className="font-mono text-xs font-bold" style={{ color: c.b }}>
+                      {pool.toLocaleString()} ⚡ · {pct}%
+                    </p>
+                    {under && (
+                      <div className="flex items-center justify-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold mx-auto w-fit"
+                        style={{ background: 'rgba(240,137,78,0.2)', color: '#f0894e' }}>
+                        <TrendingUp className="w-2.5 h-2.5 shrink-0" />
+                        <span className="truncate">{mult}× boost</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Info btn */}
+                  <button
+                    type="button"
+                    className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center transition-colors cursor-pointer group/infobtn"
+                    style={{ background: 'rgba(255,255,255,0.1)' }}
+                    onClick={e => { e.stopPropagation(); setModalFor(key); }}
+                  >
+                    <span className="text-[10px] font-black text-white/50 group-hover/infobtn:text-white transition-colors">i</span>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ── Pool bar ── */}
+          <div>
+            <div className="h-2.5 rounded-full overflow-hidden flex"
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div className="transition-all duration-700 rounded-l-full" style={{ width: `${p1Pct}%`, background: SKY.b }} />
+              <div className="transition-all duration-700 rounded-r-full" style={{ width: `${p2Pct}%`, background: FIRE.b }} />
             </div>
-            <div className="font-bold text-white mb-2 text-right flex justify-between items-center flex-row-reverse pl-2">
-              <span className="truncate">{match.player_2?.name || 'Loading...'}</span>
-              <button
-                type="button"
-                className="w-6 h-6 rounded-full bg-zinc-700 flex items-center justify-center hover:bg-zinc-600 text-zinc-300 transition-colors z-10 shrink-0"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  setShowReputationFor('green');
-                }}
-              >
-                <Info className="w-3.5 h-3.5" />
-              </button>
-            </div>
-            <div className="font-mono text-right flex flex-col gap-1">
-              <div className="text-sm text-zinc-300">
-                {greenPool.toLocaleString()} Sparks
-              </div>
-              <div className={`text-xs ${multipliers.greenIsUnder ? 'text-amber-400' : 'text-zinc-500'}`}>
-                {multipliers.greenIsUnder ? `Multi-boost: ${multipliers.green.toFixed(2)}x` : `Stable · 1.00x`}
-              </div>
+            <div className="flex justify-between mt-1.5 font-mono text-[10px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              <span style={{ color: SKY.b }}>{match.player_1?.name?.split(' ')[0]} · {p1Pct}%</span>
+              <span className="text-white/25">{totalPool.toLocaleString()} total ⚡</span>
+              <span style={{ color: FIRE.b }}>{p2Pct}% · {match.player_2?.name?.split(' ')[0]}</span>
             </div>
           </div>
-        </div>
 
-        <div className="space-y-4 pt-4 border-t border-zinc-700/80">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1 min-w-0">
-              <Zap className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-500/80 shrink-0" />
+          {/* ── Amount + Submit ── */}
+          <div className="space-y-3">
+            {/* Quick amount pills */}
+            <div className="grid grid-cols-4 gap-2">
+              {AMOUNTS.map(a => (
+                <button key={a}
+                  onClick={() => setAmount(a.toString())}
+                  disabled={!!disabled || !side || submitting}
+                  className="py-2 rounded-xl text-xs font-mono font-black uppercase transition-all disabled:opacity-25"
+                  style={{
+                    background: amount === a.toString() && side
+                      ? (side === 'p1' ? SKY.dim : FIRE.dim)
+                      : 'rgba(255,255,255,0.04)',
+                    border: `1px solid ${amount === a.toString() && side ? (side === 'p1' ? SKY.ring : FIRE.ring) : 'rgba(255,255,255,0.07)'}`,
+                    color: amount === a.toString() && side ? (side === 'p1' ? SKY.b : FIRE.b) : 'rgba(255,255,255,0.45)',
+                  }}
+                >
+                  {a >= 1000 ? `${a / 1000}k` : a}
+                </button>
+              ))}
+            </div>
+
+            {/* Custom input */}
+            <div className="relative">
+              <Zap className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+                style={{ color: side ? (side === 'p1' ? SKY.b : FIRE.b) : 'rgba(255,255,255,0.25)' }} />
               <input
                 type="number"
-                value={amountInput}
-                onChange={(e) => setAmountInput(e.target.value)}
-                disabled={disabled || !selectedSide || isSubmitting}
-                className="w-full bg-zinc-900/80 border border-zinc-700 rounded-lg py-2 pl-9 pr-4 text-white font-mono placeholder-zinc-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30 disabled:opacity-50 transition-all"
-                placeholder="Sparks to contribute"
-                min="100"
-                step="100"
+                value={amount}
+                onChange={e => setAmount(e.target.value)}
+                disabled={!!disabled || !side || submitting}
+                className="w-full rounded-xl py-3 pl-9 pr-4 text-sm font-mono text-white font-bold placeholder-white/20 focus:outline-none disabled:opacity-40 transition-all"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: `1px solid ${side ? (side === 'p1' ? SKY.ring : FIRE.ring) : 'rgba(255,255,255,0.1)'}`,
+                }}
+                placeholder="Custom amount"
+                min="100" step="100"
               />
             </div>
 
+            {/* Submit */}
             <button
-              onClick={handleSupport}
-              disabled={disabled || !selectedSide || isSubmitting}
-              className="px-6 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-[0_0_12px_rgba(245,158,11,0.25)] flex items-center justify-center gap-2 group whitespace-nowrap"
+              onClick={handleSubmit}
+              disabled={!!disabled || !side || submitting}
+              className="w-full py-3.5 rounded-xl font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{
+                background: !side || disabled ? 'rgba(255,255,255,0.06)' : (side === 'p1' ? SKY.b : FIRE.b),
+                color: !side || disabled ? 'rgba(255,255,255,0.3)' : '#0a0a0b',
+                boxShadow: side && !disabled ? `0 0 18px ${side === 'p1' ? SKY.ring : FIRE.ring}` : 'none',
+              }}
             >
-              {isSubmitting ? (
-                <div className="w-4 h-4 rounded-full border-2 border-black/20 border-t-black animate-spin" />
-              ) : (
-                <Lock className="w-4 h-4 group-hover:scale-110 transition-transform" />
-              )}
-              <span>Back Strategy</span>
+              {submitting
+                ? <div className="w-4 h-4 rounded-full border-2 border-black/30 border-t-transparent animate-spin" />
+                : <Lock className="w-4 h-4" />
+              }
+              {submitting ? 'Processing…' : side ? `Back ${side === 'p1' ? match.player_1?.name : match.player_2?.name}` : 'Select a fighter first'}
             </button>
-          </div>
-
-          <div className="flex flex-wrap gap-2 min-w-0">
-            {SUPPORT_AMOUNTS.map(amount => (
-              <button
-                key={amount}
-                onClick={() => setAmountInput(amount.toString())}
-                disabled={disabled || !selectedSide || isSubmitting}
-                className="flex-1 min-w-[60px] py-1.5 rounded-md bg-zinc-800/80 hover:bg-zinc-700/80 border border-zinc-700 hover:border-zinc-600 text-xs font-mono text-zinc-300 hover:text-white disabled:opacity-50 transition-colors"
-              >
-                {amount.toLocaleString()}
-              </button>
-            ))}
           </div>
         </div>
       </div>
 
-      {showReputationFor && reputationBot && createPortal(
-        (() => {
-          const pool = showReputationFor === 'blue' ? bluePool : greenPool;
-          const mult = showReputationFor === 'blue' ? multipliers.blue : multipliers.green;
-          const isUnder = showReputationFor === 'blue' ? multipliers.blueIsUnder : multipliers.greenIsUnder;
-          return (
-            <div
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="prediction-modal-title"
-              className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-              onClick={() => setShowReputationFor(null)}
-            >
-              <div
-                className="w-full max-w-sm bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
-                onClick={e => e.stopPropagation()}
-              >
-                <div className="p-4 border-b border-zinc-700 bg-zinc-800/50 flex justify-between items-center">
-                  <div>
-                    <h4 id="prediction-modal-title" className="font-mono text-zinc-500 text-xs tracking-[0.2em] uppercase mb-1">
-                      Prediction · Arena Record
-                    </h4>
-                    <div className="font-bold text-lg text-white">{reputationBot.name}</div>
+      {/* ── Stats Modal ── */}
+      {modalFor && modalBot && createPortal(
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md"
+          onClick={() => setModalFor(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl"
+            style={{ background: '#111116', border: '1px solid rgba(255,255,255,0.12)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Modal header */}
+            <div className="flex items-center gap-4 p-5 border-b border-white/[0.06]">
+              <img
+                src={modalBot.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${modalBot.name}`}
+                alt={modalBot.name}
+                className="w-12 h-12 rounded-xl object-cover shrink-0"
+                style={{ border: `2px solid ${modalFor === 'p1' ? SKY.b : FIRE.b}` }}
+              />
+              <div className="flex-1 min-w-0">
+                <p className="font-mono text-[10px] uppercase tracking-widest text-white/35 mb-0.5">Fighter Stats</p>
+                <p className="font-black text-lg text-white uppercase italic tracking-tight truncate">{modalBot.name}</p>
+              </div>
+              <button onClick={() => setModalFor(null)}
+                className="p-1.5 rounded-lg text-white/40 hover:text-white transition-colors shrink-0"
+                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-3">
+              {/* W / L / Reputation */}
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: 'Wins', value: modalBot.wins || 0, color: SAGE.b, icon: <Trophy className="w-4 h-4" /> },
+                  { label: 'Losses', value: (modalBot.total_matches || 0) - (modalBot.wins || 0), color: 'rgba(255,255,255,0.4)', icon: null },
+                  { label: 'ELO', value: Math.round(modalBot.elo || 1200), color: FIRE.b, icon: <Shield className="w-4 h-4" /> },
+                ].map(s => (
+                  <div key={s.label} className="p-3 rounded-xl text-center"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                    {s.icon && <div className="flex justify-center mb-1" style={{ color: s.color }}>{s.icon}</div>}
+                    <div className="text-2xl font-black" style={{ color: s.color }}>{s.value}</div>
+                    <div className="font-mono text-[10px] uppercase tracking-widest text-white/30 mt-0.5">{s.label}</div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowReputationFor(null)}
-                    className="p-1.5 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-zinc-400 hover:text-white transition-colors"
-                    aria-label="Close"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+                ))}
+              </div>
+
+              {/* Reputation */}
+              <div className="flex items-center justify-between px-4 py-3 rounded-xl"
+                style={{ background: FIRE.dim, border: `1px solid ${FIRE.ring}` }}>
+                <span className="font-mono text-xs uppercase tracking-widest text-white/50">Reputation Score</span>
+                <span className="font-black text-xl" style={{ color: FIRE.b }}>{modalBot.reputation_score || 0}</span>
+              </div>
+
+              {/* Pool backed + boost */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center justify-between px-3 py-2.5 rounded-xl"
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-white/35">Backed</span>
+                  <span className="font-black text-sm" style={{ color: FIRE.b }}>{modalPool.toLocaleString()} ⚡</span>
                 </div>
-
-                <div className="p-5 space-y-6 max-h-[70vh] overflow-y-auto">
-                  <div className="bg-zinc-800/50 rounded-xl p-4 border border-zinc-700 font-mono text-sm leading-relaxed text-zinc-400">
-                    <span className="text-white font-bold block mb-2">Reputation Formula</span>
-                    (Verified Wins × 10) − (Losses × 5) + Win Streak Bonus
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-zinc-800/50 rounded-xl p-4 text-center border border-zinc-700">
-                      <div className="text-3xl font-black text-amber-400 mb-1">{reputationBot.wins || 0}</div>
-                      <div className="font-mono text-xs text-zinc-500 uppercase tracking-wider">Wins</div>
-                    </div>
-                    <div className="bg-zinc-800/50 rounded-xl p-4 text-center border border-zinc-700">
-                      <div className="text-3xl font-black text-zinc-400 mb-1">{(reputationBot.total_matches || 0) - (reputationBot.wins || 0)}</div>
-                      <div className="font-mono text-xs text-zinc-500 uppercase tracking-wider">Losses</div>
-                    </div>
-                  </div>
-
-                  <div className="rounded-xl p-4 border border-amber-500/30 bg-amber-500/10 flex items-center justify-between">
-                    <span className="font-mono text-sm uppercase tracking-wider text-zinc-400">Reputation Score</span>
-                    <span className="text-2xl font-black text-amber-400">{reputationBot.reputation_score || 0}</span>
-                  </div>
-
-                  <div className="flex justify-between items-center px-4 py-3 bg-zinc-800/50 rounded-xl border border-zinc-700">
-                    <span className="font-mono text-xs text-zinc-500 uppercase">Current ELO</span>
-                    <span className="font-bold text-white">{Math.round(reputationBot.elo || 1200)}</span>
-                  </div>
-
-                  <div className="flex justify-between items-center px-4 py-3 bg-zinc-800/50 rounded-xl border border-zinc-700">
-                    <span className="font-mono text-xs text-zinc-500 uppercase">Sparks backed</span>
-                    <span className="font-bold text-amber-400/90">{pool.toLocaleString()}</span>
-                  </div>
-
-                  {isUnder && (
-                    <div className="px-4 py-3 bg-zinc-800/50 rounded-xl border border-zinc-700 font-mono text-sm text-amber-400">
-                      Multi-boost: {mult.toFixed(2)}x
-                    </div>
-                  )}
-
-                  <div className="flex items-start gap-3 p-3 bg-zinc-800/50 rounded-xl border border-zinc-700 text-zinc-400">
-                    <AlertCircle className="w-5 h-5 shrink-0 text-amber-500/80" />
-                    <p className="text-xs leading-relaxed">
-                      All match results are proven cryptographically and recorded on the Avalanche blockchain. The reputation score is deterministic and immutable.
-                    </p>
-                  </div>
+                <div className="flex items-center justify-between px-3 py-2.5 rounded-xl"
+                  style={{ background: modalUnder ? FIRE.dim : 'rgba(255,255,255,0.04)', border: `1px solid ${modalUnder ? FIRE.ring : 'rgba(255,255,255,0.07)'}` }}>
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-white/35">Boost</span>
+                  <span className="font-black text-sm" style={{ color: modalUnder ? FIRE.b : 'rgba(255,255,255,0.4)' }}>{modalMult.toFixed(2)}×</span>
                 </div>
               </div>
+
+              {/* Formula note */}
+              <p className="font-mono text-[10px] text-white/25 text-center leading-relaxed">
+                Reputation = (Wins × 10) − (Losses × 5) + Streak Bonus<br />
+                Results anchored on Avalanche blockchain.
+              </p>
             </div>
-          );
-        })(),
+          </div>
+        </div>,
         document.body
       )}
-    </div>
+    </>
   );
 }

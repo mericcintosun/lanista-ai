@@ -1,4 +1,5 @@
-[{
+[
+  {
     "apiKey": "3ac453c7-e2f3-4b06-a14a-19f838bd1d55.2973df9e2540825f85f0f8f759b5321850c461ff1dc3d736",
     "botId": "3ac453c7-e2f3-4b06-a14a-19f838bd1d55",
     "name": "Waypoint"
@@ -37,5 +38,65 @@
     "apiKey": "0641bc56-bc6c-4d55-96f2-8500cfb8d057.79fc0a263c734d76da5cab0e39b3c527d576c4668ed2cd2e",
     "botId": "0641bc56-bc6c-4d55-96f2-8500cfb8d057",
     "name": "Ultra"
+  },
+  {
+    "apiKey": "a2549229-7769-4771-8d07-01a4ad5e850f.18558c8becc8c196e3dc888cf1d6852e68f9274bdb854980",
+    "botId": "a2549229-7769-4771-8d07-01a4ad5e850f",
+    "name": "Golem"
+  },
+  {
+    "apiKey": "051c05fe-05c7-4c02-964a-026b1ba6b4ef.d480ec34197cedf9e4016d1420b65952cfc5abfee56c65c6",
+    "botId": "051c05fe-05c7-4c02-964a-026b1ba6b4ef",
+    "name": "Aegis"
+  },
+  {
+    "apiKey": "b8ec52f1-7feb-44ee-8e1c-be08db06cea6.658513a2fb59de63b8b3889823d7e44fafb65d49266e2cb2",
+    "botId": "b8ec52f1-7feb-44ee-8e1c-be08db06cea6",
+    "name": "Muse"
+  },
+  {
+    "apiKey": "7d7d5047-3749-49ec-a190-01ef657e471e.60e400643c892f9cdb2255ad5ff582a24537137f7e073a96",
+    "botId": "7d7d5047-3749-49ec-a190-01ef657e471e",
+    "name": "Infer"
+  },
+  {
+    "apiKey": "842a4777-f848-441d-bc77-0949c6569db7.67f700620348c67754e72b66debdfda81268cebc423085a3",
+    "botId": "842a4777-f848-441d-bc77-0949c6569db7",
+    "name": "Riven"
+  },
+  {
+    "apiKey": "09f43a93-0a36-49c4-98cc-c246598c40a7.b8e4a9662da074c05488e756daa57704df752a73e251b5ad",
+    "botId": "09f43a93-0a36-49c4-98cc-c246598c40a7",
+    "name": "Zeph"
+  },
+  {
+    "apiKey": "b8438728-762e-4b84-b19f-358e01053f7e.3dbad16f62a49715e6bc5debd4663faf4e951e7166a9377b",
+    "botId": "b8438728-762e-4b84-b19f-358e01053f7e",
+    "name": "Vanta"
+  },
+  {
+    "apiKey": "919c0ca2-cc9c-4ad8-99d1-1ae167a0c78e.125ea6939b98646e8724adbda32ec0b16c1b5ea0447779f0",
+    "botId": "919c0ca2-cc9c-4ad8-99d1-1ae167a0c78e",
+    "name": "Xero"
+  },
+  {
+    "apiKey": "7695f314-25ab-4e12-8396-7112e860a9f8.81ce2587d4b7fc4630721f3cfcbbcff5831e4d9cc1bb831f",
+    "botId": "7695f314-25ab-4e12-8396-7112e860a9f8",
+    "name": "Zara"
+  },
+  {
+    "apiKey": "05daec0d-fb3a-4d1c-8019-5cf7d75cf9bb.8e8fbda29d26666a0c36a974097360da5411558eba1694e4",
+    "botId": "05daec0d-fb3a-4d1c-8019-5cf7d75cf9bb",
+    "name": "Warden"
+  },
+  {
+    "apiKey": "da6b2f6e-5d0b-47a2-9cae-157d39b23c72.5526ac222dc7959c47ee1d7a35860a0c2d763950e341c68a",
+    "botId": "da6b2f6e-5d0b-47a2-9cae-157d39b23c72",
+    "name": "Zeph2"
+  },
+  {
+    "apiKey": "35273577-9b98-463c-85f3-9fa2f2cfcd09.ed8e06e332726530a7788ea9ada0c748438544b7253ef979",
+    "botId": "35273577-9b98-463c-85f3-9fa2f2cfcd09",
+    "name": "Lumen"
   }
 ]
